@@ -58,6 +58,18 @@ fun TicTacToeGame() {
         mutableStateOf(true)
     }
 
+    var turnDenotingText by rememberSaveable {
+        mutableStateOf("Player 1's Turn")
+    }
+
+    var gameStarted by rememberSaveable {
+        mutableStateOf(true)
+    }
+
+    var resetButtonText by rememberSaveable {
+        mutableStateOf("Reset Game")
+    }
+
     // 0 for no image, 1 for player 1 and 2 for player 2
     var button1_state by rememberSaveable {
         mutableIntStateOf(0)
@@ -234,12 +246,14 @@ fun TicTacToeGame() {
                     ) {
                         IconButton(
                             onClick = {
-                                if (button1_state == 0)
-                                    button1_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button1_state == 0)
+                                        button1_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -259,12 +273,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button2_state == 0)
-                                    button2_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button2_state == 0)
+                                        button2_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -284,12 +300,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button3_state == 0)
-                                    button3_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button3_state == 0)
+                                        button3_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -309,12 +327,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button4_state == 0)
-                                    button4_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button4_state == 0)
+                                        button4_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -334,12 +354,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button5_state == 0)
-                                    button5_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button5_state == 0)
+                                        button5_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -359,12 +381,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button6_state == 0)
-                                    button6_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button6_state == 0)
+                                        button6_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -384,12 +408,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button7_state == 0)
-                                    button7_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button7_state == 0)
+                                        button7_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -409,12 +435,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button8_state == 0)
-                                    button8_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button8_state == 0)
+                                        button8_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -434,12 +462,14 @@ fun TicTacToeGame() {
 
                         IconButton(
                             onClick = {
-                                if (button9_state == 0)
-                                    button9_state = if (player1turn)
-                                        1
-                                    else
-                                        2
-                                player1turn = !player1turn
+                                if (gameStarted) {
+                                    if (button9_state == 0)
+                                        button9_state = if (player1turn)
+                                            1
+                                        else
+                                            2
+                                    player1turn = !player1turn
+                                }
                             },
                             modifier = Modifier
                                 .background(
@@ -482,11 +512,14 @@ fun TicTacToeGame() {
                         )
                     }
 
-                    Text(
-                        text = if (player1turn)
+                    if (gameStarted)
+                        turnDenotingText = if (player1turn)
                             "Player 1's Turn"
                         else
-                            "Player 2's Turn",
+                            "Player 2's Turn"
+
+                    Text(
+                        text = turnDenotingText,
                         style = MaterialTheme.typography.labelMedium,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(20.dp)
@@ -503,10 +536,79 @@ fun TicTacToeGame() {
                         button8_state = 0
                         button9_state = 0
                         player1turn = true
+                        resetButtonText = "Reset Game"
+                        gameStarted = true
                     }) {
-                        Text(text = "Reset Game")
+                        Text(text = resetButtonText)
                     }
                 }
+
+                // Check Winning Conditions
+                if (button1_state == button2_state && button2_state == button3_state && button1_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button1_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button4_state == button5_state && button5_state == button6_state && button4_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button4_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button7_state == button8_state && button8_state == button9_state && button7_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button7_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button1_state == button4_state && button4_state == button7_state && button1_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button1_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button2_state == button5_state && button5_state == button8_state && button2_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button2_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button3_state == button6_state && button6_state == button9_state && button3_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button3_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button1_state == button5_state && button5_state == button9_state && button1_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button1_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+                if (button3_state == button5_state && button5_state == button7_state && button3_state != 0) {
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    turnDenotingText = if (button3_state == 1)
+                        "Player 1 Won"
+                    else
+                        "Player 2 Won"
+                }
+
 //                AngledDivider(
 //                    modifier = Modifier
 //                        .width(100.dp)
