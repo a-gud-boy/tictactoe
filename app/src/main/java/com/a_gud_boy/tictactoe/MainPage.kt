@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -31,12 +33,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -201,300 +208,345 @@ fun TicTacToeGame() {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+            Box( // Add AngledDivider
+                modifier = Modifier
+                    .wrapContentSize()
+                    .background(Color.White)
+                    .padding(20.dp)
+
             ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
 //                Text(
 //                    text = "Game Board",
 //                    style = MaterialTheme.typography.labelMedium,
 //                    fontSize = 25.sp
 //                )
-                ConstraintLayout(
-                    constraintSet = constraints,
-                    modifier = Modifier
-                        .padding(20.dp, 10.dp, 20.dp, 20.dp)
-                        .width(300.dp)
-                        .height(300.dp)
-                ) {
-                    IconButton(
-                        onClick = {
-                            if (button1_state == 0)
-                                button1_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
+                    ConstraintLayout(
+                        constraintSet = constraints,
                         modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button1")
+                            .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                            .width(300.dp)
+                            .height(300.dp)
                     ) {
-                        if (button1_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button1_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
+                        IconButton(
+                            onClick = {
+                                if (button1_state == 0)
+                                    button1_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button1")
+                        ) {
+                            if (button1_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button1_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button2_state == 0)
+                                    button2_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button2")
+                        ) {
+                            if (button2_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button2_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button3_state == 0)
+                                    button3_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button3")
+                        ) {
+                            if (button3_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button3_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button4_state == 0)
+                                    button4_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button4")
+                        ) {
+                            if (button4_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button4_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button5_state == 0)
+                                    button5_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button5")
+                        ) {
+                            if (button5_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button5_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button6_state == 0)
+                                    button6_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button6")
+                        ) {
+                            if (button6_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button6_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button7_state == 0)
+                                    button7_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button7")
+                        ) {
+                            if (button7_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button7_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button8_state == 0)
+                                    button8_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button8")
+                        ) {
+                            if (button8_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button8_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (button9_state == 0)
+                                    button9_state = if (player1turn)
+                                        1
+                                    else
+                                        2
+                                player1turn = !player1turn
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .layoutId("button9")
+                        ) {
+                            if (button9_state == 1)
+                                Icon(Icons.Default.Close, contentDescription = "")
+                            else if (button9_state == 2)
+                                Icon(
+                                    painter = painterResource(R.drawable.player_2),
+                                    contentDescription = ""
+                                )
+                        }
+
+                        HorizontalDivider(
+                            Modifier.layoutId("divider1"),
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
+
+                        HorizontalDivider(
+                            Modifier.layoutId("divider2"),
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
+
+                        VerticalDivider(
+                            Modifier.layoutId("divider3"),
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
+
+                        VerticalDivider(
+                            Modifier.layoutId("divider4"),
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
                     }
 
-                    IconButton(
-                        onClick = {
-                            if (button2_state == 0)
-                                button2_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button2")
-                    ) {
-                        if (button2_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button2_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button3_state == 0)
-                                button3_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button3")
-                    ) {
-                        if (button3_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button3_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button4_state == 0)
-                                button4_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button4")
-                    ) {
-                        if (button4_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button4_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button5_state == 0)
-                                button5_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button5")
-                    ) {
-                        if (button5_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button5_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button6_state == 0)
-                                button6_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button6")
-                    ) {
-                        if (button6_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button6_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button7_state == 0)
-                                button7_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button7")
-                    ) {
-                        if (button7_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button7_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button8_state == 0)
-                                button8_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button8")
-                    ) {
-                        if (button8_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button8_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (button9_state == 0)
-                                button9_state = if (player1turn)
-                                    1
-                                else
-                                    2
-                            player1turn = !player1turn
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button9")
-                    ) {
-                        if (button9_state == 1)
-                            Icon(Icons.Default.Close, contentDescription = "")
-                        else if (button9_state == 2)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2),
-                                contentDescription = ""
-                            )
-                    }
-
-                    HorizontalDivider(
-                        Modifier.layoutId("divider1"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
+                    Text(
+                        text = if (player1turn)
+                            "Player 1's Turn"
+                        else
+                            "Player 2's Turn",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(20.dp)
                     )
 
-                    HorizontalDivider(
-                        Modifier.layoutId("divider2"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
-
-                    VerticalDivider(
-                        Modifier.layoutId("divider3"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
-
-                    VerticalDivider(
-                        Modifier.layoutId("divider4"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
+                    Button(onClick = {
+                        button1_state = 0
+                        button2_state = 0
+                        button3_state = 0
+                        button4_state = 0
+                        button5_state = 0
+                        button6_state = 0
+                        button7_state = 0
+                        button8_state = 0
+                        button9_state = 0
+                        player1turn = true
+                    }) {
+                        Text(text = "Reset Game")
+                    }
                 }
-
-                Text(
-                    text = if (player1turn)
-                        "Player 1's Turn"
-                    else
-                        "Player 2's Turn",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(20.dp)
-                )
-
-                Button(onClick = {
-                    button1_state = 0
-                    button2_state = 0
-                    button3_state = 0
-                    button4_state = 0
-                    button5_state = 0
-                    button6_state = 0
-                    button7_state = 0
-                    button8_state = 0
-                    button9_state = 0
-                    player1turn = true
-                }) {
-                    Text(text = "Reset Game")
-                }
+//                AngledDivider(
+//                    modifier = Modifier
+//                        .width(100.dp)
+//                        .height(100.dp), // The Canvas will fill this Box
+//                    color = Color.Red,
+//                    strokeWidth = 2.dp,
+//                    angle = 45f
+//                )
             }
         }
     }
+}
+
+@Composable
+fun AngledDivider(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.outline,
+    strokeWidth: Dp = 1.dp,
+    angle: Float = 45f
+) {
+    Spacer( // Or any other composable
+        modifier = modifier
+            .drawBehind { // Draw behind the content of the Spacer (which is nothing)
+                rotate(degrees = angle, pivot = center) { // Rotate the drawing commands
+                    val strokePx = strokeWidth.toPx()
+                    // Draw a horizontal line centered in the component
+                    // Adjust start and end if you want the line to not be centered
+                    // or to have a specific length before rotation.
+                    // This line will span the full width of the component before rotation.
+                    drawLine(
+                        color = color,
+                        // Draw line across the component's width, at its vertical center
+                        start = Offset(0f, size.height / 2),
+                        end = Offset(size.width, size.height / 2),
+                        strokeWidth = strokePx,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+    )
 }
 
 @Preview(showSystemUi = true)
