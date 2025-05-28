@@ -270,18 +270,18 @@ fun InfiniteTicTacToePage() {
                                         val startButtonId = winningButtonIds[0]
                                         val endButtonId = winningButtonIds[2]
 
-                                        val startCoords = buttonCoordinates[startButtonId]
-                                        val endCoords = buttonCoordinates[endButtonId]
+                                        val startCoordinates = buttonCoordinates[startButtonId]
+                                        val endCoordinates = buttonCoordinates[endButtonId]
 
-                                        if (startCoords != null && endCoords != null) {
+                                        if (startCoordinates != null && endCoordinates != null) {
                                             // 1. Get original center points (relative to this ConstraintLayout)
                                             val originalLineStart = Offset(
-                                                startCoords.size.width / 2f + startCoords.positionInParent().x,
-                                                startCoords.size.height / 2f + startCoords.positionInParent().y
+                                                startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
+                                                startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
                                             )
                                             val originalLineEnd = Offset(
-                                                endCoords.size.width / 2f + endCoords.positionInParent().x,
-                                                endCoords.size.height / 2f + endCoords.positionInParent().y
+                                                endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
+                                                endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
                                             )
 
                                             val lineExtensionLengthDp = 12.dp
