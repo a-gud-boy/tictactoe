@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,12 +35,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -50,7 +47,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -72,7 +68,7 @@ fun TicTacToeGame() {
     // At the top of your MainPage composable (or in a ViewModel)
 // ...
 
-    val WinnerInfoSaver = Saver<WinnerInfo?, Any>(
+    val winnerInfoSaver = Saver<WinnerInfo?, Any>(
         save = { winnerInfo ->
             winnerInfo?.let {
                 // Convert to something Bundle-able: List of player name and list of combination strings
@@ -82,6 +78,8 @@ fun TicTacToeGame() {
         restore = { saved ->
             if (saved is List<*>) {
                 val playerName = saved[0] as String
+
+                @Suppress("UNCHECKED_CAST")
                 val combinationList = saved[1] as List<String>
                 WinnerInfo(playerName, combinationList.toSet())
             } else {
@@ -90,8 +88,8 @@ fun TicTacToeGame() {
         }
     )
 
-    var winnerInfo by rememberSaveable(stateSaver = WinnerInfoSaver) {
-        mutableStateOf<WinnerInfo?>(
+    var winnerInfo by rememberSaveable(stateSaver = winnerInfoSaver) {
+        mutableStateOf(
             null
         )
     }
@@ -117,35 +115,6 @@ fun TicTacToeGame() {
     var resetButtonText by rememberSaveable {
         mutableStateOf("Reset Game")
     }
-
-    // 0 for no image, 1 for player 1 and 2 for player 2
-//    var button1_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button2_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button3_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button4_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button5_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button6_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button7_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button8_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
-//    var button9_state by rememberSaveable {
-//        mutableIntStateOf(0)
-//    }
 
     val constraints = ConstraintSet {
         // Id for all the buttons
@@ -302,19 +271,19 @@ fun TicTacToeGame() {
                                         val startButtonId = winningButtonIds[0]
                                         val endButtonId = winningButtonIds[2]
 
-                                        val startCoords = buttonCoordinates[startButtonId]
-                                        val endCoords = buttonCoordinates[endButtonId]
+                                        val startCoordinates = buttonCoordinates[startButtonId]
+                                        val endCoordinates = buttonCoordinates[endButtonId]
 
-                                        if (startCoords != null && endCoords != null) {
+                                        if (startCoordinates != null && endCoordinates != null) {
                                             // Coordinates are relative to this ConstraintLayout
                                             val lineStart = Offset(
-                                                startCoords.size.width / 2f + startCoords.positionInParent().x,
-                                                startCoords.size.height / 2f + startCoords.positionInParent().y
+                                                startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
+                                                startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
                                             )
 
                                             val lineEnd = Offset(
-                                                endCoords.size.width / 2f + endCoords.positionInParent().x,
-                                                endCoords.size.height / 2f + endCoords.positionInParent().y
+                                                endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
+                                                endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
                                             )
 
                                             drawLine(
@@ -926,125 +895,9 @@ fun TicTacToeGame() {
                         winnerInfo = WinnerInfo("Player 2 Wins", combination)
                     }
                 }
-
-//                if (winningCombinations.contains(player1Moves) || winningCombinations.contains(player1Moves.reversed())){
-//                    turnDenotingText = "Player 1 Won"
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                }
-//                if (winningCombinations.contains(player2Moves) || winningCombinations.contains(player2Moves.reversed())){
-//                    turnDenotingText = "Player 2 Won"
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                }
-
-
-                // Check Winning Conditions
-//                if (button1_state == button2_state && button2_state == button3_state && button1_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button1_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button4_state == button5_state && button5_state == button6_state && button4_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button4_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button7_state == button8_state && button8_state == button9_state && button7_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button7_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button1_state == button4_state && button4_state == button7_state && button1_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button1_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button2_state == button5_state && button5_state == button8_state && button2_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button2_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button3_state == button6_state && button6_state == button9_state && button3_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button3_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button1_state == button5_state && button5_state == button9_state && button1_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button1_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-//                if (button3_state == button5_state && button5_state == button7_state && button3_state != 0) {
-//                    gameStarted = false
-//                    resetButtonText = "New Game"
-//                    turnDenotingText = if (button3_state == 1)
-//                        "Player 1 Won"
-//                    else
-//                        "Player 2 Won"
-//                }
-
-//                AngledDivider(
-//                    modifier = Modifier
-//                        .width(100.dp)
-//                        .height(100.dp), // The Canvas will fill this Box
-//                    color = Color.Red,
-//                    strokeWidth = 2.dp,
-//                    angle = 45f
-//                )
             }
         }
     }
-}
-
-@Composable
-fun AngledDivider(
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.outline,
-    strokeWidth: Dp = 1.dp,
-    angle: Float = 45f
-) {
-    Spacer( // Or any other composable
-        modifier = modifier
-            .drawBehind { // Draw behind the content of the Spacer (which is nothing)
-                rotate(degrees = angle, pivot = center) { // Rotate the drawing commands
-                    val strokePx = strokeWidth.toPx()
-                    // Draw a horizontal line centered in the component
-                    // Adjust start and end if you want the line to not be centered
-                    // or to have a specific length before rotation.
-                    // This line will span the full width of the component before rotation.
-                    drawLine(
-                        color = color,
-                        // Draw line across the component's width, at its vertical center
-                        start = Offset(0f, size.height / 2),
-                        end = Offset(size.width, size.height / 2),
-                        strokeWidth = strokePx,
-                        cap = StrokeCap.Round
-                    )
-                }
-            }
-    )
 }
 
 @Preview(showSystemUi = true)
