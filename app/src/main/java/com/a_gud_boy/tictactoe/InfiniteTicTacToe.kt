@@ -123,6 +123,10 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
         mutableStateOf("Reset Game")
     }
 
+    var isGameConcluded by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val constraints = ConstraintSet {
         // Id for all the buttons
         val button1 = createRefFor("button1")
@@ -1233,6 +1237,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                 player1turn = true
                 resetButtonText = "Reset Game"
                 gameStarted = true
+                isGameConcluded = false // Reset game concluded state
             }) {
                 Text(text = resetButtonText)
             }
@@ -1256,21 +1261,28 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
         val visiblePlayer2Moves = player2Moves.takeLast(maxVisibleMovesPerPlayer).toSet()
 
         for (combination in winningCombinations) {
-            if (visiblePlayer1Moves.containsAll(combination)) {
-                turnDenotingText = "Player 1 Won"
-                gameStarted = false
-                resetButtonText =
-                    "New Game" // Player 1 has a winning combination among their visible moves
-                winnerInfo = WinnerInfo("Player 1 Wins", combination)
-                player1Wins++
-            }
-            if (visiblePlayer2Moves.containsAll(combination)) {
-                turnDenotingText = "Player 2 Won"
-                gameStarted = false
-                resetButtonText =
-                    "New Game" // Player 2 has a winning combination among their visible moves
-                winnerInfo = WinnerInfo("Player 2 Wins", combination)
-                player2Wins++
+            if (!isGameConcluded) { // Check if the game hasn't been marked as concluded yet
+                if (visiblePlayer1Moves.containsAll(combination)) {
+                    // All existing actions for Player 1 win:
+                    turnDenotingText = "Player 1 Won"
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    winnerInfo = WinnerInfo("Player 1 Wins", combination)
+                    player1Wins++
+                    // Add this line:
+                    isGameConcluded = true
+                }
+                // Add a similar check for Player 2, also setting isGameConcluded = true
+                if (visiblePlayer2Moves.containsAll(combination)) {
+                    // All existing actions for Player 2 win:
+                    turnDenotingText = "Player 2 Won"
+                    gameStarted = false
+                    resetButtonText = "New Game"
+                    winnerInfo = WinnerInfo("Player 2 Wins", combination)
+                    player2Wins++
+                    // Add this line:
+                    isGameConcluded = true
+                }
             }
         }
     }
