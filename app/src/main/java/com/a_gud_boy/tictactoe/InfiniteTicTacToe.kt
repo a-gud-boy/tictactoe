@@ -34,7 +34,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -47,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import com.a_gud_boy.tictactoe.ui.theme.background
+import com.a_gud_boy.tictactoe.ui.theme.constraintBackground
 
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -216,888 +220,890 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
         }
     }
 
-    Box(modifier = Modifier.padding(innerPadding)) {
-        Box( // Add AngledDivider
-            modifier = Modifier
-                .wrapContentSize()
-                .background(Color.White)
-                .padding(20.dp)
-
+    Box(
+        modifier = Modifier
+            .padding(innerPadding)
+            .wrapContentSize()
+            .background(background)
+            .padding(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
 //                Text(
 //                    text = "Game Board",
 //                    style = MaterialTheme.typography.labelMedium,
 //                    fontSize = 25.sp
 //                )
-                ConstraintLayout(
-                    constraintSet = constraints,
-                    modifier = Modifier
-                        .padding(20.dp, 10.dp, 20.dp, 20.dp)
-                        .width(300.dp)
-                        .height(300.dp)
-                        .drawWithContent {
-                            drawContent() // Draw buttons first
+            ConstraintLayout(
+                constraintSet = constraints,
+                modifier = Modifier
+                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                    .width(300.dp)
+                    .height(300.dp)
+                    .shadow(4.dp, shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(constraintBackground)
+                    .drawWithContent {
+                        drawContent() // Draw buttons first
 
-                            winnerInfo?.let { info ->
-                                val winningButtonIds = info.combination.toList()
-                                if (winningButtonIds.size == 3) {
-                                    val startButtonId = winningButtonIds[0]
-                                    val endButtonId = winningButtonIds[2]
+                        winnerInfo?.let { info ->
+                            val winningButtonIds = info.combination.toList()
+                            if (winningButtonIds.size == 3) {
+                                val startButtonId = winningButtonIds[0]
+                                val endButtonId = winningButtonIds[2]
 
-                                    val startCoordinates = buttonCoordinates[startButtonId]
-                                    val endCoordinates = buttonCoordinates[endButtonId]
+                                val startCoordinates = buttonCoordinates[startButtonId]
+                                val endCoordinates = buttonCoordinates[endButtonId]
 
-                                    if (startCoordinates != null && endCoordinates != null) {
-                                        // 1. Get original center points (relative to this ConstraintLayout)
-                                        val originalLineStart = Offset(
-                                            startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
-                                            startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
-                                        )
-                                        val originalLineEnd = Offset(
-                                            endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
-                                            endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
-                                        )
+                                if (startCoordinates != null && endCoordinates != null) {
+                                    // 1. Get original center points (relative to this ConstraintLayout)
+                                    val originalLineStart = Offset(
+                                        startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
+                                        startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
+                                    )
+                                    val originalLineEnd = Offset(
+                                        endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
+                                        endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
+                                    )
 
-                                        val lineExtensionLengthDp = 12.dp
+                                    val lineExtensionLengthDp = 12.dp
 
-                                        // Convert extension length from Dp to Px
-                                        val lineExtensionPx = lineExtensionLengthDp.toPx()
+                                    // Convert extension length from Dp to Px
+                                    val lineExtensionPx = lineExtensionLengthDp.toPx()
 
-                                        // 2. Calculate direction vector (from start to end)
-                                        val directionVector =
-                                            originalLineEnd - originalLineStart
+                                    // 2. Calculate direction vector (from start to end)
+                                    val directionVector =
+                                        originalLineEnd - originalLineStart
 
-                                        // Check for zero vector to avoid division by zero if buttons are at the same spot
-                                        if (directionVector.getDistanceSquared() == 0f) {
-                                            // Buttons are at the same spot, draw a point or very short line if needed
-                                            // Or simply draw the original line (which would be a point)
-                                            drawLine(
-                                                color = Color.Black.copy(alpha = 0.6f),
-                                                start = originalLineStart,
-                                                end = originalLineEnd,
-                                                strokeWidth = 5.dp.toPx(), // Your chosen thickness
-                                                cap = StrokeCap.Round
-                                            )
-                                            return@drawWithContent // Exit early
-                                        }
-
-                                        // 3. Normalize the direction vector (to get a unit vector)
-                                        val normalizedDirection =
-                                            directionVector / directionVector.getDistance()
-
-                                        // 4. Calculate new extended start and end points
-                                        val extendedLineStart =
-                                            originalLineStart - (normalizedDirection * lineExtensionPx)
-                                        val extendedLineEnd =
-                                            originalLineEnd + (normalizedDirection * lineExtensionPx)
-
+                                    // Check for zero vector to avoid division by zero if buttons are at the same spot
+                                    if (directionVector.getDistanceSquared() == 0f) {
+                                        // Buttons are at the same spot, draw a point or very short line if needed
+                                        // Or simply draw the original line (which would be a point)
                                         drawLine(
                                             color = Color.Black.copy(alpha = 0.6f),
-                                            start = extendedLineStart, // Use extended start
-                                            end = extendedLineEnd,     // Use extended end
+                                            start = originalLineStart,
+                                            end = originalLineEnd,
                                             strokeWidth = 5.dp.toPx(), // Your chosen thickness
                                             cap = StrokeCap.Round
                                         )
+                                        return@drawWithContent // Exit early
                                     }
+
+                                    // 3. Normalize the direction vector (to get a unit vector)
+                                    val normalizedDirection =
+                                        directionVector / directionVector.getDistance()
+
+                                    // 4. Calculate new extended start and end points
+                                    val extendedLineStart =
+                                        originalLineStart - (normalizedDirection * lineExtensionPx)
+                                    val extendedLineEnd =
+                                        originalLineEnd + (normalizedDirection * lineExtensionPx)
+
+                                    drawLine(
+                                        color = Color.Black.copy(alpha = 0.6f),
+                                        start = extendedLineStart, // Use extended start
+                                        end = extendedLineEnd,     // Use extended end
+                                        strokeWidth = 5.dp.toPx(), // Your chosen thickness
+                                        cap = StrokeCap.Round
+                                    )
                                 }
                             }
+                        }
+                    }
+            ) {
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button1" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button1")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button1"] = coordinates
                         }
                 ) {
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button1" // The layoutId of this button
+                    // Determine what to display based on the lists
+                    val buttonId = "button1"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
                             )
-                            .layoutId("button1")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button1"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button1"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button2" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
                             )
-                            .layoutId("button2")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button2"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button2"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button3" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
                             )
-                            .layoutId("button3")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button3"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button3"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
                     }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button4" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button4")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button4"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button4"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button5" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button5")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button5"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button5"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button6" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button6")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button6"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button6"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button7" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button7")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button7"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button7"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button8" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button8")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button8"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button8"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (gameStarted) {
-                                val buttonId = "button9" // The layoutId of this button
-
-                                // Check if this button is already an active move for either player
-                                val isAlreadyPlayedByPlayer1 =
-                                    player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-                                val isAlreadyPlayedByPlayer2 =
-                                    player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                        .contains(buttonId)
-
-                                if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                    if (player1turn) {
-                                        player1Moves.add(buttonId)
-                                        if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                            player1Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    } else {
-                                        player2Moves.add(buttonId)
-                                        if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                            player2Moves.removeAt(0) // Remove the oldest move
-                                        }
-                                    }
-                                    player1turn = !player1turn
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .layoutId("button9")
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates["button9"] = coordinates
-                            }
-                    ) {
-                        // Determine what to display based on the lists
-                        val buttonId = "button9"
-                        val isPlayer1Move =
-                            player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-                        val isPlayer2Move =
-                            player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
-
-                        val isPlayer1OldMove =
-                            if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
-                        val isPlayer2OldMove =
-                            if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
-
-                        if (isPlayer1Move) {
-                            if (isPlayer1OldMove) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Player 1 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            } else
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
-                        } else if (isPlayer2Move) {
-                            if (isPlayer2OldMove)
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move",
-                                    tint = Color.White.copy(0.6f)
-                                )
-                            else
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
-                        }
-                        // Else, display nothing (empty button)
-                    }
-
-                    HorizontalDivider(
-                        Modifier.layoutId("divider1"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
-
-                    HorizontalDivider(
-                        Modifier.layoutId("divider2"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
-
-                    VerticalDivider(
-                        Modifier.layoutId("divider3"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
-
-                    VerticalDivider(
-                        Modifier.layoutId("divider4"),
-                        DividerDefaults.Thickness,
-                        DividerDefaults.color
-                    )
+                    // Else, display nothing (empty button)
                 }
 
-                if (gameStarted)
-                    turnDenotingText = if (player1turn)
-                        "Player 1's Turn"
-                    else
-                        "Player 2's Turn"
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button2" // The layoutId of this button
 
-                Row(
-                    modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button2")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button2"] = coordinates
+                        }
                 ) {
-                    Text(
-                        text = "$turnDenotingText (",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = 20.sp
-                    )
-                    if (turnDenotingText == "Player 1's Turn" || turnDenotingText == "Player 1 Won")
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Turn Denoting Icon"
-                        )
-                    else
-                        Icon(
-                            painterResource(R.drawable.player_2),
-                            contentDescription = "Turn Denoting Icon"
-                        )
-                    Text(
-                        text = ")",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = 20.sp
-                    )
+                    // Determine what to display based on the lists
+                    val buttonId = "button2"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
                 }
 
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button3" // The layoutId of this button
 
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
 
-                Button(onClick = {
-                    player1Moves = mutableListOf()
-                    player2Moves = mutableListOf()
-                    winnerInfo = null // Reset winnerInfo
-                    buttonCoordinates.clear() // Clear stored coordinates (though they'll repopulate)
-                    player1turn = true
-                    resetButtonText = "Reset Game"
-                    gameStarted = true
-                }) {
-                    Text(text = resetButtonText)
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button3")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button3"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button3"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
                 }
+
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button4" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button4")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button4"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button4"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
+                }
+
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button5" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button5")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button5"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button5"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
+                }
+
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button6" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button6")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button6"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button6"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
+                }
+
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button7" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button7")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button7"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button7"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
+                }
+
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button8" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button8")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button8"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button8"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
+                }
+
+                IconButton(
+                    onClick = {
+                        if (gameStarted) {
+                            val buttonId = "button9" // The layoutId of this button
+
+                            // Check if this button is already an active move for either player
+                            val isAlreadyPlayedByPlayer1 =
+                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+                            val isAlreadyPlayedByPlayer2 =
+                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                    .contains(buttonId)
+
+                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                if (player1turn) {
+                                    player1Moves.add(buttonId)
+                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                        player1Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                } else {
+                                    player2Moves.add(buttonId)
+                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                        player2Moves.removeAt(0) // Remove the oldest move
+                                    }
+                                }
+                                player1turn = !player1turn
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .background(
+                            color = Color.LightGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .layoutId("button9")
+                        .onGloballyPositioned { coordinates ->
+                            buttonCoordinates["button9"] = coordinates
+                        }
+                ) {
+                    // Determine what to display based on the lists
+                    val buttonId = "button9"
+                    val isPlayer1Move =
+                        player1Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+                    val isPlayer2Move =
+                        player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
+
+                    val isPlayer1OldMove =
+                        if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                    val isPlayer2OldMove =
+                        if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
+                    if (isPlayer1Move) {
+                        if (isPlayer1OldMove) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Player 1 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        } else
+                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                    } else if (isPlayer2Move) {
+                        if (isPlayer2OldMove)
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move",
+                                tint = Color.White.copy(0.6f)
+                            )
+                        else
+                            Icon(
+                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                contentDescription = "Player 2 move"
+                            )
+                    }
+                    // Else, display nothing (empty button)
+                }
+
+                HorizontalDivider(
+                    Modifier.layoutId("divider1"),
+                    DividerDefaults.Thickness,
+                    DividerDefaults.color
+                )
+
+                HorizontalDivider(
+                    Modifier.layoutId("divider2"),
+                    DividerDefaults.Thickness,
+                    DividerDefaults.color
+                )
+
+                VerticalDivider(
+                    Modifier.layoutId("divider3"),
+                    DividerDefaults.Thickness,
+                    DividerDefaults.color
+                )
+
+                VerticalDivider(
+                    Modifier.layoutId("divider4"),
+                    DividerDefaults.Thickness,
+                    DividerDefaults.color
+                )
             }
 
-            val winningCombinations = listOf(
-                // Rows
-                setOf("button1", "button2", "button3"),
-                setOf("button4", "button5", "button6"),
-                setOf("button7", "button8", "button9"),
-                // Columns
-                setOf("button1", "button4", "button7"),
-                setOf("button2", "button5", "button8"),
-                setOf("button3", "button6", "button9"),
-                // Diagonals
-                setOf("button1", "button5", "button9"),
-                setOf("button3", "button5", "button7")
-            )
+            if (gameStarted)
+                turnDenotingText = if (player1turn)
+                    "Player 1's Turn"
+                else
+                    "Player 2's Turn"
 
-            val visiblePlayer1Moves = player1Moves.takeLast(maxVisibleMovesPerPlayer).toSet()
-            val visiblePlayer2Moves = player2Moves.takeLast(maxVisibleMovesPerPlayer).toSet()
+            Row(
+                modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "$turnDenotingText (",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontSize = 20.sp
+                )
+                if (turnDenotingText == "Player 1's Turn" || turnDenotingText == "Player 1 Won")
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Turn Denoting Icon"
+                    )
+                else
+                    Icon(
+                        painterResource(R.drawable.player_2),
+                        contentDescription = "Turn Denoting Icon"
+                    )
+                Text(
+                    text = ")",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontSize = 20.sp
+                )
+            }
 
-            for (combination in winningCombinations) {
-                if (visiblePlayer1Moves.containsAll(combination)) {
-                    turnDenotingText = "Player 1 Won"
-                    gameStarted = false
-                    resetButtonText =
-                        "New Game" // Player 1 has a winning combination among their visible moves
-                    winnerInfo = WinnerInfo("Player 1 Wins", combination)
-                }
-                if (visiblePlayer2Moves.containsAll(combination)) {
-                    turnDenotingText = "Player 2 Won"
-                    gameStarted = false
-                    resetButtonText =
-                        "New Game" // Player 2 has a winning combination among their visible moves
-                    winnerInfo = WinnerInfo("Player 2 Wins", combination)
-                }
+
+
+            Button(onClick = {
+                player1Moves = mutableListOf()
+                player2Moves = mutableListOf()
+                winnerInfo = null // Reset winnerInfo
+                buttonCoordinates.clear() // Clear stored coordinates (though they'll repopulate)
+                player1turn = true
+                resetButtonText = "Reset Game"
+                gameStarted = true
+            }) {
+                Text(text = resetButtonText)
+            }
+        }
+
+        val winningCombinations = listOf(
+            // Rows
+            setOf("button1", "button2", "button3"),
+            setOf("button4", "button5", "button6"),
+            setOf("button7", "button8", "button9"),
+            // Columns
+            setOf("button1", "button4", "button7"),
+            setOf("button2", "button5", "button8"),
+            setOf("button3", "button6", "button9"),
+            // Diagonals
+            setOf("button1", "button5", "button9"),
+            setOf("button3", "button5", "button7")
+        )
+
+        val visiblePlayer1Moves = player1Moves.takeLast(maxVisibleMovesPerPlayer).toSet()
+        val visiblePlayer2Moves = player2Moves.takeLast(maxVisibleMovesPerPlayer).toSet()
+
+        for (combination in winningCombinations) {
+            if (visiblePlayer1Moves.containsAll(combination)) {
+                turnDenotingText = "Player 1 Won"
+                gameStarted = false
+                resetButtonText =
+                    "New Game" // Player 1 has a winning combination among their visible moves
+                winnerInfo = WinnerInfo("Player 1 Wins", combination)
+            }
+            if (visiblePlayer2Moves.containsAll(combination)) {
+                turnDenotingText = "Player 2 Won"
+                gameStarted = false
+                resetButtonText =
+                    "New Game" // Player 2 has a winning combination among their visible moves
+                winnerInfo = WinnerInfo("Player 2 Wins", combination)
             }
         }
     }
+
 }
 
 //@Preview(showSystemUi = true)

@@ -22,6 +22,7 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.a_gud_boy.tictactoe.ui.theme.background
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,7 +54,7 @@ fun MainPage() {
 
     val scope = rememberCoroutineScope()
 
-    var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedItemIndex by rememberSaveable { mutableIntStateOf(1) }
     val items = listOf("Normal TicTacToe", "Infinite TicTacToe")
 
     ModalNavigationDrawer(
@@ -129,7 +131,10 @@ fun MainPage() {
                         }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = "Settings Icon")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = background
+                    )
                 )
             }
         ) { innerPadding ->
