@@ -1051,8 +1051,8 @@ fun TicTacToeGame() {
                     )
 
                     Button(onClick = {
-                        player1Moves.clear()
-                        player2Moves.clear()
+                        player1Moves = mutableListOf()
+                        player2Moves = mutableListOf()
                         winnerInfo = null // Reset winnerInfo
                         buttonCoordinates.clear() // Clear stored coordinates (though they'll repopulate)
                         player1turn = true
