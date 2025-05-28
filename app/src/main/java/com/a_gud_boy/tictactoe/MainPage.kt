@@ -28,17 +28,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +68,38 @@ fun TicTacToeGame() {
     var player2Moves by rememberSaveable { mutableStateOf(mutableListOf<String>()) }
 // Stores the layoutId of the buttons player 2 clicked, in order.
     val maxVisibleMovesPerPlayer = 3 // Only show the last 3 moves for each player
+
+    // At the top of your MainPage composable (or in a ViewModel)
+// ...
+
+    val WinnerInfoSaver = Saver<WinnerInfo?, Any>(
+        save = { winnerInfo ->
+            winnerInfo?.let {
+                // Convert to something Bundle-able: List of player name and list of combination strings
+                listOf(it.playerName, it.combination.toList())
+            }
+        },
+        restore = { saved ->
+            if (saved is List<*>) {
+                val playerName = saved[0] as String
+                val combinationList = saved[1] as List<String>
+                WinnerInfo(playerName, combinationList.toSet())
+            } else {
+                null
+            }
+        }
+    )
+
+    var winnerInfo by rememberSaveable(stateSaver = WinnerInfoSaver) {
+        mutableStateOf<WinnerInfo?>(
+            null
+        )
+    }
+
+
+// We'll define WinnerInfoSaver below
+// To store coordinates of all buttons for drawing the line
+    val buttonCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
 
     // True for player 1 and false for player 2
     var player1turn by rememberSaveable {
@@ -252,6 +291,43 @@ fun TicTacToeGame() {
                             .padding(20.dp, 10.dp, 20.dp, 20.dp)
                             .width(300.dp)
                             .height(300.dp)
+                            .drawWithContent {
+                                // Step 1: Draw the original content (the buttons)
+                                drawContent()
+
+                                // Step 2: Draw the line on top
+                                winnerInfo?.let { info ->
+                                    val winningButtonIds = info.combination.toList()
+                                    if (winningButtonIds.size == 3) {
+                                        val startButtonId = winningButtonIds[0]
+                                        val endButtonId = winningButtonIds[2]
+
+                                        val startCoords = buttonCoordinates[startButtonId]
+                                        val endCoords = buttonCoordinates[endButtonId]
+
+                                        if (startCoords != null && endCoords != null) {
+                                            // Coordinates are relative to this ConstraintLayout
+                                            val lineStart = Offset(
+                                                startCoords.size.width / 2f + startCoords.positionInParent().x,
+                                                startCoords.size.height / 2f + startCoords.positionInParent().y
+                                            )
+
+                                            val lineEnd = Offset(
+                                                endCoords.size.width / 2f + endCoords.positionInParent().x,
+                                                endCoords.size.height / 2f + endCoords.positionInParent().y
+                                            )
+
+                                            drawLine(
+                                                color = if (info.playerName == "Player 1 Wins") Color.Red else Color.Blue,
+                                                start = lineStart,
+                                                end = lineEnd,
+                                                strokeWidth = 8.dp.toPx(),
+                                                cap = StrokeCap.Round
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                     ) {
                         IconButton(
                             onClick = {
@@ -288,6 +364,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button1")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button1"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button1"
@@ -342,6 +421,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button2")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button2"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button2"
@@ -396,6 +478,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button3")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button3"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button3"
@@ -450,6 +535,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button4")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button4"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button4"
@@ -504,6 +592,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button5")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button5"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button5"
@@ -558,6 +649,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button6")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button6"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button6"
@@ -612,6 +706,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button7")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button7"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button7"
@@ -666,6 +763,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button8")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button8"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button8"
@@ -720,6 +820,9 @@ fun TicTacToeGame() {
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .layoutId("button9")
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates["button9"] = coordinates
+                                }
                         ) {
                             // Determine what to display based on the lists
                             val buttonId = "button9"
@@ -780,6 +883,8 @@ fun TicTacToeGame() {
                     Button(onClick = {
                         player1Moves.clear()
                         player2Moves.clear()
+                        winnerInfo = null // Reset winnerInfo
+                        buttonCoordinates.clear() // Clear stored coordinates (though they'll repopulate)
                         player1turn = true
                         resetButtonText = "Reset Game"
                         gameStarted = true
@@ -809,12 +914,16 @@ fun TicTacToeGame() {
                     if (visiblePlayer1Moves.containsAll(combination)) {
                         turnDenotingText = "Player 1 Won"
                         gameStarted = false
-                        resetButtonText = "New Game" // Player 1 has a winning combination among their visible moves
+                        resetButtonText =
+                            "New Game" // Player 1 has a winning combination among their visible moves
+                        winnerInfo = WinnerInfo("Player 1 Wins", combination)
                     }
                     if (visiblePlayer2Moves.containsAll(combination)) {
                         turnDenotingText = "Player 2 Won"
                         gameStarted = false
-                        resetButtonText = "New Game" // Player 2 has a winning combination among their visible moves
+                        resetButtonText =
+                            "New Game" // Player 2 has a winning combination among their visible moves
+                        winnerInfo = WinnerInfo("Player 2 Wins", combination)
                     }
                 }
 
