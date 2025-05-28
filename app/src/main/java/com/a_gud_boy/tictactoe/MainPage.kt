@@ -55,7 +55,7 @@ import androidx.constraintlayout.compose.ConstraintSet
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TicTacToeGame() {//Hi
+fun TicTacToeGame() {
     // At the top of your MainPage composable (or in a ViewModel)
 // For Player 1 (X)
     var player1Moves by rememberSaveable { mutableStateOf(mutableListOf<String>()) }
@@ -261,36 +261,66 @@ fun TicTacToeGame() {//Hi
                             .width(300.dp)
                             .height(300.dp)
                             .drawWithContent {
-                                // Step 1: Draw the original content (the buttons)
-                                drawContent()
+                                drawContent() // Draw buttons first
 
-                                // Step 2: Draw the line on top
                                 winnerInfo?.let { info ->
                                     val winningButtonIds = info.combination.toList()
                                     if (winningButtonIds.size == 3) {
                                         val startButtonId = winningButtonIds[0]
                                         val endButtonId = winningButtonIds[2]
 
-                                        val startCoordinates = buttonCoordinates[startButtonId]
-                                        val endCoordinates = buttonCoordinates[endButtonId]
+                                        val startCoords = buttonCoordinates[startButtonId]
+                                        val endCoords = buttonCoordinates[endButtonId]
 
-                                        if (startCoordinates != null && endCoordinates != null) {
-                                            // Coordinates are relative to this ConstraintLayout
-                                            val lineStart = Offset(
-                                                startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
-                                                startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
+                                        if (startCoords != null && endCoords != null) {
+                                            // 1. Get original center points (relative to this ConstraintLayout)
+                                            val originalLineStart = Offset(
+                                                startCoords.size.width / 2f + startCoords.positionInParent().x,
+                                                startCoords.size.height / 2f + startCoords.positionInParent().y
+                                            )
+                                            val originalLineEnd = Offset(
+                                                endCoords.size.width / 2f + endCoords.positionInParent().x,
+                                                endCoords.size.height / 2f + endCoords.positionInParent().y
                                             )
 
-                                            val lineEnd = Offset(
-                                                endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
-                                                endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
-                                            )
+                                            val lineExtensionLengthDp = 12.dp
+
+                                            // Convert extension length from Dp to Px
+                                            val lineExtensionPx = lineExtensionLengthDp.toPx()
+
+                                            // 2. Calculate direction vector (from start to end)
+                                            val directionVector =
+                                                originalLineEnd - originalLineStart
+
+                                            // Check for zero vector to avoid division by zero if buttons are at the same spot
+                                            if (directionVector.getDistanceSquared() == 0f) {
+                                                // Buttons are at the same spot, draw a point or very short line if needed
+                                                // Or simply draw the original line (which would be a point)
+                                                drawLine(
+                                                    color = Color.Black.copy(alpha = 0.6f),
+                                                    start = originalLineStart,
+                                                    end = originalLineEnd,
+                                                    strokeWidth = 5.dp.toPx(), // Your chosen thickness
+                                                    cap = StrokeCap.Round
+                                                )
+                                                return@drawWithContent // Exit early
+                                            }
+
+                                            // 3. Normalize the direction vector (to get a unit vector)
+                                            val normalizedDirection =
+                                                directionVector / directionVector.getDistance()
+
+                                            // 4. Calculate new extended start and end points
+                                            val extendedLineStart =
+                                                originalLineStart - (normalizedDirection * lineExtensionPx)
+                                            val extendedLineEnd =
+                                                originalLineEnd + (normalizedDirection * lineExtensionPx)
 
                                             drawLine(
-                                                color = if (info.playerName == "Player 1 Wins") Color.Red else Color.Blue,
-                                                start = lineStart,
-                                                end = lineEnd,
-                                                strokeWidth = 8.dp.toPx(),
+                                                color = Color.Black.copy(alpha = 0.6f),
+                                                start = extendedLineStart, // Use extended start
+                                                end = extendedLineEnd,     // Use extended end
+                                                strokeWidth = 5.dp.toPx(), // Your chosen thickness
                                                 cap = StrokeCap.Round
                                             )
                                         }
