@@ -1,5 +1,6 @@
 package com.a_gud_boy.tictactoe
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,6 +44,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage() {
+    val context = LocalContext.current
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -89,6 +93,7 @@ fun MainPage() {
                             )
                         }
                     }
+                    // Creates the free space
                     Spacer(modifier = Modifier.weight(1f))
                     DrawerFooter()
                 }
@@ -116,6 +121,13 @@ fun MainPage() {
                             }
                         }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            Toast.makeText(context, "Settings button clicked", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = "Settings Icon")
                         }
                     }
                 )
