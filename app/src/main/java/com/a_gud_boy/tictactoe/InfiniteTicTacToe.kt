@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +47,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -52,6 +57,9 @@ import androidx.constraintlayout.compose.ConstraintSet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
+
+    var player1Wins by rememberSaveable { mutableIntStateOf(0) }
+    var player2Wins by rememberSaveable { mutableIntStateOf(0) }
 
     val iconSize = 70.dp
 
@@ -1122,30 +1130,98 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                 else
                     "Player 2's Turn"
 
-            Row(
-                modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .padding(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                Text(
-                    text = "$turnDenotingText (",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = 20.sp
-                )
-                if (turnDenotingText == "Player 1's Turn" || turnDenotingText == "Player 1 Won")
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Turn Denoting Icon"
-                    )
-                else
-                    Icon(
-                        painterResource(R.drawable.player_2),
-                        contentDescription = "Turn Denoting Icon"
-                    )
-                Text(
-                    text = ")",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = 20.sp
-                )
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceAround
+                ) {
+                    // Denotes the turn
+                    Row(
+                        modifier = Modifier.padding(top = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$turnDenotingText (",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp
+                        )
+                        if (turnDenotingText == "Player 1's Turn" || turnDenotingText == "Player 1 Won")
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Turn Denoting Icon"
+                            )
+                        else
+                            Icon(
+                                painterResource(R.drawable.player_2),
+                                contentDescription = "Turn Denoting Icon"
+                            )
+                        Text(
+                            text = ")",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = "Cross",
+                            tint = colorResource(R.color.red_x_icon),
+                            modifier = Modifier.padding(6.dp)
+                        )
+                        Text(
+                            player1Wins.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.numberOfWinsTextColor_x),
+                            modifier = Modifier
+                                .background(
+                                    colorResource(R.color.numberOfWinsBackgroundColor_x),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .padding(12.dp)
+                        )
+                        Text(
+                            "-", style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.hyphenColor),
+                            modifier = Modifier.padding(10.dp)
+                        )
+                        Icon(
+                            painterResource(R.drawable.player_2),
+                            contentDescription = "Circle",
+                            tint = colorResource(R.color.blue_o_icon),
+                            modifier = Modifier.padding(6.dp)
+                        )
+                        Text(
+                            player2Wins.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.numberOfWinsTextColor_o),
+                            modifier = Modifier
+                                .background(
+                                    colorResource(R.color.numberOfWinsBackgroundColor_o),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .padding(12.dp)
+                        )
+                    }
+                }
             }
+
 
 
 
@@ -1186,6 +1262,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                 resetButtonText =
                     "New Game" // Player 1 has a winning combination among their visible moves
                 winnerInfo = WinnerInfo("Player 1 Wins", combination)
+                player1Wins++
             }
             if (visiblePlayer2Moves.containsAll(combination)) {
                 turnDenotingText = "Player 2 Won"
@@ -1193,6 +1270,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                 resetButtonText =
                     "New Game" // Player 2 has a winning combination among their visible moves
                 winnerInfo = WinnerInfo("Player 2 Wins", combination)
+                player2Wins++
             }
         }
     }
