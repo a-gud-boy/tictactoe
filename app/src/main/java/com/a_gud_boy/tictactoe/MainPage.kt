@@ -374,13 +374,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -431,13 +450,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -488,13 +526,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 3 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -545,13 +602,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -602,13 +678,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -659,13 +754,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -716,13 +830,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -773,13 +906,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
@@ -830,13 +982,32 @@ fun TicTacToeGame() {
                             val isPlayer2Move =
                                 player2Moves.takeLast(maxVisibleMovesPerPlayer).contains(buttonId)
 
+                            val isPlayer1OldMove =
+                                if (player1Moves.size >= 3 && gameStarted && player1turn) player1Moves[0] == buttonId else false
+                            val isPlayer2OldMove =
+                                if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
+
                             if (isPlayer1Move) {
-                                Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                                if (isPlayer1OldMove) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Player 1 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                } else
+                                    Icon(Icons.Default.Close, contentDescription = "Player 1 move")
                             } else if (isPlayer2Move) {
-                                Icon(
-                                    painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                    contentDescription = "Player 2 move"
-                                )
+                                if (isPlayer2OldMove)
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move",
+                                        tint = Color.White.copy(0.6f)
+                                    )
+                                else
+                                    Icon(
+                                        painter = painterResource(R.drawable.player_2), // Make sure this resource exists
+                                        contentDescription = "Player 2 move"
+                                    )
                             }
                             // Else, display nothing (empty button)
                         }
