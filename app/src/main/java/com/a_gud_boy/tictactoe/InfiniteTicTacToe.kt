@@ -1149,8 +1149,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                 ) {
                     // Denotes the turn
                     Row(
-                        modifier = Modifier.padding(top = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(top = 10.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = "$turnDenotingText (",
@@ -1174,14 +1175,15 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         )
                     }
                     Row(
-                        modifier = Modifier.padding(bottom = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             Icons.Filled.Close,
                             contentDescription = "Cross",
                             tint = colorResource(R.color.red_x_icon),
-                            modifier = Modifier.padding(6.dp)
+                            modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
                         Text(
                             player1Wins.toString(),
