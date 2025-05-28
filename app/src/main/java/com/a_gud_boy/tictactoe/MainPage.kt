@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -1043,12 +1044,32 @@ fun TicTacToeGame() {
                         else
                             "Player 2's Turn"
 
-                    Text(
-                        text = turnDenotingText,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(20.dp)
-                    )
+                    Row(
+                        modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$turnDenotingText (",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp
+                        )
+                        if (turnDenotingText == "Player 1's Turn" || turnDenotingText == "Player 1 Won")
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Turn Denoting Icon"
+                            )
+                        else
+                            Icon(
+                                painterResource(R.drawable.player_2),
+                                contentDescription = "Turn Denoting Icon"
+                            )
+                        Text(
+                            text = ")",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp
+                        )
+                    }
+
+
 
                     Button(onClick = {
                         player1Moves = mutableListOf()
