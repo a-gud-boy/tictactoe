@@ -1127,3 +1127,5 @@ fun TicTacToeGame() {
 fun TicTacToeGamePreview() {
     TicTacToeGame()
 }
+
+data class WinnerInfo(val playerName: String, val combination: Set<String>)
