@@ -254,7 +254,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                                         endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
                                     )
 
-                                    val lineExtensionLengthDp = 20.dp
+                                    val lineExtensionLengthDp = 30.dp
 
                                     // Convert extension length from Dp to Px
                                     val lineExtensionPx = lineExtensionLengthDp.toPx()
@@ -1207,7 +1207,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             painterResource(R.drawable.player_2),
                             contentDescription = "Circle",
                             tint = colorResource(R.color.blue_o_icon),
-                            modifier = Modifier.padding(6.dp)
+                            modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
                         Text(
                             player2Wins.toString(),
