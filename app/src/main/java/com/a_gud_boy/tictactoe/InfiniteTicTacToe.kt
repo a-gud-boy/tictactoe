@@ -127,12 +127,6 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
         val button8 = createRefFor("button8")
         val button9 = createRefFor("button9")
 
-        // Id for all the dividers
-//        val divider1 = createRefFor("divider1")     // horizontal divider 1
-//        val divider2 = createRefFor("divider2")     // horizontal divider 2
-//        val divider3 = createRefFor("divider3")     // vertical divider 1
-//        val divider4 = createRefFor("divider4")     // vertical divider 1
-
         val margin = 0.dp
 
         constrain(button1) {
@@ -197,26 +191,6 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
             end.linkTo(parent.end, margin = margin)
             bottom.linkTo(parent.bottom, margin = margin)
         }
-
-//        constrain(divider1) {
-//            top.linkTo(button2.bottom, margin = margin)
-//            bottom.linkTo(button5.top, margin = margin)
-//        }
-//
-//        constrain(divider2) {
-//            top.linkTo(button5.bottom, margin = margin)
-//            bottom.linkTo(button8.top, margin = margin)
-//        }
-//
-//        constrain(divider3) {
-//            start.linkTo(button4.end, margin = margin)
-//            end.linkTo(button5.start, margin = margin)
-//        }
-//
-//        constrain(divider4) {
-//            start.linkTo(button5.end, margin = margin)
-//            end.linkTo(button6.start, margin = margin)
-//        }
     }
 
     Box(
@@ -1140,30 +1114,6 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     }
                     // Else, display nothing (empty button)
                 }
-
-//                HorizontalDivider(
-//                    Modifier.layoutId("divider1"),
-//                    DividerDefaults.Thickness,
-//                    DividerDefaults.color
-//                )
-//
-//                HorizontalDivider(
-//                    Modifier.layoutId("divider2"),
-//                    DividerDefaults.Thickness,
-//                    DividerDefaults.color
-//                )
-//
-//                VerticalDivider(
-//                    Modifier.layoutId("divider3"),
-//                    DividerDefaults.Thickness,
-//                    DividerDefaults.color
-//                )
-//
-//                VerticalDivider(
-//                    Modifier.layoutId("divider4"),
-//                    DividerDefaults.Thickness,
-//                    DividerDefaults.color
-//                )
             }
 
             if (gameStarted)
@@ -1248,11 +1198,5 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
     }
 
 }
-
-//@Preview(showSystemUi = true)
-//@Composable
-//fun TicTacToeGamePreview() {
-//    InfiniteTicTacToePage()
-//}
 
 data class WinnerInfo(val playerName: String, val combination: Set<String>)
