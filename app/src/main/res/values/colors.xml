@@ -7,4 +7,6 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background">#f0f2f5</color>
+    <color name="constraint_background">#f1f5f9</color>"
 </resources>

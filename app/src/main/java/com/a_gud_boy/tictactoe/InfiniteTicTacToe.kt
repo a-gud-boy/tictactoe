@@ -16,14 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -44,18 +41,20 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
-import com.a_gud_boy.tictactoe.ui.theme.background
-import com.a_gud_boy.tictactoe.ui.theme.constraintBackground
 
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
+
+    val iconSize = 70.dp
+
     // At the top of your MainPage composable (or in a ViewModel)
 // For Player 1 (X)
     var player1Moves by rememberSaveable { mutableStateOf(mutableListOf<String>()) }
@@ -129,102 +128,102 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
         val button9 = createRefFor("button9")
 
         // Id for all the dividers
-        val divider1 = createRefFor("divider1")     // horizontal divider 1
-        val divider2 = createRefFor("divider2")     // horizontal divider 2
-        val divider3 = createRefFor("divider3")     // vertical divider 1
-        val divider4 = createRefFor("divider4")     // vertical divider 1
+//        val divider1 = createRefFor("divider1")     // horizontal divider 1
+//        val divider2 = createRefFor("divider2")     // horizontal divider 2
+//        val divider3 = createRefFor("divider3")     // vertical divider 1
+//        val divider4 = createRefFor("divider4")     // vertical divider 1
 
         val margin = 0.dp
 
         constrain(button1) {
             top.linkTo(parent.top, margin = margin)
             start.linkTo(parent.start, margin = margin)
-            end.linkTo(divider3.start, margin = margin)
-            bottom.linkTo(divider1.top, margin = margin)
+            end.linkTo(button2.start, margin = margin)
+            bottom.linkTo(button4.top, margin = margin)
         }
 
         constrain(button2) {
             top.linkTo(parent.top, margin = margin)
-            start.linkTo(divider3.end, margin = margin)
-            end.linkTo(divider4.start, margin = margin)
-            bottom.linkTo(divider1.top, margin = margin)
+            start.linkTo(button1.end, margin = margin)
+            end.linkTo(button3.start, margin = margin)
+            bottom.linkTo(button5.top, margin = margin)
         }
 
         constrain(button3) {
             top.linkTo(parent.top, margin = margin)
-            start.linkTo(divider4.end, margin = margin)
+            start.linkTo(button2.end, margin = margin)
             end.linkTo(parent.end, margin = margin)
-            bottom.linkTo(divider1.top, margin = margin)
+            bottom.linkTo(button6.top, margin = margin)
         }
 
         constrain(button4) {
-            top.linkTo(divider1.bottom, margin = margin)
+            top.linkTo(button1.bottom, margin = margin)
             start.linkTo(parent.start, margin = margin)
-            end.linkTo(divider3.start, margin = margin)
-            bottom.linkTo(divider2.top, margin = margin)
+            end.linkTo(button5.start, margin = margin)
+            bottom.linkTo(button7.top, margin = margin)
         }
 
         constrain(button5) {
-            top.linkTo(divider1.bottom, margin = 1.dp)
-            start.linkTo(divider3.end, margin = margin)
-            end.linkTo(divider4.start, margin = margin)
-            bottom.linkTo(divider2.top, margin = 1.dp)
+            top.linkTo(button2.bottom, margin = margin)
+            start.linkTo(button4.end, margin = margin)
+            end.linkTo(button6.start, margin = margin)
+            bottom.linkTo(button8.top, margin = margin)
         }
 
         constrain(button6) {
-            top.linkTo(divider1.bottom, margin = margin)
-            start.linkTo(divider4.end, margin = margin)
+            top.linkTo(button3.bottom, margin = margin)
+            start.linkTo(button5.end, margin = margin)
             end.linkTo(parent.end, margin = margin)
-            bottom.linkTo(divider2.top, margin = margin)
+            bottom.linkTo(button9.top, margin = margin)
         }
 
         constrain(button7) {
-            top.linkTo(divider2.bottom, margin = margin)
+            top.linkTo(button4.bottom, margin = margin)
             start.linkTo(parent.start, margin = margin)
-            end.linkTo(divider3.start, margin = margin)
+            end.linkTo(button8.start, margin = margin)
             bottom.linkTo(parent.bottom, margin = margin)
         }
 
         constrain(button8) {
-            top.linkTo(divider2.bottom, margin = margin)
-            start.linkTo(divider3.end, margin = margin)
-            end.linkTo(divider4.start, margin = margin)
+            top.linkTo(button5.bottom, margin = margin)
+            start.linkTo(button7.end, margin = margin)
+            end.linkTo(button9.start, margin = margin)
             bottom.linkTo(parent.bottom, margin = margin)
         }
 
         constrain(button9) {
-            top.linkTo(divider2.bottom, margin = margin)
-            start.linkTo(divider4.end, margin = margin)
+            top.linkTo(button6.bottom, margin = margin)
+            start.linkTo(button8.end, margin = margin)
             end.linkTo(parent.end, margin = margin)
             bottom.linkTo(parent.bottom, margin = margin)
         }
 
-        constrain(divider1) {
-            top.linkTo(button2.bottom, margin = margin)
-            bottom.linkTo(button5.top, margin = margin)
-        }
-
-        constrain(divider2) {
-            top.linkTo(button5.bottom, margin = margin)
-            bottom.linkTo(button8.top, margin = margin)
-        }
-
-        constrain(divider3) {
-            start.linkTo(button4.end, margin = margin)
-            end.linkTo(button5.start, margin = margin)
-        }
-
-        constrain(divider4) {
-            start.linkTo(button5.end, margin = margin)
-            end.linkTo(button6.start, margin = margin)
-        }
+//        constrain(divider1) {
+//            top.linkTo(button2.bottom, margin = margin)
+//            bottom.linkTo(button5.top, margin = margin)
+//        }
+//
+//        constrain(divider2) {
+//            top.linkTo(button5.bottom, margin = margin)
+//            bottom.linkTo(button8.top, margin = margin)
+//        }
+//
+//        constrain(divider3) {
+//            start.linkTo(button4.end, margin = margin)
+//            end.linkTo(button5.start, margin = margin)
+//        }
+//
+//        constrain(divider4) {
+//            start.linkTo(button5.end, margin = margin)
+//            end.linkTo(button6.start, margin = margin)
+//        }
     }
 
     Box(
         modifier = Modifier
             .padding(innerPadding)
             .wrapContentSize()
-            .background(background)
+            .background(colorResource(R.color.background))
             .padding(20.dp)
     ) {
         Column(
@@ -245,7 +244,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     .height(300.dp)
                     .shadow(4.dp, shape = RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp))
-                    .background(constraintBackground)
+                    .background(colorResource(R.color.constraint_background))
                     .drawWithContent {
                         drawContent() // Draw buttons first
 
@@ -269,7 +268,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                                         endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
                                     )
 
-                                    val lineExtensionLengthDp = 12.dp
+                                    val lineExtensionLengthDp = 20.dp
 
                                     // Convert extension length from Dp to Px
                                     val lineExtensionPx = lineExtensionLengthDp.toPx()
@@ -345,9 +344,11 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
+                        .width(80.dp)
+                        .height(80.dp)
                         .layoutId("button1")
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button1"] = coordinates
@@ -370,21 +371,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -421,10 +436,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button2")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button2"] = coordinates
                         }
@@ -446,21 +463,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -497,10 +528,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button3")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button3"] = coordinates
                         }
@@ -522,21 +555,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -573,10 +620,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button4")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button4"] = coordinates
                         }
@@ -598,21 +647,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -649,10 +712,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button5")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button5"] = coordinates
                         }
@@ -674,21 +739,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -725,10 +804,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button6")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button6"] = coordinates
                         }
@@ -750,21 +831,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -801,10 +896,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button7")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button7"] = coordinates
                         }
@@ -826,21 +923,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -877,10 +988,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button8")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button8"] = coordinates
                         }
@@ -902,21 +1015,35 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
@@ -953,10 +1080,12 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     },
                     modifier = Modifier
                         .background(
-                            color = Color.LightGray,
+                            color = Color.White,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .layoutId("button9")
+                        .width(80.dp)
+                        .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button9"] = coordinates
                         }
@@ -978,49 +1107,63 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Player 1 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         } else
-                            Icon(Icons.Default.Close, contentDescription = "Player 1 move")
+                            Icon(
+                                Icons.Default.Close, contentDescription = "Player 1 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
+                            )
                     } else if (isPlayer2Move) {
                         if (isPlayer2OldMove)
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
                                 contentDescription = "Player 2 move",
-                                tint = Color.White.copy(0.6f)
+                                tint = Color.Black.copy(0.4f),
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                         else
                             Icon(
                                 painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move"
+                                contentDescription = "Player 2 move",
+                                modifier = Modifier
+                                    .width(iconSize)
+                                    .height(iconSize)
                             )
                     }
                     // Else, display nothing (empty button)
                 }
 
-                HorizontalDivider(
-                    Modifier.layoutId("divider1"),
-                    DividerDefaults.Thickness,
-                    DividerDefaults.color
-                )
-
-                HorizontalDivider(
-                    Modifier.layoutId("divider2"),
-                    DividerDefaults.Thickness,
-                    DividerDefaults.color
-                )
-
-                VerticalDivider(
-                    Modifier.layoutId("divider3"),
-                    DividerDefaults.Thickness,
-                    DividerDefaults.color
-                )
-
-                VerticalDivider(
-                    Modifier.layoutId("divider4"),
-                    DividerDefaults.Thickness,
-                    DividerDefaults.color
-                )
+//                HorizontalDivider(
+//                    Modifier.layoutId("divider1"),
+//                    DividerDefaults.Thickness,
+//                    DividerDefaults.color
+//                )
+//
+//                HorizontalDivider(
+//                    Modifier.layoutId("divider2"),
+//                    DividerDefaults.Thickness,
+//                    DividerDefaults.color
+//                )
+//
+//                VerticalDivider(
+//                    Modifier.layoutId("divider3"),
+//                    DividerDefaults.Thickness,
+//                    DividerDefaults.color
+//                )
+//
+//                VerticalDivider(
+//                    Modifier.layoutId("divider4"),
+//                    DividerDefaults.Thickness,
+//                    DividerDefaults.color
+//                )
             }
 
             if (gameStarted)
