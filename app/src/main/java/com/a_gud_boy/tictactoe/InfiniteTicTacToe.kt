@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -308,35 +309,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         }
                     }
             ) {
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button1" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -347,9 +320,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .layoutId("button1")
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button1"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button1" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button1"
@@ -411,35 +415,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button2" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -450,9 +426,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button2"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button2" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button2"
@@ -514,35 +521,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button3" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -553,9 +532,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button3"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button3" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button3"
@@ -617,35 +627,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button4" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -656,9 +638,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button4"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button4" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button4"
@@ -720,35 +733,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button5" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -759,9 +744,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button5"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button5" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button5"
@@ -823,35 +839,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button6" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -862,9 +850,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button6"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button6" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button6"
@@ -926,35 +945,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button7" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -965,9 +956,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button7"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button7" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button7"
@@ -1029,35 +1051,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button8" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -1068,9 +1062,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button8"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button8" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button8"
@@ -1132,35 +1157,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // Else, display nothing (empty button)
                 }
 
-                IconButton(
-                    onClick = {
-                        if (gameStarted) {
-                            val buttonId = "button9" // The layoutId of this button
-
-                            // Check if this button is already an active move for either player
-                            val isAlreadyPlayedByPlayer1 =
-                                player1Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-                            val isAlreadyPlayedByPlayer2 =
-                                player2Moves.takeLast(maxVisibleMovesPerPlayer)
-                                    .contains(buttonId)
-
-                            if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
-                                if (player1turn) {
-                                    player1Moves.add(buttonId)
-                                    if (player1Moves.size > maxVisibleMovesPerPlayer) {
-                                        player1Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                } else {
-                                    player2Moves.add(buttonId)
-                                    if (player2Moves.size > maxVisibleMovesPerPlayer) {
-                                        player2Moves.removeAt(0) // Remove the oldest move
-                                    }
-                                }
-                                player1turn = !player1turn
-                            }
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .background(
                             color = Color.White,
@@ -1171,9 +1168,40 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button9"] = coordinates
-                        },
-                    interactionSource = remember { MutableInteractionSource() }, // Added
-                    indication = null, // Added
+                        }
+                        .clickable(
+                            onClick = {
+                                if (gameStarted) {
+                                    val buttonId = "button9" // The layoutId of this button
+
+                                    // Check if this button is already an active move for either player
+                                    val isAlreadyPlayedByPlayer1 =
+                                        player1Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+                                    val isAlreadyPlayedByPlayer2 =
+                                        player2Moves.takeLast(maxVisibleMovesPerPlayer)
+                                            .contains(buttonId)
+
+                                    if (!isAlreadyPlayedByPlayer1 && !isAlreadyPlayedByPlayer2) {
+                                        if (player1turn) {
+                                            player1Moves.add(buttonId)
+                                            if (player1Moves.size > maxVisibleMovesPerPlayer) {
+                                                player1Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        } else {
+                                            player2Moves.add(buttonId)
+                                            if (player2Moves.size > maxVisibleMovesPerPlayer) {
+                                                player2Moves.removeAt(0) // Remove the oldest move
+                                            }
+                                        }
+                                        player1turn = !player1turn
+                                    }
+                                }
+                            },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button9"
