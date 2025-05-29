@@ -65,12 +65,11 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     // Derived state for turn denoting text
     val turnDenotingText: StateFlow<String> = combine(
         player1Turn,
-        winnerInfo,
-        isGameConcluded
-    ) { isP1Turn, winner, concluded ->
+        winnerInfo
+        // isGameConcluded is removed as its effect on text is via winnerInfo
+    ) { isP1Turn, winnerData -> // Renamed winner to winnerData to avoid any potential scope conflicts
         when {
-            winner != null -> if (winner.winner == Player.X) "Player 1 Won" else "Player 2 Won"
-            concluded -> if (isP1Turn) "Player 1 Won" else "Player 2 Won" // Should be covered by winnerInfo
+            winnerData != null -> if (winnerData.winner == Player.X) "Player 1 Won" else "Player 2 Won"
             isP1Turn -> "Player 1's Turn"
             else -> "Player 2's Turn"
         }

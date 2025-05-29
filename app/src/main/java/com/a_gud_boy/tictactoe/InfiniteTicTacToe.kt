@@ -80,8 +80,19 @@ fun TicTacToeCell(
             ),
         contentAlignment = Alignment.Center
     ) {
-        val tint = if (isOldMove) Color.Black.copy(0.4f) else {
-            if (player == Player.X) Color.Black else LocalContentColor.current
+        // Determine the tint based on whether the move is old/dimmed.
+        val iconTint = if (isOldMove) { // isOldMove now represents the "about to disappear" or generally dimmed state
+            when (player) {
+                Player.X -> Color.Black.copy(alpha = 0.4f)
+                Player.O -> LocalContentColor.current.copy(alpha = 0.4f) // Ensure O also dims from its default
+                null -> Color.Transparent // Should not be reached if player is non-null for an old move
+            }
+        } else {
+            when (player) {
+                Player.X -> Color.Black
+                Player.O -> LocalContentColor.current
+                null -> Color.Transparent
+            }
         }
 
         when (player) {
@@ -89,22 +100,20 @@ fun TicTacToeCell(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Player X move",
-                    tint = tint,
+                    tint = iconTint, // Apply calculated tint
                     modifier = Modifier
                         .width(iconSize)
                         .height(iconSize)
-                        // No animation as ICON_ANIMATION_DURATION_MS is 0
                 )
             }
             Player.O -> {
                 Icon(
                     painter = painterResource(R.drawable.player_2),
                     contentDescription = "Player O move",
-                    tint = tint,
+                    tint = iconTint, // Apply calculated tint
                     modifier = Modifier
                         .width(iconSize)
                         .height(iconSize)
-                        // No animation as ICON_ANIMATION_DURATION_MS is 0
                 )
             }
             null -> {
@@ -316,33 +325,41 @@ fun InfiniteTicTacToePage(
                 // Create a list of button IDs for iteration
                 val buttonIds = List(9) { i -> "button${i + 1}" }
 
-                // Collect visible moves once
-                val p1VisibleMoves = player1Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
-                val p2VisibleMoves = player2Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
+                // Collect ViewModel states once for the loop
+                val currentP1Moves = player1Moves
+                val currentP2Moves = player2Moves
+                val isP1Turn = player1Turn
+                val gameIsActive = gameStarted && (winnerInfo == null) // Game is active if started and no winner
 
                 buttonIds.forEach { buttonId ->
+                    // Determine player for the cell (current visible moves)
+                    val p1VisibleOnlyMoves = currentP1Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
+                    val p2VisibleOnlyMoves = currentP2Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
+
                     val cellPlayer: Player? = when {
-                        p1VisibleMoves.contains(buttonId) -> Player.X
-                        p2VisibleMoves.contains(buttonId) -> Player.O
-                        // Check full lists for old moves that are not visible but should still mark the cell with a dimmed icon
-                        player1Moves.contains(buttonId) -> Player.X
-                        player2Moves.contains(buttonId) -> Player.O
-                        else -> null
+                        p1VisibleOnlyMoves.contains(buttonId) -> Player.X
+                        p2VisibleOnlyMoves.contains(buttonId) -> Player.O
+                        else -> null // Not a currently visible move
                     }
 
-                    val isOldMove: Boolean = cellPlayer?.let {
-                        when (it) {
-                            Player.X -> player1Moves.contains(buttonId) && !p1VisibleMoves.contains(buttonId)
-                            Player.O -> player2Moves.contains(buttonId) && !p2VisibleMoves.contains(buttonId)
+                    // Determine if the cell should be dimmed (about to disappear effect)
+                    val isDimmedAboutToDisappear = gameIsActive && cellPlayer?.let { player ->
+                        when (player) {
+                            Player.X ->
+                                isP1Turn &&
+                                currentP1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER &&
+                                currentP1Moves.firstOrNull() == buttonId
+                            Player.O ->
+                                !isP1Turn &&
+                                currentP2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER &&
+                                currentP2Moves.firstOrNull() == buttonId
                         }
                     } ?: false
                     
-                    // If a move is visible, it cannot be old in terms of dimming logic for *active* players.
-                    // The original logic for isPlayerXOldMove was tied to whose turn it was, to dim the oldest *visible* move *if it was about to disappear*.
-                    // The new interpretation for `isOldMove` in `TicTacToeCell` is simpler: if it's not a visible move but was played, it's "old" (dimmed).
-                    // The specific logic for dimming the *about-to-disappear* move if ICON_ANIMATION_DURATION_MS > 0 and the list is full would need
-                    // to be more nuanced if that exact behavior is required.
-                    // For now, `isOldMove` makes any non-visible past move appear dimmed.
+                    // In the previous refactor, `isOldMove` was used to dim any icon not in the visible list.
+                    // That general dimming of past, non-visible moves is removed to focus on the "about to disappear" effect only.
+                    // If general dimming of all non-visible past moves is also desired, that logic would need to be combined.
+                    // For this task, we focus only on the "about to disappear" for a *visible* mark.
 
                     TicTacToeCell(
                         modifier = Modifier
@@ -356,8 +373,8 @@ fun InfiniteTicTacToePage(
                             .onGloballyPositioned { coordinates ->
                                 buttonCoordinates[buttonId] = coordinates
                             },
-                        player = cellPlayer,
-                        isOldMove = isOldMove,
+                        player = cellPlayer, // This is the player whose mark is currently visible in the cell
+                        isOldMove = isDimmedAboutToDisappear, // Pass the "about to disappear" state
                         iconSize = iconSize,
                         onClick = { viewModel.onButtonClick(buttonId) }
                     )
