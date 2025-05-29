@@ -54,7 +54,7 @@ fun MainPage() {
 
     val scope = rememberCoroutineScope()
 
-    var selectedItemIndex by rememberSaveable { mutableIntStateOf(1) }
+    var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
     val items = listOf("Normal TicTacToe", "Infinite TicTacToe")
 
     ModalNavigationDrawer(
