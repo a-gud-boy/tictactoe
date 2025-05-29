@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -120,7 +122,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
     }
 
     var resetButtonText by rememberSaveable {
-        mutableStateOf("Reset Game")
+        mutableStateOf("Reset Round")
     }
 
     var isGameConcluded by rememberSaveable {
@@ -1149,7 +1151,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                 ) {
                     // Denotes the turn
                     Row(
-                        modifier = Modifier.padding(top = 10.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -1175,7 +1179,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         )
                     }
                     Row(
-                        modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(bottom = 10.dp)
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -1231,17 +1237,64 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
 
 
 
-            Button(onClick = {
-                player1Moves = mutableListOf()
-                player2Moves = mutableListOf()
-                winnerInfo = null // Reset winnerInfo
-                buttonCoordinates.clear() // Clear stored coordinates (though they'll repopulate)
-                player1turn = true
-                resetButtonText = "Reset Game"
-                gameStarted = true
-                isGameConcluded = false // Reset game concluded state
-            }) {
-                Text(text = resetButtonText)
+            Button(
+                onClick = {
+                    player1Moves = mutableListOf()
+                    player2Moves = mutableListOf()
+                    winnerInfo = null // Reset winnerInfo
+                    buttonCoordinates.clear() // Clear stored coordinates (though they'll repopulate)
+                    player1turn = true
+                    resetButtonText = "Reset Round"
+                    gameStarted = true
+                    isGameConcluded = false // Reset game concluded state
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(10.dp), // Apply the shape directly to the Button
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(R.color.blue_o_icon), // Set the button's container color
+                    contentColor = Color.White // Optionally set the color for the text inside
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = "New Round")
+                    Text(
+                        text = resetButtonText,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    )
+                }
+            }
+
+            Button(
+                onClick = {
+                    player1Wins = 0
+                    player2Wins = 0
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(10.dp), // Apply the shape directly to the Button
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(R.color.resetScoresButtonBackground), // Set the button's container color
+                    contentColor = colorResource(R.color.darkTextColor) // Optionally set the color for the text inside
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = "New Round")
+                    Text(
+                        text = "Reset Scores",
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    )
+                }
             }
         }
 
@@ -1268,7 +1321,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // All existing actions for Player 1 win:
                     turnDenotingText = "Player 1 Won"
                     gameStarted = false
-                    resetButtonText = "New Game"
+                    resetButtonText = "New Round"
                     winnerInfo = WinnerInfo("Player 1 Wins", combination)
                     player1Wins++
                     // Add this line:
@@ -1279,7 +1332,7 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                     // All existing actions for Player 2 win:
                     turnDenotingText = "Player 2 Won"
                     gameStarted = false
-                    resetButtonText = "New Game"
+                    resetButtonText = "New Round"
                     winnerInfo = WinnerInfo("Player 2 Wins", combination)
                     player2Wins++
                     // Add this line:

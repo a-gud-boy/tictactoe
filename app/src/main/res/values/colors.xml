@@ -16,5 +16,7 @@
     <color name="blue_o_icon">#3b82f6</color>
     <color name="numberOfWinsTextColor_o">#2563eb</color>
     <color name="numberOfWinsBackgroundColor_o">#dbeafe</color>
+    <color name="resetScoresButtonBackground">#e2e8f0</color>
+    <color name="darkTextColor">#334155</color>
 
 </resources>

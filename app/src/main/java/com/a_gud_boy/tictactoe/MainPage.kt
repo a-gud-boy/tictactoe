@@ -133,7 +133,10 @@ fun MainPage() {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorResource(R.color.background)
+                        containerColor = colorResource(R.color.background),
+                        titleContentColor = colorResource(R.color.darkTextColor),
+                        navigationIconContentColor = colorResource(R.color.darkTextColor),
+                        actionIconContentColor = colorResource(R.color.darkTextColor)
                     )
                 )
             }
