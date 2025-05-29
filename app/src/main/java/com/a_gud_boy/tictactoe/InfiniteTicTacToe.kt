@@ -1,11 +1,7 @@
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -27,9 +24,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +62,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+
+private const val ICON_ANIMATION_DURATION_MS = 150
 
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -371,8 +374,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -393,8 +396,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -477,8 +480,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -499,8 +502,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -583,8 +586,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -605,8 +608,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -689,8 +692,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -711,8 +714,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -795,8 +798,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -817,8 +820,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -901,8 +904,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -923,8 +926,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -1007,8 +1010,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -1029,8 +1032,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -1113,8 +1116,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -1135,8 +1138,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
@@ -1219,8 +1222,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer1 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer1Move) {
                             if (isPlayer1Move) {
-                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer1.snapTo(0.5f)
                                 alphaPlayer1.snapTo(0f)
@@ -1241,8 +1244,8 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         val alphaPlayer2 = remember { Animatable(0f) }
                         LaunchedEffect(key1 = isPlayer2Move) {
                             if (isPlayer2Move) {
-                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
-                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                                scalePlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(ICON_ANIMATION_DURATION_MS))
                             } else {
                                 scalePlayer2.snapTo(0.5f)
                                 alphaPlayer2.snapTo(0f)
