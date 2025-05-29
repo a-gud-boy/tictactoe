@@ -22,6 +22,7 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +54,7 @@ fun MainPage() {
 
     val scope = rememberCoroutineScope()
 
-    var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedItemIndex by rememberSaveable { mutableIntStateOf(1) }
     val items = listOf("Normal TicTacToe", "Infinite TicTacToe")
 
     ModalNavigationDrawer(
@@ -129,7 +131,13 @@ fun MainPage() {
                         }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = "Settings Icon")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colorResource(R.color.background),
+                        titleContentColor = colorResource(R.color.darkTextColor),
+                        navigationIconContentColor = colorResource(R.color.darkTextColor),
+                        actionIconContentColor = colorResource(R.color.darkTextColor)
+                    )
                 )
             }
         ) { innerPadding ->
