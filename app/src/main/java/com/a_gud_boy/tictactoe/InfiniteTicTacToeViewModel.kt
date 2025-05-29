@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 // Enum to represent the player
 enum class Player {
@@ -79,7 +78,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     val resetButtonText: StateFlow<String> = combine(
         isGameConcluded
     ) { concluded ->
-        if (concluded) "New Round" else "Reset Round"
+        if (concluded[0]) "New Round" else "Reset Round"
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Reset Round")
 
 
