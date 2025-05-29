@@ -1,21 +1,95 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Jetpack Compose rules
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}
+-keepclassmembers class * {
+    @androidx.compose.ui.tooling.preview.Preview <methods>;
+}
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <fields>;
+}
+-keepclassmembers class * {
+    @androidx.compose.ui.tooling.preview.Preview <fields>;
+}
+-keep public class * implements androidx.compose.runtime.Composer {
+    public <init>(...);
+    public final <methods>;
+}
+-keep public class * implements androidx.compose.runtime.Composition {
+    public <init>(...);
+    public final <methods>;
+}
+-keep public class * implements androidx.compose.runtime.Recomposer {
+    public <init>(...);
+    public final <methods>;
+}
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+-keepclassmembers class androidx.compose.runtime.R$* {
+    public static <fields>;
+}
+-keepclassmembers class androidx.compose.ui.R$* {
+    public static <fields>;
+}
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Kotlin Coroutines rules
+-dontwarn kotlinx.coroutines.**
+-keepclasseswithmembers class kotlinx.coroutines.** {
+    <methods>;
+}
+-keepclassmembers class kotlinx.coroutines.internal.MainDispatcherFactory {
+    <fields>;
+    <methods>;
+}
+-keepclassmembers class kotlinx.coroutines.android.AndroidDispatcherFactory {
+    <fields>;
+    <methods>;
+}
+-keepclassmembers class kotlinx.coroutines.scheduling.WorkQueue {
+    <fields>;
+    <methods>;
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# General Kotlin rules for reflection (often needed for serialization or other libraries)
+-keepattributes Signature
+-keepattributes InnerClasses
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
+-keepnames class kotlin.coroutines.CombinedContext
+-keepnames class kotlin.coroutines.EmptyCoroutineContext
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep Kotlin data classes and their properties
+-keepclassmembers public class * extends kotlin.jvm.internal.Lambda {
+    <fields>;
+    <init>(...);
+}
+-keepclassmembers class * extends kotlin.coroutines.jvm.internal.SuspendLambda {
+    <fields>;
+    <init>(...);
+}
+-keepclassmembers class * extends kotlin.coroutines.jvm.internal.RestrictedSuspendLambda {
+    <fields>;
+    <init>(...);
+}
+-keepclassmembers class * extends kotlin.coroutines.jvm.internal.ContinuationImpl {
+    <fields>;
+    <init>(...);
+}
+-keepclassmembers class * extends kotlin.coroutines.jvm.internal.RunSuspend {
+    <fields>;
+    <init>(...);
+}
+-keep class **$$serializer { *; }
+-keep class **$$Lambda$* { *; }
+-keepclassmembers class kotlin.jvm.internal.DefaultConstructorMarker
+
+# Retain annotations for reflection if needed by libraries
+-keepattributes RuntimeVisibleAnnotations
+-keepattributes RuntimeInvisibleAnnotations
+-keepattributes RuntimeVisibleParameterAnnotations
+-keepattributes RuntimeInvisibleParameterAnnotations
+-keepattributes AnnotationDefault
