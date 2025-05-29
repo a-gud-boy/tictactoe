@@ -24,9 +24,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -37,8 +42,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -340,7 +347,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .layoutId("button1")
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button1"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button1"
@@ -355,40 +364,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -432,7 +450,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button2"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button2"
@@ -447,40 +467,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -524,7 +553,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button3"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button3"
@@ -539,40 +570,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -616,7 +656,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button4"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button4"
@@ -631,40 +673,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -708,7 +759,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button5"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button5"
@@ -723,40 +776,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -800,7 +862,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button6"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button6"
@@ -815,40 +879,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -892,7 +965,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button7"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button7"
@@ -907,40 +982,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -984,7 +1068,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button8"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button8"
@@ -999,40 +1085,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
@@ -1076,7 +1171,9 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         .height(80.dp)
                         .onGloballyPositioned { coordinates ->
                             buttonCoordinates["button9"] = coordinates
-                        }
+                        },
+                    interactionSource = remember { MutableInteractionSource() }, // Added
+                    indication = null, // Added
                 ) {
                     // Determine what to display based on the lists
                     val buttonId = "button9"
@@ -1091,40 +1188,49 @@ fun InfiniteTicTacToePage(innerPadding: PaddingValues) {
                         if (player2Moves.size >= 3 && gameStarted && !player1turn) player2Moves[0] == buttonId else false
 
                     if (isPlayer1Move) {
-                        if (isPlayer1OldMove) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player 1 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        } else
-                            Icon(
-                                Icons.Default.Close, contentDescription = "Player 1 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer1 = remember { Animatable(0.5f) }
+                        val alphaPlayer1 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer1Move) {
+                            if (isPlayer1Move) {
+                                scalePlayer1.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer1.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer1.snapTo(0.5f)
+                                alphaPlayer1.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Player 1 move",
+                            tint = if (isPlayer1OldMove) Color.Black.copy(0.4f) else Color.Black,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer1.value)
+                                .alpha(alphaPlayer1.value)
+                        )
                     } else if (isPlayer2Move) {
-                        if (isPlayer2OldMove)
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                tint = Color.Black.copy(0.4f),
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
-                        else
-                            Icon(
-                                painter = painterResource(R.drawable.player_2), // Make sure this resource exists
-                                contentDescription = "Player 2 move",
-                                modifier = Modifier
-                                    .width(iconSize)
-                                    .height(iconSize)
-                            )
+                        val scalePlayer2 = remember { Animatable(0.5f) }
+                        val alphaPlayer2 = remember { Animatable(0f) }
+                        LaunchedEffect(key1 = isPlayer2Move) {
+                            if (isPlayer2Move) {
+                                scalePlayer2.animateTo(1f, animationSpec = tween(300))
+                                alphaPlayer2.animateTo(1f, animationSpec = tween(300))
+                            } else {
+                                scalePlayer2.snapTo(0.5f)
+                                alphaPlayer2.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.player_2),
+                            contentDescription = "Player 2 move",
+                            tint = if (isPlayer2OldMove) Color.Black.copy(0.4f) else LocalContentColor.current,
+                            modifier = Modifier
+                                .width(iconSize)
+                                .height(iconSize)
+                                .scale(scalePlayer2.value)
+                                .alpha(alphaPlayer2.value)
+                        )
                     }
                     // Else, display nothing (empty button)
                 }
