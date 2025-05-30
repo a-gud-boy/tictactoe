@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
@@ -150,8 +152,10 @@ fun NormalTicTacToePage(
             .background(colorResource(R.color.background))
             .padding(20.dp)
     ) {
+        val scrollState = rememberScrollState()
+
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -358,6 +362,8 @@ fun NormalTicTacToePage(
                 }
             }
 
+
+
             Button(
                 onClick = { viewModel.resetRound() },
                 modifier = Modifier
@@ -398,5 +404,6 @@ fun NormalTicTacToePage(
                 }
             }
         }
+
     }
 }
