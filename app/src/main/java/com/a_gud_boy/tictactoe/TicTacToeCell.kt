@@ -8,12 +8,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+// import androidx.compose.material3.LocalContentColor // No longer needed for O's base color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -48,14 +49,14 @@ fun TicTacToeCell(
         val iconTint =
             if (isOldMove) { // isOldMove now represents the "about to disappear" or generally dimmed state
                 when (player) {
-                    Player.X -> Color.Black.copy(alpha = 0.4f)
-                    Player.O -> LocalContentColor.current.copy(alpha = 0.4f) // Ensure O also dims from its default
+                    Player.X -> colorResource(R.color.red_x_icon).copy(alpha = 0.4f)
+                    Player.O -> colorResource(R.color.blue_o_icon).copy(alpha = 0.4f)
                     null -> Color.Transparent // Should not be reached if player is non-null for an old move
                 }
             } else {
                 when (player) {
-                    Player.X -> Color.Black
-                    Player.O -> LocalContentColor.current
+                    Player.X -> colorResource(R.color.red_x_icon)
+                    Player.O -> colorResource(R.color.blue_o_icon)
                     null -> Color.Transparent
                 }
             }

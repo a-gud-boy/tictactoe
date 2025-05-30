@@ -1,6 +1,9 @@
+
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,8 +31,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -82,6 +88,9 @@ fun InfiniteTicTacToePage(
     viewModel: InfiniteTicTacToeViewModel = viewModel()
 ) {
 
+    val playerXColor = colorResource(R.color.red_x_icon)
+    val playerOColor = colorResource(R.color.blue_o_icon)
+
     val player1Wins by viewModel.player1Wins.collectAsStateWithLifecycle()
     val player2Wins by viewModel.player2Wins.collectAsStateWithLifecycle()
     val player1Moves by viewModel.player1Moves.collectAsStateWithLifecycle()
@@ -95,6 +104,26 @@ fun InfiniteTicTacToePage(
 
     val iconSize = 70.dp
     val buttonCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
+
+    // Animation state for the winning line
+    val lineAnimationProgress = remember { Animatable(0f) }
+    // Store the ordered winning combination for animation
+    val orderedWinningCombination = remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(winnerInfo) {
+        if (winnerInfo != null) {
+            orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
+
+            lineAnimationProgress.snapTo(0f) // Reset before starting
+            lineAnimationProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 600) // Adjust duration as needed
+            )
+        } else {
+            lineAnimationProgress.snapTo(0f)
+            orderedWinningCombination.value = emptyList()
+        }
+    }
 
     val constraints = ConstraintSet {
         // Id for all the buttons
@@ -205,69 +234,64 @@ fun InfiniteTicTacToePage(
                     .drawWithContent {
                         drawContent() // Draw buttons first
 
-                        winnerInfo?.let { currentWinnerInfo -> // Renamed to avoid conflict
-                            val winningButtonIds = currentWinnerInfo.combination.toList()
-                            // Ensure there are exactly 3 buttons for a standard line,
-                            // though the logic in VM ensures combination is valid.
-                            if (winningButtonIds.size >= 2) { // Need at least 2 points to draw a line
-                                // For simplicity, we'll use the first and last button of the combination
-                                // for drawing the line, assuming combinations are ordered or this is visually acceptable.
-                                // A more robust approach might require specific start/end points from the combination.
-                                val startButtonId = winningButtonIds.first()
-                                val endButtonId = winningButtonIds.last()
+                        // Check if we have an ordered combination and animation is in progress
+                        if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
+                            val currentWinner = winnerInfo?.winner ?: return@drawWithContent // Should have a winner
 
-                                val startCoordinates = buttonCoordinates[startButtonId]
-                                val endCoordinates = buttonCoordinates[endButtonId]
+                            // The line should animate from the last move in the ordered combination (most recent)
+                            // to the first move in the ordered combination (oldest of the winning set).
+                            val animationStartButtonId = orderedWinningCombination.value.last()
+                            val animationEndButtonId = orderedWinningCombination.value.first()
 
-                                if (startCoordinates != null && endCoordinates != null) {
-                                    // 1. Get original center points (relative to this ConstraintLayout)
-                                    val originalLineStart = Offset(
-                                        startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
-                                        startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
-                                    )
-                                    val originalLineEnd = Offset(
-                                        endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
-                                        endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
-                                    )
+                            val animStartCoordinates = buttonCoordinates[animationStartButtonId]
+                            val animEndCoordinates = buttonCoordinates[animationEndButtonId]
 
-                                    val lineExtensionLengthDp = 30.dp
+                            if (animStartCoordinates != null && animEndCoordinates != null) {
+                                val animOriginalLineStart = Offset(
+                                    animStartCoordinates.size.width / 2f + animStartCoordinates.positionInParent().x,
+                                    animStartCoordinates.size.height / 2f + animStartCoordinates.positionInParent().y
+                                )
+                                val animOriginalLineEnd = Offset(
+                                    animEndCoordinates.size.width / 2f + animEndCoordinates.positionInParent().x,
+                                    animEndCoordinates.size.height / 2f + animEndCoordinates.positionInParent().y
+                                )
 
-                                    // Convert extension length from Dp to Px
-                                    val lineExtensionPx = lineExtensionLengthDp.toPx()
+                                // Interpolate the end point of the line based on animation progress
+                                val animatedLineEnd = lerp(animOriginalLineStart, animOriginalLineEnd, lineAnimationProgress.value)
 
-                                    // 2. Calculate direction vector (from start to end)
-                                    val directionVector =
-                                        originalLineEnd - originalLineStart
+                                val lineExtensionPx = 30.dp.toPx()
+                                val directionVector = animatedLineEnd - animOriginalLineStart // Vector based on animated end
 
-                                    // Check for zero vector to avoid division by zero if buttons are at the same spot
-                                    if (directionVector.getDistanceSquared() == 0f) {
-                                        // Buttons are at the same spot, draw a point or very short line if needed
-                                        // Or simply draw the original line (which would be a point)
-                                        drawLine(
-                                            color = Color.Black.copy(alpha = 0.6f),
-                                            start = originalLineStart,
-                                            end = originalLineEnd,
-                                            strokeWidth = 5.dp.toPx(), // Your chosen thickness
+                                val lineColor = when (currentWinner) {
+                                    Player.X -> playerXColor
+                                    Player.O -> playerOColor
+                                }
+
+                                if (directionVector.getDistanceSquared() == 0f && lineAnimationProgress.value < 1f) {
+                                    // Avoid drawing a zero-length line unless animation is complete and it's a single point (should not happen for a line)
+                                    // Or, if it's meant to draw from one point to itself (e.g. a very short line), handle as needed
+                                    // For now, let's just draw if progress is full for such a case.
+                                    if (lineAnimationProgress.value == 1f) {
+                                         drawLine(
+                                            color = lineColor.copy(alpha = 0.6f),
+                                            start = animOriginalLineStart,
+                                            end = animatedLineEnd, // which is animOriginalLineStart if vector is zero
+                                            strokeWidth = 5.dp.toPx(),
                                             cap = StrokeCap.Round
                                         )
-                                        return@drawWithContent // Exit early
                                     }
-
-                                    // 3. Normalize the direction vector (to get a unit vector)
-                                    val normalizedDirection =
-                                        directionVector / directionVector.getDistance()
-
-                                    // 4. Calculate new extended start and end points
-                                    val extendedLineStart =
-                                        originalLineStart - (normalizedDirection * lineExtensionPx)
-                                    val extendedLineEnd =
-                                        originalLineEnd + (normalizedDirection * lineExtensionPx)
+                                } else if (directionVector.getDistanceSquared() > 0f) { // Only draw if there's a direction
+                                    val normalizedDirection = directionVector / directionVector.getDistance()
+                                    // Extend the line from the *start* of the animation (most recent move)
+                                    // and from the *animated end point* (towards the oldest move)
+                                    val extendedLineStart = animOriginalLineStart - (normalizedDirection * lineExtensionPx)
+                                    val extendedAnimatedLineEnd = animatedLineEnd + (normalizedDirection * lineExtensionPx)
 
                                     drawLine(
-                                        color = Color.Black.copy(alpha = 0.6f),
-                                        start = extendedLineStart, // Use extended start
-                                        end = extendedLineEnd,     // Use extended end
-                                        strokeWidth = 5.dp.toPx(), // Your chosen thickness
+                                        color = lineColor.copy(alpha = 0.6f),
+                                        start = extendedLineStart,
+                                        end = extendedAnimatedLineEnd,
+                                        strokeWidth = 5.dp.toPx(),
                                         cap = StrokeCap.Round
                                     )
                                 }
@@ -275,71 +299,38 @@ fun InfiniteTicTacToePage(
                         }
                     }
             ) {
-                // Create a list of button IDs for iteration
                 val buttonIds = List(9) { i -> "button${i + 1}" }
-
-                // Collect ViewModel states once for the loop
-                val currentP1Moves = player1Moves
-                val currentP2Moves = player2Moves
-                val isP1Turn = player1Turn
-                val gameIsActive =
-                    gameStarted && (winnerInfo == null) // Game is active if started and no winner
-
                 buttonIds.forEach { buttonId ->
-                    // Determine player for the cell (current visible moves)
-                    val p1VisibleOnlyMoves =
-                        currentP1Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
-                    val p2VisibleOnlyMoves =
-                        currentP2Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
-
                     val cellPlayer: Player? = when {
-                        p1VisibleOnlyMoves.contains(buttonId) -> Player.X
-                        p2VisibleOnlyMoves.contains(buttonId) -> Player.O
-                        else -> null // Not a currently visible move
+                        player1Moves.contains(buttonId) -> Player.X
+                        player2Moves.contains(buttonId) -> Player.O
+                        else -> null
                     }
 
-                    // Determine if the cell should be dimmed (about to disappear effect)
-                    val isDimmedAboutToDisappear = gameIsActive && cellPlayer?.let { player ->
-                        when (player) {
-                            Player.X ->
-                                isP1Turn &&
-                                        currentP1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER &&
-                                        currentP1Moves.firstOrNull() == buttonId
-
-                            Player.O ->
-                                !isP1Turn &&
-                                        currentP2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER &&
-                                        currentP2Moves.firstOrNull() == buttonId
-                        }
-                    } ?: false
-
-                    // In the previous refactor, `isOldMove` was used to dim any icon not in the visible list.
-                    // That general dimming of past, non-visible moves is removed to focus on the "about to disappear" effect only.
-                    // If general dimming of all non-visible past moves is also desired, that logic would need to be combined.
-                    // For this task, we focus only on the "about to disappear" for a *visible* mark.
+                    // Corrected logic for isOldMove:
+                    // A move is "old" if it belongs to the current player,
+                    // that player has MAX_VISIBLE_MOVES_PER_PLAYER on the board,
+                    // and this specific move is the oldest among them (first in their list).
+                    val isOldMove = cellPlayer != null &&
+                        ( (player1Turn && cellPlayer == Player.X && player1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player1Moves.firstOrNull() == buttonId) ||
+                          (!player1Turn && cellPlayer == Player.O && player2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player2Moves.firstOrNull() == buttonId) )
 
                     TicTacToeCell(
                         modifier = Modifier
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(10.dp)
-                            )
+                            .background(color = Color.White, shape = RoundedCornerShape(10.dp))
                             .width(80.dp)
                             .height(80.dp)
                             .layoutId(buttonId)
                             .onGloballyPositioned { coordinates ->
                                 buttonCoordinates[buttonId] = coordinates
                             },
-                        player = cellPlayer, // This is the player whose mark is currently visible in the cell
-                        isOldMove = isDimmedAboutToDisappear, // Pass the "about to disappear" state
+                        player = cellPlayer,
+                        isOldMove = isOldMove,
                         iconSize = iconSize,
                         onClick = { viewModel.onButtonClick(buttonId) }
                     )
                 }
             }
-
-            // turnDenotingText is now a collected state from ViewModel
-            // The Card UI below will use the collected turnDenotingText
 
             Card(
                 modifier = Modifier
@@ -354,7 +345,6 @@ fun InfiniteTicTacToePage(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceAround
                 ) {
-                    // Denotes the turn
                     Row(
                         modifier = Modifier
                             .padding(top = 10.dp)
@@ -363,17 +353,16 @@ fun InfiniteTicTacToePage(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "$turnDenotingText (", // Use collected state
+                            text = "$turnDenotingText (",
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp
                         )
-                        // Logic for icon based on turn/winner
-                        if (player1Turn || winnerInfo?.winner == Player.X) { // Check player1Turn from VM
+                        if (winnerInfo?.winner == Player.X || (winnerInfo == null && player1Turn)) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Turn Denoting Icon"
                             )
-                        } else {
+                        } else if (winnerInfo?.winner == Player.O || (winnerInfo == null && !player1Turn)) {
                             Icon(
                                 painterResource(R.drawable.player_2),
                                 contentDescription = "Turn Denoting Icon"
@@ -399,7 +388,7 @@ fun InfiniteTicTacToePage(
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
                         Text(
-                            player1Wins.toString(), // Use collected state
+                            player1Wins.toString(),
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -425,7 +414,7 @@ fun InfiniteTicTacToePage(
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
                         Text(
-                            player2Wins.toString(), // Use collected state
+                            player2Wins.toString(),
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -441,30 +430,27 @@ fun InfiniteTicTacToePage(
                 }
             }
 
-
-
-
             Button(
                 onClick = {
                     viewModel.resetRound()
-                    buttonCoordinates.clear() // Still need to clear local UI coordinates if kept here
+                    buttonCoordinates.clear() // Clear coordinates on reset
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(10.dp), // Apply the shape directly to the Button
+                shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.blue_o_icon), // Set the button's container color
-                    contentColor = Color.White // Optionally set the color for the text inside
+                    containerColor = colorResource(R.color.blue_o_icon),
+                    contentColor = Color.White
                 )
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "New Round")
+                    Icon(Icons.Filled.Refresh, contentDescription = "New Round") // Changed to Refresh
                     Text(
-                        text = resetButtonText, // Use collected state
+                        text = resetButtonText,
                         modifier = Modifier
                             .padding(start = 8.dp)
                     )
@@ -479,17 +465,17 @@ fun InfiniteTicTacToePage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(10.dp), // Apply the shape directly to the Button
+                shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.resetScoresButtonBackground), // Set the button's container color
-                    contentColor = colorResource(R.color.darkTextColor) // Optionally set the color for the text inside
+                    containerColor = colorResource(R.color.resetScoresButtonBackground),
+                    contentColor = colorResource(R.color.darkTextColor)
                 )
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "New Round")
+                    Icon(Icons.Filled.Refresh, contentDescription = "Reset Scores") // Changed to Refresh
                     Text(
                         text = "Reset Scores",
                         modifier = Modifier
@@ -498,8 +484,6 @@ fun InfiniteTicTacToePage(
                 }
             }
         }
-        // Winning combinations and checking logic are now in the ViewModel.
-        // The UI will react to changes in viewModel.winnerInfo.
     }
 }
-// WinnerInfo data class is now in InfiniteTicTacToeViewModel.kt
+

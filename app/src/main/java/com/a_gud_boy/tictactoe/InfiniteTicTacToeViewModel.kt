@@ -182,19 +182,28 @@ class InfiniteTicTacToeViewModel : ViewModel() {
      * sets [_isGameConcluded] to true, and [_gameStarted] to false.
      */
     private fun checkForWinner() {
-        val p1CurrentVisibleMoves = _player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
-        val p2CurrentVisibleMoves = _player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
+        // Full move history for determining the order of winning moves
+        val p1FullMoveHistory = _player1Moves.value
+        val p2FullMoveHistory = _player2Moves.value
+
+        // Visible moves for win condition check
+        val p1CurrentVisibleMovesSet = p1FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
+        val p2CurrentVisibleMovesSet = p2FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
 
         for (combination in WINNING_COMBINATIONS) {
-            if (p1CurrentVisibleMoves.containsAll(combination)) {
-                _winnerInfo.value = WinnerInfo(Player.X, combination)
+            if (p1CurrentVisibleMovesSet.containsAll(combination)) {
+                // Filter the visible moves based on the combination to get the ordered winning moves
+                val orderedWin = p1FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).filter { it in combination }
+                _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
                 return
             }
-            if (p2CurrentVisibleMoves.containsAll(combination)) {
-                _winnerInfo.value = WinnerInfo(Player.O, combination)
+            if (p2CurrentVisibleMovesSet.containsAll(combination)) {
+                // Filter the visible moves based on the combination to get the ordered winning moves
+                val orderedWin = p2FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).filter { it in combination }
+                _winnerInfo.value = WinnerInfo(Player.O, combination, orderedWin)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
@@ -204,6 +213,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         // Check for draw: if all buttons are conceptually filled by the visible moves of both players
         // This is tricky with infinite mode. A draw is not explicitly handled in the original code,
         // so we'll stick to win conditions for now.
+        // No draw condition in Infinite TicTacToe as per original logic, cells can be reused.
     }
 
     /**

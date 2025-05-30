@@ -14,7 +14,11 @@ enum class Player {
 }
 
 // Data class to hold winner information
-data class WinnerInfo(val winner: Player?, val combination: Set<String>)
+data class WinnerInfo(
+    val winner: Player?,
+    val combination: Set<String>,
+    val orderedWinningMoves: List<String> // Added field for ordered winning moves
+)
 
 class NormalTicTacToeViewModel : ViewModel() {
 
@@ -91,7 +95,7 @@ class NormalTicTacToeViewModel : ViewModel() {
     )
 
 
-    // Game Logic Functions (to be implemented)
+    // Game Logic Functions
 
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
@@ -115,19 +119,25 @@ class NormalTicTacToeViewModel : ViewModel() {
     }
 
     private fun checkForWinner() {
-        val p1Moves = _player1Moves.value.toSet()
-        val p2Moves = _player2Moves.value.toSet()
+        val p1CurrentMovesList = _player1Moves.value
+        val p2CurrentMovesList = _player2Moves.value
+        val p1MovesSet = p1CurrentMovesList.toSet()
+        val p2MovesSet = p2CurrentMovesList.toSet()
 
         for (combination in WINNING_COMBINATIONS) {
-            if (p1Moves.containsAll(combination)) {
-                _winnerInfo.value = WinnerInfo(Player.X, combination)
+            if (p1MovesSet.containsAll(combination)) {
+                // Filter the original list to maintain order
+                val orderedWin = p1CurrentMovesList.filter { it in combination }
+                _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
                 return
             }
-            if (p2Moves.containsAll(combination)) {
-                _winnerInfo.value = WinnerInfo(Player.O, combination)
+            if (p2MovesSet.containsAll(combination)) {
+                // Filter the original list to maintain order
+                val orderedWin = p2CurrentMovesList.filter { it in combination }
+                _winnerInfo.value = WinnerInfo(Player.O, combination, orderedWin)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
@@ -136,8 +146,8 @@ class NormalTicTacToeViewModel : ViewModel() {
         }
 
         // Check for draw
-        if ((p1Moves.size + p2Moves.size) == 9) {
-            _winnerInfo.value = WinnerInfo(null, emptySet()) // Draw
+        if ((p1MovesSet.size + p2MovesSet.size) == 9) {
+            _winnerInfo.value = WinnerInfo(null, emptySet(), emptyList()) // Draw
             _isGameConcluded.value = true
             _gameStarted.value = false // Stop game, wait for reset
         }

@@ -1,7 +1,8 @@
 package com.a_gud_boy.tictactoe
 
-// import androidx.compose.material3.LocalContentColor // Not used in NormalTicTacToe after changes
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,8 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -54,26 +58,7 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-// Assuming TicTacToeCell is accessible from InfiniteTicTacToe.kt or a shared file.
-// If not, it needs to be defined here or in a common location.
 
-/**
- * Composable function that represents the main screen for the Normal Tic Tac Toe game.
- * It displays the game board, player scores, turn information, and control buttons.
- *
- * The game features a 3x3 grid where players take turns placing their marks (X or O).
- * This composable observes various states from [NormalTicTacToeViewModel] such as
- * player moves, win counts, current turn, and game status to render the UI dynamically.
- * It also handles user interactions like tapping on a cell to make a move or resetting
- * the game/round.
- *
- * A key visual feature is the line drawn across the winning combination of cells when a player wins.
- *
- * @param innerPadding Padding values to apply to the root Box composable, typically provided by a Scaffold
- *                     or other parent layout, to ensure content is not obscured by system UI elements.
- * @param viewModel The [NormalTicTacToeViewModel] instance that holds and manages the game's state
- *                  and business logic. Defaults to a new ViewModel instance provided by `viewModel()`.
- */
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +66,8 @@ fun NormalTicTacToePage(
     innerPadding: PaddingValues,
     viewModel: NormalTicTacToeViewModel = viewModel()
 ) {
+    val playerXColor = colorResource(R.color.red_x_icon)
+    val playerOColor = colorResource(R.color.blue_o_icon)
 
     val player1Wins by viewModel.player1Wins.collectAsStateWithLifecycle()
     val player2Wins by viewModel.player2Wins.collectAsStateWithLifecycle()
@@ -93,6 +80,26 @@ fun NormalTicTacToePage(
 
     val iconSize = 70.dp
     val buttonCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
+
+    // Animation state for the winning line
+    val lineAnimationProgress = remember { Animatable(0f) }
+    // Store the ordered winning combination for animation
+    val orderedWinningCombination = remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(winnerInfo) {
+        if (winnerInfo != null) {
+            orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
+
+            lineAnimationProgress.snapTo(0f) // Reset before starting
+            lineAnimationProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 600) // Adjust duration as needed
+            )
+        } else {
+            lineAnimationProgress.snapTo(0f)
+            orderedWinningCombination.value = emptyList()
+        }
+    }
 
     val constraints = ConstraintSet {
         val button1 = createRefFor("button1")
@@ -187,45 +194,61 @@ fun NormalTicTacToePage(
                     .background(colorResource(R.color.constraint_background))
                     .drawWithContent {
                         drawContent()
-                        winnerInfo?.let { currentWinnerInfo ->
-                            val winningButtonIds = currentWinnerInfo.combination.toList()
-                            if (winningButtonIds.size >= 2) {
-                                val startButtonId = winningButtonIds.first()
-                                val endButtonId = winningButtonIds.last()
-                                val startCoordinates = buttonCoordinates[startButtonId]
-                                val endCoordinates = buttonCoordinates[endButtonId]
+                        if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
+                            val currentWinner = winnerInfo?.winner ?: return@drawWithContent // Should have a winner if combination is present
 
-                                if (startCoordinates != null && endCoordinates != null) {
-                                    val originalLineStart = Offset(
-                                        startCoordinates.size.width / 2f + startCoordinates.positionInParent().x,
-                                        startCoordinates.size.height / 2f + startCoordinates.positionInParent().y
-                                    )
-                                    val originalLineEnd = Offset(
-                                        endCoordinates.size.width / 2f + endCoordinates.positionInParent().x,
-                                        endCoordinates.size.height / 2f + endCoordinates.positionInParent().y
-                                    )
-                                    val lineExtensionPx = 30.dp.toPx()
-                                    val directionVector = originalLineEnd - originalLineStart
-                                    if (directionVector.getDistanceSquared() == 0f) {
-                                        drawLine(
-                                            color = Color.Black.copy(alpha = 0.6f),
-                                            start = originalLineStart,
-                                            end = originalLineEnd,
+                            // The line should animate from the last move in the combination to the first
+                            val animationStartButtonId = orderedWinningCombination.value.last()
+                            val animationEndButtonId = orderedWinningCombination.value.first()
+
+                            val animStartCoordinates = buttonCoordinates[animationStartButtonId]
+                            val animEndCoordinates = buttonCoordinates[animationEndButtonId]
+
+                            if (animStartCoordinates != null && animEndCoordinates != null) {
+                                val animOriginalLineStart = Offset(
+                                    animStartCoordinates.size.width / 2f + animStartCoordinates.positionInParent().x,
+                                    animStartCoordinates.size.height / 2f + animStartCoordinates.positionInParent().y
+                                )
+                                val animOriginalLineEnd = Offset(
+                                    animEndCoordinates.size.width / 2f + animEndCoordinates.positionInParent().x,
+                                    animEndCoordinates.size.height / 2f + animEndCoordinates.positionInParent().y
+                                )
+
+                                // Interpolate the end point of the line based on animation progress
+                                val animatedLineEnd = lerp(animOriginalLineStart, animOriginalLineEnd, lineAnimationProgress.value)
+
+                                val lineExtensionPx = 30.dp.toPx()
+                                val directionVector = animatedLineEnd - animOriginalLineStart // Vector based on animated end
+
+                                val lineColor = when (currentWinner) {
+                                    Player.X -> playerXColor
+                                    Player.O -> playerOColor
+                                }
+
+                                if (directionVector.getDistanceSquared() == 0f && lineAnimationProgress.value < 1f) {
+                                    // Avoid drawing a zero-length line unless animation is complete and it's a single point (should not happen for a line)
+                                    // Or, if it's meant to draw from one point to itself (e.g. a very short line), handle as needed
+                                    // For now, let's just draw if progress is full for such a case.
+                                    if (lineAnimationProgress.value == 1f) {
+                                         drawLine(
+                                            color = lineColor.copy(alpha = 0.6f),
+                                            start = animOriginalLineStart,
+                                            end = animatedLineEnd, // which is animOriginalLineStart if vector is zero
                                             strokeWidth = 5.dp.toPx(),
                                             cap = StrokeCap.Round
                                         )
-                                        return@drawWithContent
                                     }
-                                    val normalizedDirection =
-                                        directionVector / directionVector.getDistance()
-                                    val extendedLineStart =
-                                        originalLineStart - (normalizedDirection * lineExtensionPx)
-                                    val extendedLineEnd =
-                                        originalLineEnd + (normalizedDirection * lineExtensionPx)
+                                } else if (directionVector.getDistanceSquared() > 0f) { // Only draw if there's a direction
+                                    val normalizedDirection = directionVector / directionVector.getDistance()
+                                    // Extend the line from the *start* of the animation (most recent move)
+                                    // and from the *animated end point* (towards the oldest move)
+                                    val extendedLineStart = animOriginalLineStart - (normalizedDirection * lineExtensionPx)
+                                    val extendedAnimatedLineEnd = animatedLineEnd + (normalizedDirection * lineExtensionPx)
+
                                     drawLine(
-                                        color = Color.Black.copy(alpha = 0.6f),
+                                        color = lineColor.copy(alpha = 0.6f),
                                         start = extendedLineStart,
-                                        end = extendedLineEnd,
+                                        end = extendedAnimatedLineEnd,
                                         strokeWidth = 5.dp.toPx(),
                                         cap = StrokeCap.Round
                                     )
@@ -283,44 +306,24 @@ fun NormalTicTacToePage(
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp
                         )
-                        if (turnDenotingText == "It's a Draw!") {
-                            Icon(Icons.Default.Close, contentDescription = "Player X Turn/Win")
-                            Text(
-                                text = "\uD83E\uDD1D",  // Handshake emoji
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 20.sp
+                        if (winnerInfo?.winner == Player.X || (winnerInfo == null && player1Turn)) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Turn Denoting Icon"
                             )
+                        } else if (winnerInfo?.winner == Player.O || (winnerInfo == null && !player1Turn)) {
                             Icon(
                                 painterResource(R.drawable.player_2),
-                                contentDescription = "Player O Turn/Win"
+                                contentDescription = "Turn Denoting Icon"
                             )
-                            Text(
-                                text = ")",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 20.sp
-                            )
-                        } else {
-                            // Icon logic for turn/winner display
-                            if (winnerInfo?.winner == null && turnDenotingText.contains(
-                                    "Draw",
-                                    ignoreCase = true
-                                )
-                            ) {
-                                // No icon for draw, or a specific draw icon if desired.
-                            } else if (player1Turn || winnerInfo?.winner == Player.X) {
-                                Icon(Icons.Default.Close, contentDescription = "Player X Turn/Win")
-                            } else {
-                                Icon(
-                                    painterResource(R.drawable.player_2),
-                                    contentDescription = "Player O Turn/Win"
-                                )
-                            }
-                            Text(
-                                text = ")",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 20.sp
-                            )
+                        } else { // Draw case or other states
+                            Text("", Modifier.width(24.dp)) // Placeholder for icon space if needed
                         }
+                        Text(
+                            text = ")",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 20.sp
+                        )
                     }
                     Row(
                         modifier = Modifier
@@ -331,7 +334,7 @@ fun NormalTicTacToePage(
                     ) {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Player X Score Icon",
+                            contentDescription = "Cross",
                             tint = colorResource(R.color.red_x_icon),
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
@@ -349,8 +352,7 @@ fun NormalTicTacToePage(
                                 .padding(12.dp)
                         )
                         Text(
-                            "-",
-                            style = MaterialTheme.typography.labelMedium,
+                            "-", style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = colorResource(R.color.hyphenColor),
@@ -358,7 +360,7 @@ fun NormalTicTacToePage(
                         )
                         Icon(
                             painterResource(R.drawable.player_2),
-                            contentDescription = "Player O Score Icon",
+                            contentDescription = "Circle",
                             tint = colorResource(R.color.blue_o_icon),
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
@@ -379,10 +381,11 @@ fun NormalTicTacToePage(
                 }
             }
 
-
-
             Button(
-                onClick = { viewModel.resetRound() },
+                onClick = {
+                    viewModel.resetRound()
+                    buttonCoordinates.clear()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -396,13 +399,20 @@ fun NormalTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Reset Round Button Icon")
-                    Text(text = resetButtonText, modifier = Modifier.padding(start = 8.dp))
+                    Icon(Icons.Filled.Refresh, contentDescription = "New Round")
+                    Text(
+                        text = resetButtonText,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    )
                 }
             }
 
             Button(
-                onClick = { viewModel.resetScores() },
+                onClick = {
+                    viewModel.resetScores()
+                    buttonCoordinates.clear()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -416,11 +426,17 @@ fun NormalTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Reset Scores Button Icon")
-                    Text(text = "Reset Scores", modifier = Modifier.padding(start = 8.dp))
+                    Icon(Icons.Filled.Refresh, contentDescription = "Reset Scores") 
+                    Text(
+                        text = "Reset Scores",
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    )
                 }
             }
         }
-
     }
 }
+
+
+
