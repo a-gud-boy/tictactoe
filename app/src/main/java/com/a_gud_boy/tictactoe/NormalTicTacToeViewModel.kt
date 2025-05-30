@@ -8,20 +8,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-// The following code was commented out as they already exist in NormalTicTacToe.kt
-
 // Enum to represent the player
-//enum class Player {
-//    X, O
-//}
+enum class Player {
+    X, O
+}
 
 // Data class to hold winner information
-//data class WinnerInfo(val winner: Player, val combination: Set<String>)
+data class WinnerInfo(val winner: Player?, val combination: Set<String>)
 
-class InfiniteTicTacToeViewModel : ViewModel() {
+class NormalTicTacToeViewModel : ViewModel() {
 
     companion object {
-        const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
             // Rows
             setOf("button1", "button2", "button3"),
@@ -66,22 +63,32 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     // Derived state for turn denoting text
     val turnDenotingText: StateFlow<String> = combine(
         player1Turn,
-        winnerInfo
-        // isGameConcluded is removed as its effect on text is via winnerInfo
-    ) { isP1Turn, winnerData -> // Renamed winner to winnerData to avoid any potential scope conflicts
+        winnerInfo,
+        isGameConcluded
+    ) { isP1Turn, winnerData, gameConcluded ->
         when {
-            winnerData != null -> if (winnerData.winner == Player.X) "Player 1 Won" else "Player 2 Won"
+            winnerData != null && winnerData.winner == Player.X -> "Player 1 Won"
+            winnerData != null && winnerData.winner == Player.O -> "Player 2 Won"
+            gameConcluded && winnerData?.winner == null -> "It's a Draw!"
             isP1Turn -> "Player 1's Turn"
             else -> "Player 2's Turn"
         }
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Player 1's Turn")
+    }.stateIn(
+        viewModelScope,
+        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        "Player 1's Turn"
+    )
 
     // Derived state for reset button text
     val resetButtonText: StateFlow<String> = combine(
         isGameConcluded
     ) { concluded ->
         if (concluded[0]) "New Round" else "Reset Round"
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Reset Round")
+    }.stateIn(
+        viewModelScope,
+        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        "Reset Round"
+    )
 
 
     // Game Logic Functions (to be implemented)
@@ -92,30 +99,15 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         val currentP1Moves = _player1Moves.value
         val currentP2Moves = _player2Moves.value
 
-        // Check if button is already played by either player within visible moves
-        val isAlreadyPlayedByPlayer1 = currentP1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
-        val isAlreadyPlayedByPlayer2 = currentP2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
-
-        if (isAlreadyPlayedByPlayer1 || isAlreadyPlayedByPlayer2) {
-            return // Button already visibly played
+        // Check if button is already played by either player
+        if (currentP1Moves.contains(buttonId) || currentP2Moves.contains(buttonId)) {
+            return // Button already played
         }
 
         if (_player1Turn.value) {
-            val newMoves = currentP1Moves.toMutableList()
-            newMoves.add(buttonId)
-            _player1Moves.value = if (newMoves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
-                newMoves.drop(newMoves.size - MAX_VISIBLE_MOVES_PER_PLAYER)
-            } else {
-                newMoves
-            }
+            _player1Moves.value = currentP1Moves + buttonId
         } else {
-            val newMoves = currentP2Moves.toMutableList()
-            newMoves.add(buttonId)
-            _player2Moves.value = if (newMoves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
-                newMoves.drop(newMoves.size - MAX_VISIBLE_MOVES_PER_PLAYER)
-            } else {
-                newMoves
-            }
+            _player2Moves.value = currentP2Moves + buttonId
         }
 
         _player1Turn.value = !_player1Turn.value
@@ -123,18 +115,18 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     }
 
     private fun checkForWinner() {
-        val p1CurrentVisibleMoves = _player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
-        val p2CurrentVisibleMoves = _player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
+        val p1Moves = _player1Moves.value.toSet()
+        val p2Moves = _player2Moves.value.toSet()
 
         for (combination in WINNING_COMBINATIONS) {
-            if (p1CurrentVisibleMoves.containsAll(combination)) {
+            if (p1Moves.containsAll(combination)) {
                 _winnerInfo.value = WinnerInfo(Player.X, combination)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
                 return
             }
-            if (p2CurrentVisibleMoves.containsAll(combination)) {
+            if (p2Moves.containsAll(combination)) {
                 _winnerInfo.value = WinnerInfo(Player.O, combination)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
@@ -142,9 +134,13 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 return
             }
         }
-        // Check for draw: if all buttons are conceptually filled by the visible moves of both players
-        // This is tricky with infinite mode. A draw is not explicitly handled in the original code,
-        // so we'll stick to win conditions for now.
+
+        // Check for draw
+        if ((p1Moves.size + p2Moves.size) == 9) {
+            _winnerInfo.value = WinnerInfo(null, emptySet()) // Draw
+            _isGameConcluded.value = true
+            _gameStarted.value = false // Stop game, wait for reset
+        }
     }
 
     fun resetRound() {
