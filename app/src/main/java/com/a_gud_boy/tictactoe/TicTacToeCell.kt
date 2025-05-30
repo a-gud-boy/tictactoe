@@ -3,8 +3,7 @@ package com.a_gud_boy.tictactoe
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -36,53 +35,54 @@ fun TicTacToeCell(
     iconSize: Dp = 70.dp,
     onClick: () -> Unit
 ) {
+    // Remember the interaction source to prevent recomposition
+    val interactionSource = remember { MutableInteractionSource() }
+
+    // Get colors outside remember block since they're Composable functions
+    val playerXColor = colorResource(R.color.red_x_icon)
+    val playerOColor = colorResource(R.color.blue_o_icon)
+
+    // Remember the icon tint based on player and isOldMove
+    val iconTint = remember(player, isOldMove, playerXColor, playerOColor) {
+        if (player == null) {
+            Color.Transparent
+        } else {
+            val baseColor = when (player) {
+                Player.X -> playerXColor
+                Player.O -> playerOColor
+            }
+            if (isOldMove) baseColor.copy(alpha = 0.4f) else baseColor
+        }
+    }
+
+    // Remember the icon modifier to prevent recreation
+    val iconModifier = remember(iconSize) {
+        Modifier.size(iconSize)
+    }
+
     Box(
         modifier = modifier // This will include layoutId, size, onGloballyPositioned, background, shape, clickable
             .clickable(
                 onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = null // No ripple effect
             ),
         contentAlignment = Alignment.Center
     ) {
-        // Determine the tint based on whether the move is old/dimmed.
-        val iconTint =
-            if (isOldMove) { // isOldMove now represents the "about to disappear" or generally dimmed state
-                when (player) {
-                    Player.X -> colorResource(R.color.red_x_icon).copy(alpha = 0.4f)
-                    Player.O -> colorResource(R.color.blue_o_icon).copy(alpha = 0.4f)
-                    null -> Color.Transparent // Should not be reached if player is non-null for an old move
-                }
-            } else {
-                when (player) {
-                    Player.X -> colorResource(R.color.red_x_icon)
-                    Player.O -> colorResource(R.color.blue_o_icon)
-                    null -> Color.Transparent
-                }
-            }
-
         when (player) {
-            Player.X -> {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Player X move",
-                    tint = iconTint, // Apply calculated tint
-                    modifier = Modifier
-                        .width(iconSize)
-                        .height(iconSize)
-                )
-            }
+            Player.X -> Icon(
+                Icons.Default.Close,
+                contentDescription = "Player X move",
+                tint = iconTint, // Apply calculated tint
+                modifier = iconModifier
+            )
 
-            Player.O -> {
-                Icon(
-                    painter = painterResource(R.drawable.player_2),
-                    contentDescription = "Player O move",
-                    tint = iconTint, // Apply calculated tint
-                    modifier = Modifier
-                        .width(iconSize)
-                        .height(iconSize)
-                )
-            }
+            Player.O -> Icon(
+                painter = painterResource(R.drawable.player_2),
+                contentDescription = "Player O move",
+                tint = iconTint, // Apply calculated tint
+                modifier = iconModifier
+            )
 
             null -> {
                 // Empty cell

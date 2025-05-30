@@ -124,7 +124,17 @@ class NormalTicTacToeViewModel : ViewModel() {
         val p1MovesSet = p1CurrentMovesList.toSet()
         val p2MovesSet = p2CurrentMovesList.toSet()
 
-        for (combination in WINNING_COMBINATIONS) {
+        // Early return if neither player has enough moves for a win
+        if (p1MovesSet.size < 3 && p2MovesSet.size < 3) return
+
+        // Check only relevant winning combinations based on the last move
+        val lastMove = if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
+        if (lastMove == null) return
+
+        // Filter winning combinations that contain the last move
+        val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastMove) }
+
+        for (combination in relevantCombinations) {
             if (p1MovesSet.containsAll(combination)) {
                 // Use geometric order from the combination instead of chronological order
                 val orderedWin = combination.toList()

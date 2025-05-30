@@ -317,7 +317,15 @@ fun NormalTicTacToePage(
                                 contentDescription = "Turn Denoting Icon"
                             )
                         } else { // Draw case or other states
-                            Text("", Modifier.width(24.dp)) // Placeholder for icon space if needed
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Turn Denoting Icon"
+                            )
+                            Text("\uD83E\uDD1D", Modifier.width(24.dp)) // Placeholder for icon space if needed
+                            Icon(
+                                painterResource(R.drawable.player_2),
+                                contentDescription = "Turn Denoting Icon"
+                            )
                         }
                         Text(
                             text = ")",

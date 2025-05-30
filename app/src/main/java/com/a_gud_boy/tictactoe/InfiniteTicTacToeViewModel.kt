@@ -186,11 +186,23 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         val p1FullMoveHistory = _player1Moves.value
         val p2FullMoveHistory = _player2Moves.value
 
-        // Visible moves for win condition check
-        val p1CurrentVisibleMovesSet = p1FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
-        val p2CurrentVisibleMovesSet = p2FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
+        // Get visible moves once to avoid multiple calls to takeLast
+        val p1VisibleMoves = p1FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val p2VisibleMoves = p2FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val p1CurrentVisibleMovesSet = p1VisibleMoves.toSet()
+        val p2CurrentVisibleMovesSet = p2VisibleMoves.toSet()
 
-        for (combination in WINNING_COMBINATIONS) {
+        // Early return if neither player has enough moves for a win
+        if (p1VisibleMoves.size < 3 && p2VisibleMoves.size < 3) return
+
+        // Check only relevant winning combinations based on the last move
+        val lastMove = if (_player1Turn.value) p2VisibleMoves.lastOrNull() else p1VisibleMoves.lastOrNull()
+        if (lastMove == null) return
+
+        // Filter winning combinations that contain the last move
+        val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastMove) }
+
+        for (combination in relevantCombinations) {
             if (p1CurrentVisibleMovesSet.containsAll(combination)) {
                 // Order the winning moves based on the geometric pattern in the combination
                 val orderedWin = combination.toList()
