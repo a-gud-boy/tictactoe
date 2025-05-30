@@ -126,8 +126,8 @@ class NormalTicTacToeViewModel : ViewModel() {
 
         for (combination in WINNING_COMBINATIONS) {
             if (p1MovesSet.containsAll(combination)) {
-                // Filter the original list to maintain order
-                val orderedWin = p1CurrentMovesList.filter { it in combination }
+                // Use geometric order from the combination instead of chronological order
+                val orderedWin = combination.toList()
                 _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
@@ -135,8 +135,8 @@ class NormalTicTacToeViewModel : ViewModel() {
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
-                // Filter the original list to maintain order
-                val orderedWin = p2CurrentMovesList.filter { it in combination }
+                // Use geometric order from the combination instead of chronological order
+                val orderedWin = combination.toList()
                 _winnerInfo.value = WinnerInfo(Player.O, combination, orderedWin)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true

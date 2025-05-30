@@ -192,8 +192,8 @@ class InfiniteTicTacToeViewModel : ViewModel() {
 
         for (combination in WINNING_COMBINATIONS) {
             if (p1CurrentVisibleMovesSet.containsAll(combination)) {
-                // Filter the visible moves based on the combination to get the ordered winning moves
-                val orderedWin = p1FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).filter { it in combination }
+                // Order the winning moves based on the geometric pattern in the combination
+                val orderedWin = combination.toList()
                 _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
@@ -201,8 +201,8 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
-                // Filter the visible moves based on the combination to get the ordered winning moves
-                val orderedWin = p2FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).filter { it in combination }
+                // Order the winning moves based on the geometric pattern in the combination
+                val orderedWin = combination.toList()
                 _winnerInfo.value = WinnerInfo(Player.O, combination, orderedWin)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
@@ -210,9 +210,6 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 return
             }
         }
-        // Check for draw: if all buttons are conceptually filled by the visible moves of both players
-        // This is tricky with infinite mode. A draw is not explicitly handled in the original code,
-        // so we'll stick to win conditions for now.
         // No draw condition in Infinite TicTacToe as per original logic, cells can be reused.
     }
 

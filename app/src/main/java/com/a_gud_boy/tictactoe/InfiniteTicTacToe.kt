@@ -1,4 +1,3 @@
-
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
@@ -238,63 +237,52 @@ fun InfiniteTicTacToePage(
                         if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
                             val currentWinner = winnerInfo?.winner ?: return@drawWithContent // Should have a winner
 
-                            // The line should animate from the last move in the ordered combination (most recent)
-                            // to the first move in the ordered combination (oldest of the winning set).
-                            val animationStartButtonId = orderedWinningCombination.value.last()
-                            val animationEndButtonId = orderedWinningCombination.value.first()
+                            // Get the first and last cells in the winning combination
+                            val firstButtonId = orderedWinningCombination.value.first()
+                            val lastButtonId = orderedWinningCombination.value.last()
 
-                            val animStartCoordinates = buttonCoordinates[animationStartButtonId]
-                            val animEndCoordinates = buttonCoordinates[animationEndButtonId]
+                            val firstCoordinates = buttonCoordinates[firstButtonId]
+                            val lastCoordinates = buttonCoordinates[lastButtonId]
 
-                            if (animStartCoordinates != null && animEndCoordinates != null) {
-                                val animOriginalLineStart = Offset(
-                                    animStartCoordinates.size.width / 2f + animStartCoordinates.positionInParent().x,
-                                    animStartCoordinates.size.height / 2f + animStartCoordinates.positionInParent().y
+                            if (firstCoordinates != null && lastCoordinates != null) {
+                                val lineStart = Offset(
+                                    firstCoordinates.size.width / 2f + firstCoordinates.positionInParent().x,
+                                    firstCoordinates.size.height / 2f + firstCoordinates.positionInParent().y
                                 )
-                                val animOriginalLineEnd = Offset(
-                                    animEndCoordinates.size.width / 2f + animEndCoordinates.positionInParent().x,
-                                    animEndCoordinates.size.height / 2f + animEndCoordinates.positionInParent().y
+                                val lineEnd = Offset(
+                                    lastCoordinates.size.width / 2f + lastCoordinates.positionInParent().x,
+                                    lastCoordinates.size.height / 2f + lastCoordinates.positionInParent().y
                                 )
 
                                 // Interpolate the end point of the line based on animation progress
-                                val animatedLineEnd = lerp(animOriginalLineStart, animOriginalLineEnd, lineAnimationProgress.value)
-
-                                val lineExtensionPx = 30.dp.toPx()
-                                val directionVector = animatedLineEnd - animOriginalLineStart // Vector based on animated end
+                                val animatedLineEnd = lerp(lineStart, lineEnd, lineAnimationProgress.value)
 
                                 val lineColor = when (currentWinner) {
                                     Player.X -> playerXColor
                                     Player.O -> playerOColor
                                 }
 
-                                if (directionVector.getDistanceSquared() == 0f && lineAnimationProgress.value < 1f) {
-                                    // Avoid drawing a zero-length line unless animation is complete and it's a single point (should not happen for a line)
-                                    // Or, if it's meant to draw from one point to itself (e.g. a very short line), handle as needed
-                                    // For now, let's just draw if progress is full for such a case.
-                                    if (lineAnimationProgress.value == 1f) {
-                                         drawLine(
-                                            color = lineColor.copy(alpha = 0.6f),
-                                            start = animOriginalLineStart,
-                                            end = animatedLineEnd, // which is animOriginalLineStart if vector is zero
-                                            strokeWidth = 5.dp.toPx(),
-                                            cap = StrokeCap.Round
-                                        )
-                                    }
-                                } else if (directionVector.getDistanceSquared() > 0f) { // Only draw if there's a direction
-                                    val normalizedDirection = directionVector / directionVector.getDistance()
-                                    // Extend the line from the *start* of the animation (most recent move)
-                                    // and from the *animated end point* (towards the oldest move)
-                                    val extendedLineStart = animOriginalLineStart - (normalizedDirection * lineExtensionPx)
-                                    val extendedAnimatedLineEnd = animatedLineEnd + (normalizedDirection * lineExtensionPx)
-
-                                    drawLine(
-                                        color = lineColor.copy(alpha = 0.6f),
-                                        start = extendedLineStart,
-                                        end = extendedAnimatedLineEnd,
-                                        strokeWidth = 5.dp.toPx(),
-                                        cap = StrokeCap.Round
-                                    )
+                                // Calculate direction vector for line extension
+                                val directionVector = lineEnd - lineStart
+                                val normalizedDirection = if (directionVector.getDistance() > 0) {
+                                    directionVector / directionVector.getDistance()
+                                } else {
+                                    Offset(0f, 0f)
                                 }
+
+                                // Extend the line by 20.dp on both ends
+                                val lineExtensionPx = 30.dp.toPx()
+                                val extendedLineStart = lineStart - (normalizedDirection * lineExtensionPx)
+                                val extendedLineEnd = lerp(extendedLineStart, lineEnd + (normalizedDirection * lineExtensionPx), lineAnimationProgress.value)
+
+                                // Draw the line with original properties
+                                drawLine(
+                                    color = lineColor.copy(alpha = 0.6f),
+                                    start = extendedLineStart,
+                                    end = extendedLineEnd,
+                                    strokeWidth = 5.dp.toPx(),
+                                    cap = StrokeCap.Round
+                                )
                             }
                         }
                     }
