@@ -18,6 +18,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * Renders a single cell in the Tic Tac Toe grid.
+ *
+ * @param modifier Modifier to be applied to the cell.
+ * @param player The player who has made a move in this cell, or null if the cell is empty.
+ * @param isOldMove True if the move in this cell is an old move and should be dimmed, false otherwise.
+ * @param iconSize The size of the X or O icon.
+ * @param onClick Callback to be invoked when the cell is clicked.
+ */
 @Composable
 fun TicTacToeCell(
     modifier: Modifier = Modifier,

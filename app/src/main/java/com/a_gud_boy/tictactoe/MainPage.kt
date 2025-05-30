@@ -45,6 +45,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
+/**
+ * The main composable function that sets up the application's UI structure.
+ *
+ * This function creates a [ModalNavigationDrawer] which allows users to switch between
+ * different Tic Tac Toe game modes ("Normal TicTacToe" and "Infinite TicTacToe").
+ * It uses a [Scaffold] to provide a standard layout structure, including a [TopAppBar]
+ * and the main content area where the selected game mode is displayed.
+ *
+ * The current game mode is determined by `selectedItemIndex`, which is persisted across
+ * configuration changes using `rememberSaveable`.
+ * The [TopAppBar] displays the title of the currently selected game and provides a navigation
+ * icon to open the drawer and an action icon for settings (currently shows a Toast).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage() {
@@ -168,12 +181,24 @@ fun MainPage() {
 
 }
 
+/**
+ * A preview composable for the [MainPage] function.
+ *
+ * This allows for easy previewing of the [MainPage] layout and functionality within
+ * Android Studio's Compose preview tool.
+ */
 @Preview
 @Composable
 fun MainPagePreview() {
     MainPage()
 }
 
+/**
+ * A composable function that renders the header content for the navigation drawer.
+ *
+ * This typically includes the application title or logo.
+ * Currently, it displays "Tic Tac Toe" centered within a Box.
+ */
 @Composable
 fun DrawerHeader() {
     // Example header
@@ -187,6 +212,12 @@ fun DrawerHeader() {
     }
 }
 
+/**
+ * A composable function that renders the footer content for the navigation drawer.
+ *
+ * This can be used to display information like app version or other links.
+ * Currently, it displays the application version string.
+ */
 @Composable
 fun DrawerFooter() {
     // Example footer

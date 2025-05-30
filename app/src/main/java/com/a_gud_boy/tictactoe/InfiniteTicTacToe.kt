@@ -53,6 +53,27 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+/**
+ * Composable function that represents the main screen for the Infinite Tic Tac Toe game.
+ * It displays the game board, player scores, turn information, and control buttons.
+ *
+ * The game features a 3x3 grid where players take turns placing their marks (X or O).
+ * Unlike traditional Tic Tac Toe, marks disappear after a set number of subsequent moves,
+ * requiring players to strategize around a constantly changing board.
+ *
+ * This composable observes various states from [InfiniteTicTacToeViewModel] such as
+ * player moves, win counts, current turn, and game status to render the UI dynamically.
+ * It also handles user interactions like tapping on a cell to make a move or resetting
+ * the game/round.
+ *
+ * A key visual feature is the line drawn across the winning combination of cells when a player wins.
+ * Additionally, cells whose marks are about to disappear are visually dimmed to provide a cue to the player.
+ *
+ * @param innerPadding Padding values to apply to the root Box composable, typically provided by a Scaffold
+ *                     or other parent layout, to ensure content is not obscured by system UI elements.
+ * @param viewModel The [InfiniteTicTacToeViewModel] instance that holds and manages the game's state
+ *                  and business logic. Defaults to a new ViewModel instance provided by `viewModel()`.
+ */
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

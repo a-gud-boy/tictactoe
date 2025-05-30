@@ -18,10 +18,35 @@ import kotlinx.coroutines.flow.stateIn
 // Data class to hold winner information
 //data class WinnerInfo(val winner: Player, val combination: Set<String>)
 
+/**
+ * ViewModel for the Infinite Tic Tac Toe game.
+ *
+ * This ViewModel manages the state and logic for a Tic Tac Toe game variant
+ * where players' marks disappear after a certain number of subsequent moves.
+ * It tracks player scores, moves, turn information, and game status (e.g., win, active).
+ *
+ * Key features managed:
+ * - **Player Moves**: Stores the history of moves for Player X and Player O.
+ *   Only the last [MAX_VISIBLE_MOVES_PER_PLAYER] are considered for display and win conditions.
+ * - **Win Tracking**: Detects winning combinations based on the currently visible moves.
+ * - **Turn Management**: Alternates turns between Player 1 (X) and Player 2 (O).
+ * - **Game State**: Manages whether the game is started, concluded, or awaiting a new round.
+ * - **Score Keeping**: Counts the number of wins for each player.
+ * - **UI State Exposure**: Exposes game state information as [StateFlow]s to be observed by the UI,
+ *   including derived states like `turnDenotingText` and `resetButtonText`.
+ */
 class InfiniteTicTacToeViewModel : ViewModel() {
 
     companion object {
+        /**
+         * The maximum number of moves per player that remain visible on the board
+         * and are considered for winning conditions. Older moves "disappear".
+         */
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
+        /**
+         * A list of all possible winning combinations on a 3x3 Tic Tac Toe board.
+         * Each combination is a set of button IDs (e.g., "button1", "button2", "button3").
+         */
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
             // Rows
             setOf("button1", "button2", "button3"),
@@ -38,32 +63,47 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     }
 
     private val _player1Wins = MutableStateFlow(0)
+    /** StateFlow representing the number of wins for Player 1 (X). */
     val player1Wins: StateFlow<Int> = _player1Wins.asStateFlow()
 
     private val _player2Wins = MutableStateFlow(0)
+    /** StateFlow representing the number of wins for Player 2 (O). */
     val player2Wins: StateFlow<Int> = _player2Wins.asStateFlow()
 
     // Using List<String> for moves as per current Composable logic
     private val _player1Moves = MutableStateFlow<List<String>>(emptyList())
+    /** StateFlow representing the list of moves made by Player 1 (X). */
     val player1Moves: StateFlow<List<String>> = _player1Moves.asStateFlow()
 
     private val _player2Moves = MutableStateFlow<List<String>>(emptyList())
+    /** StateFlow representing the list of moves made by Player 2 (O). */
     val player2Moves: StateFlow<List<String>> = _player2Moves.asStateFlow()
 
     private val _winnerInfo = MutableStateFlow<WinnerInfo?>(null)
+    /**
+     * StateFlow holding information about the winner of the current round, if any.
+     * Contains the winning [Player] and the [Set] of button IDs forming the winning combination.
+     * Null if there is no winner yet.
+     */
     val winnerInfo: StateFlow<WinnerInfo?> = _winnerInfo.asStateFlow()
 
     // True for Player 1 (X), False for Player 2 (O)
     private val _player1Turn = MutableStateFlow(true)
+    /** StateFlow indicating if it is currently Player 1's (X) turn. True if yes, false for Player 2 (O). */
     val player1Turn: StateFlow<Boolean> = _player1Turn.asStateFlow()
 
     private val _gameStarted = MutableStateFlow(true) // Game starts active
+    /** StateFlow indicating if the game is currently active (i.e., players can make moves). */
     val gameStarted: StateFlow<Boolean> = _gameStarted.asStateFlow()
 
     private val _isGameConcluded = MutableStateFlow(false)
+    /** StateFlow indicating if the current round of the game has concluded (e.g., due to a win). */
     val isGameConcluded: StateFlow<Boolean> = _isGameConcluded.asStateFlow()
 
-    // Derived state for turn denoting text
+    /**
+     * Derived StateFlow providing a text string to display the current turn or game result.
+     * Examples: "Player 1's Turn", "Player 2 Won".
+     */
     val turnDenotingText: StateFlow<String> = combine(
         player1Turn,
         winnerInfo
@@ -71,12 +111,15 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     ) { isP1Turn, winnerData -> // Renamed winner to winnerData to avoid any potential scope conflicts
         when {
             winnerData != null -> if (winnerData.winner == Player.X) "Player 1 Won" else "Player 2 Won"
-            isP1Turn -> "Player 1's Turn"
-            else -> "Player 2's Turn"
+            isP1Turn -> "Player 1\'s Turn"
+            else -> "Player 2\'s Turn"
         }
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Player 1's Turn")
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Player 1\'s Turn")
 
-    // Derived state for reset button text
+    /**
+     * Derived StateFlow providing the text for the reset button.
+     * Typically "Reset Round" during a game and "New Round" after a game has concluded.
+     */
     val resetButtonText: StateFlow<String> = combine(
         isGameConcluded
     ) { concluded ->
@@ -84,8 +127,17 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Reset Round")
 
 
-    // Game Logic Functions (to be implemented)
-
+    /**
+     * Handles the logic when a button (cell) on the Tic Tac Toe board is clicked.
+     *
+     * If the game is active and the clicked cell is not already visibly occupied:
+     * 1. Records the move for the current player.
+     * 2. If the player's move list exceeds [MAX_VISIBLE_MOVES_PER_PLAYER], the oldest move is removed.
+     * 3. Switches the turn to the other player.
+     * 4. Checks if the new move results in a win.
+     *
+     * @param buttonId The ID of the button/cell that was clicked (e.g., "button1").
+     */
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
@@ -122,6 +174,13 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         checkForWinner()
     }
 
+    /**
+     * Checks if the current set of visible moves for either player constitutes a win.
+     * It iterates through [WINNING_COMBINATIONS] and compares them against the
+     * last [MAX_VISIBLE_MOVES_PER_PLAYER] moves of each player.
+     * If a win is detected, it updates [_winnerInfo], increments the winner's score,
+     * sets [_isGameConcluded] to true, and [_gameStarted] to false.
+     */
     private fun checkForWinner() {
         val p1CurrentVisibleMoves = _player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
         val p2CurrentVisibleMoves = _player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
@@ -147,6 +206,12 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         // so we'll stick to win conditions for now.
     }
 
+    /**
+     * Resets the game board and state for a new round.
+     * Clears all player moves, resets winner information, sets Player 1 as the starting player,
+     * and marks the game as active and not concluded.
+     * Player scores are not affected by this function.
+     */
     fun resetRound() {
         _player1Moves.value = emptyList()
         _player2Moves.value = emptyList()
@@ -156,6 +221,10 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         _gameStarted.value = true
     }
 
+    /**
+     * Resets the scores for both players to zero.
+     * Optionally, this function also calls [resetRound] to reset the current game state as well.
+     */
     fun resetScores() {
         _player1Wins.value = 0
         _player2Wins.value = 0
