@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -91,7 +93,22 @@ fun MainPage() {
                                     // unselectedTextColor = ...,
                                     // selectedIconColor = ...,
                                     selectedTextColor = Color.Black
-                                )
+                                ),
+                                icon = {
+                                    if (index == 0) {
+                                        Icon(
+                                            painterResource(R.drawable.normal_tic_tac_toe),
+                                            contentDescription = "Navigation Icon for Normal Tic Tac Toe",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    } else if (index == 1) {
+                                        Icon(
+                                            painterResource(R.drawable.infinite_tic_tac_toe),
+                                            contentDescription = "Navigation Icon for Infinite Tic Tac Toe",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    }
+                                }
                             )
                         }
                     }
@@ -108,7 +125,7 @@ fun MainPage() {
                 TopAppBar(
                     title = {
                         Text(
-                            "Tic Tac Toe",
+                            if (selectedItemIndex == 0) "Tic Tac Toe" else "Infinite Tic Tac Toe",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.labelMedium,
