@@ -3,11 +3,16 @@ package com.a_gud_boy.tictactoe
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -23,16 +28,19 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -70,6 +78,7 @@ fun MainPage() {
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
+    var gameMode by rememberSaveable { mutableStateOf(GameMode.PVP) } // Added gameMode state
     val items = listOf("Normal TicTacToe", "Infinite TicTacToe")
 
     ModalNavigationDrawer(
@@ -125,6 +134,44 @@ fun MainPage() {
                             )
                         }
                     }
+
+                    // Game Mode Selection UI
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Game Mode",
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Column(Modifier.selectableGroup()) {
+                        GameMode.values().forEach { mode ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .selectable(
+                                        selected = (mode == gameMode),
+                                        onClick = { gameMode = mode },
+                                        role = Role.RadioButton
+                                    )
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                RadioButton(
+                                    selected = (mode == gameMode),
+                                    onClick = null // null recommended for accessibility with screenreaders
+                                )
+                                Text(
+                                    text = when (mode) {
+                                        GameMode.PVP -> "Player vs Player"
+                                        GameMode.PVC -> "Player vs Computer"
+                                    },
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
                     // Creates the free space
                     Spacer(modifier = Modifier.weight(1f))
                     DrawerFooter()
@@ -173,8 +220,8 @@ fun MainPage() {
             }
         ) { innerPadding ->
             when (selectedItemIndex) {
-                0 -> NormalTicTacToePage(innerPadding)
-                1 -> InfiniteTicTacToePage(innerPadding)
+                0 -> NormalTicTacToePage(innerPadding, gameMode) // Pass gameMode
+                1 -> InfiniteTicTacToePage(innerPadding, gameMode) // Pass gameMode
             }
         }
     }

@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.stateIn
  * - **UI State Exposure**: Exposes game state information as [StateFlow]s to be observed by the UI,
  *   including derived states like `turnDenotingText` and `resetButtonText`.
  */
-class InfiniteTicTacToeViewModel : ViewModel() {
+class InfiniteTicTacToeViewModel(private val gameMode: GameMode) : ViewModel() {
 
     companion object {
         /**
@@ -172,6 +172,107 @@ class InfiniteTicTacToeViewModel : ViewModel() {
 
         _player1Turn.value = !_player1Turn.value
         checkForWinner()
+
+        // If PVC mode and now it's computer's turn (O, player 2)
+        if (gameMode == GameMode.PVC && !_player1Turn.value && !_isGameConcluded.value) {
+            makeComputerMove()
+        }
+    }
+
+    private fun makeComputerMove() {
+        // Ensure computer doesn't play if game is over or not started
+        if (_isGameConcluded.value || !_gameStarted.value) return
+
+        val p1TotalMoves = _player1Moves.value
+        val p2TotalMoves = _player2Moves.value
+        val p2VisibleMovesSet = p2TotalMoves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
+        val p1VisibleMovesSet = p1TotalMoves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).toSet()
+
+        val allBoardCells = (1..9).map { "button$it" }
+
+        // --- AI Logic ---
+
+        // 1. Check if Computer (Player O) can win
+        // Potential cells for O to play are those not in its current visible set
+        val potentialWinCellsForO = allBoardCells.filterNot { p2VisibleMovesSet.contains(it) }
+        for (cell in potentialWinCellsForO) {
+            if (canWinInfinite(p2TotalMoves, cell)) {
+                performComputerMove(cell, p2TotalMoves)
+                return
+            }
+        }
+
+        // 2. Check if Player X can win next (and block them)
+        // Potential cells for O to block are those not in its current visible set
+        // (these are the same cells O would consider playing in for itself)
+        val potentialBlockCellsForO = potentialWinCellsForO
+        for (cell in potentialBlockCellsForO) {
+            // Simulate if X plays in 'cell'. X cannot play in O's visible stones.
+            // And X also cannot play in its own visible stones.
+            // So, 'cell' must not be in p1VisibleMovesSet for X to consider it.
+            // However, O is deciding where to play to block. If X *could* win by playing at 'cell', O must take 'cell'.
+            // The critical thing is, if X *would* win by playing at 'cell', O must play 'cell'.
+            // 'cell' must be playable by X (not in p1VisibleMovesSet) for X to win there.
+            // But O plays 'cell', so 'cell' must not be in p2VisibleMovesSet.
+            // This is already guaranteed by potentialBlockCellsForO.
+
+            if (canWinInfinite(p1TotalMoves, cell)) {
+                performComputerMove(cell, p2TotalMoves) // Computer (O) plays in X's potential winning cell
+                return
+            }
+        }
+
+        // 3. Random Move (from previous logic, slightly adapted)
+        // Prefer cells not occupied by Player X's visible moves.
+        val preferredRandomCells = potentialWinCellsForO.filterNot { p1VisibleMovesSet.contains(it) }
+        val cellsToChooseFromRandom = if (preferredRandomCells.isNotEmpty()) {
+            preferredRandomCells
+        } else {
+            // If all cells O can play in are X's visible stones, O must overwrite one.
+            potentialWinCellsForO
+        }
+
+        if (cellsToChooseFromRandom.isNotEmpty()) {
+            val computerMove = cellsToChooseFromRandom.random()
+            performComputerMove(computerMove, p2TotalMoves)
+        }
+        // If cellsToChooseFromRandom is empty, it means O has all 9 cells in its visible set,
+        // which is impossible with MAX_VISIBLE_MOVES_PER_PLAYER = 3.
+        // Or, all potential cells for O are blocked by its own visible moves, which is also the definition of potentialWinCellsForO.
+        // So, this state should not be reached if potentialWinCellsForO was not empty.
+    }
+
+    private fun performComputerMove(move: String, currentP2TotalMoves: List<String>) {
+        val newP2TotalMoves = currentP2TotalMoves.toMutableList()
+        newP2TotalMoves.add(move)
+        _player2Moves.value = if (newP2TotalMoves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
+            newP2TotalMoves.drop(newP2TotalMoves.size - MAX_VISIBLE_MOVES_PER_PLAYER)
+        } else {
+            newP2TotalMoves
+        }
+        _player1Turn.value = true
+        checkForWinner()
+    }
+
+
+    private fun canWinInfinite(currentTotalMoves: List<String>, potentialNextMove: String): Boolean {
+        val simulatedTotalMoves = currentTotalMoves.toMutableList()
+        simulatedTotalMoves.add(potentialNextMove)
+
+        val simulatedVisibleMovesSet = (if (simulatedTotalMoves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
+            simulatedTotalMoves.drop(simulatedTotalMoves.size - MAX_VISIBLE_MOVES_PER_PLAYER)
+        } else {
+            simulatedTotalMoves
+        }).toSet()
+
+        if (simulatedVisibleMovesSet.size < 3) return false // Need at least 3 visible moves to win
+
+        for (combination in WINNING_COMBINATIONS) {
+            if (simulatedVisibleMovesSet.containsAll(combination)) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -187,38 +288,39 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         val p2FullMoveHistory = _player2Moves.value
 
         // Get visible moves once to avoid multiple calls to takeLast
-        val p1VisibleMoves = p1FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
-        val p2VisibleMoves = p2FullMoveHistory.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
-        val p1CurrentVisibleMovesSet = p1VisibleMoves.toSet()
-        val p2CurrentVisibleMovesSet = p2VisibleMoves.toSet()
+        val p1VisibleMoves = _player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val p2VisibleMoves = _player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val p1VisibleMovesSet = p1VisibleMoves.toSet()
+        val p2VisibleMovesSet = p2VisibleMoves.toSet()
 
-        // Early return if neither player has enough moves for a win
-        if (p1VisibleMoves.size < 3 && p2VisibleMoves.size < 3) return
+        // Determine who just made a move based on whose turn it is NOW.
+        // If it's player 1's turn now, player 2 just made a move.
+        val lastPlayer = if (_player1Turn.value) Player.O else Player.X
+        val lastPlayerVisibleMoves = if (lastPlayer == Player.X) p1VisibleMoves else p2VisibleMoves
+        val lastPlayerVisibleMovesSet = if (lastPlayer == Player.X) p1VisibleMovesSet else p2VisibleMovesSet
 
-        // Check only relevant winning combinations based on the last move
-        val lastMove = if (_player1Turn.value) p2VisibleMoves.lastOrNull() else p1VisibleMoves.lastOrNull()
-        if (lastMove == null) return
+        if (lastPlayerVisibleMoves.size < 3) return // Not enough moves for the player who just played
 
-        // Filter winning combinations that contain the last move
-        val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastMove) }
+        val lastActualMoveMade = lastPlayerVisibleMoves.lastOrNull()
+        if (lastActualMoveMade == null) return // Should not happen if size is >= 3
+
+        val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastActualMoveMade) }
 
         for (combination in relevantCombinations) {
-            if (p1CurrentVisibleMovesSet.containsAll(combination)) {
-                // Order the winning moves based on the geometric pattern in the combination
-                val orderedWin = combination.toList()
+            if (lastPlayer == Player.X && lastPlayerVisibleMovesSet.containsAll(combination)) {
+                val orderedWin = combination.toList() // Geometric order
                 _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
-                _gameStarted.value = false // Stop game, wait for reset
+                _gameStarted.value = false
                 return
             }
-            if (p2CurrentVisibleMovesSet.containsAll(combination)) {
-                // Order the winning moves based on the geometric pattern in the combination
-                val orderedWin = combination.toList()
+            if (lastPlayer == Player.O && lastPlayerVisibleMovesSet.containsAll(combination)) {
+                val orderedWin = combination.toList() // Geometric order
                 _winnerInfo.value = WinnerInfo(Player.O, combination, orderedWin)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
-                _gameStarted.value = false // Stop game, wait for reset
+                _gameStarted.value = false
                 return
             }
         }
@@ -235,7 +337,8 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         _player1Moves.value = emptyList()
         _player2Moves.value = emptyList()
         _winnerInfo.value = null
-        _player1Turn.value = true // Player 1 starts
+        // Player 1 (human) always starts a new round.
+        _player1Turn.value = true
         _isGameConcluded.value = false
         _gameStarted.value = true
     }

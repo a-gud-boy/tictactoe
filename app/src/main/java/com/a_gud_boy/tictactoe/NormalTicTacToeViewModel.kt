@@ -20,7 +20,7 @@ data class WinnerInfo(
     val orderedWinningMoves: List<String> // Added field for ordered winning moves
 )
 
-class NormalTicTacToeViewModel : ViewModel() {
+class NormalTicTacToeViewModel(private val gameMode: GameMode) : ViewModel() {
 
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
@@ -116,6 +116,68 @@ class NormalTicTacToeViewModel : ViewModel() {
 
         _player1Turn.value = !_player1Turn.value
         checkForWinner()
+
+        // If PVC mode and now it's computer's turn (O, player 2)
+        if (gameMode == GameMode.PVC && !_player1Turn.value && !_isGameConcluded.value) {
+            makeComputerMove()
+        }
+    }
+
+    private fun makeComputerMove() {
+        // Ensure computer doesn't play if game is over or not started
+        if (_isGameConcluded.value || !_gameStarted.value) return
+
+        val p1Moves = _player1Moves.value
+        val p2Moves = _player2Moves.value
+        val allCurrentMoves = p1Moves + p2Moves
+
+        val availableCells = (1..9)
+            .map { "button$it" }
+            .filterNot { allCurrentMoves.contains(it) }
+
+        if (availableCells.isEmpty()) {
+            // This should ideally be caught by checkForWinner after human's move leading to a draw
+            return
+        }
+
+        // 1. Check if Computer (Player O) can win
+        for (cell in availableCells) {
+            if (canWin(p2Moves, cell)) {
+                _player2Moves.value = p2Moves + cell
+                _player1Turn.value = true
+                checkForWinner()
+                return
+            }
+        }
+
+        // 2. Check if Player X can win (and block them)
+        for (cell in availableCells) {
+            if (canWin(p1Moves, cell)) {
+                _player2Moves.value = p2Moves + cell // Computer plays in X's winning cell to block
+                _player1Turn.value = true
+                checkForWinner()
+                return
+            }
+        }
+
+        // 3. If neither can win, make a random move
+        val computerMove = availableCells.random()
+        _player2Moves.value = p2Moves + computerMove
+        _player1Turn.value = true
+        checkForWinner()
+    }
+
+    private fun canWin(currentMoves: List<String>, potentialNextMove: String): Boolean {
+        if (currentMoves.contains(potentialNextMove)) return false // Cell already taken by this player
+        val simulatedMoves = (currentMoves + potentialNextMove).toSet()
+        if (simulatedMoves.size < 3) return false
+
+        for (combination in WINNING_COMBINATIONS) {
+            if (simulatedMoves.containsAll(combination)) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun checkForWinner() {
@@ -125,32 +187,39 @@ class NormalTicTacToeViewModel : ViewModel() {
         val p2MovesSet = p2CurrentMovesList.toSet()
 
         // Early return if neither player has enough moves for a win
-        if (p1MovesSet.size < 3 && p2MovesSet.size < 3) return
+        // Consider the case where one player has 2 moves and the other has 2, then one player makes a 3rd move.
+        // The check should be if the player whose turn it just was has enough moves.
 
-        // Check only relevant winning combinations based on the last move
-        val lastMove = if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
+        val lastPlayerMadeMoveSet = if (!_player1Turn.value) p1MovesSet else p2MovesSet // Moves of the player who just played
+        val lastPlayer = if (!_player1Turn.value) Player.X else Player.O
+
+        if (lastPlayerMadeMoveSet.size < 3) return
+
+        // Check only relevant winning combinations based on the last move made by the player who just played.
+        val lastMove = if (!_player1Turn.value) p1CurrentMovesList.lastOrNull() else p2CurrentMovesList.lastOrNull()
+        // If lastMove is null, it means the player who just supposedly made a move has an empty list of moves.
+        // This shouldn't happen if lastPlayerMadeMoveSet.size >= 3, but as a safeguard:
         if (lastMove == null) return
+
 
         // Filter winning combinations that contain the last move
         val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastMove) }
 
         for (combination in relevantCombinations) {
-            if (p1MovesSet.containsAll(combination)) {
-                // Use geometric order from the combination instead of chronological order
+            if (lastPlayer == Player.X && p1MovesSet.containsAll(combination)) {
                 val orderedWin = combination.toList()
                 _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
-                _gameStarted.value = false // Stop game, wait for reset
+                _gameStarted.value = false
                 return
             }
-            if (p2MovesSet.containsAll(combination)) {
-                // Use geometric order from the combination instead of chronological order
+            if (lastPlayer == Player.O && p2MovesSet.containsAll(combination)) {
                 val orderedWin = combination.toList()
                 _winnerInfo.value = WinnerInfo(Player.O, combination, orderedWin)
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
-                _gameStarted.value = false // Stop game, wait for reset
+                _gameStarted.value = false
                 return
             }
         }
@@ -167,7 +236,11 @@ class NormalTicTacToeViewModel : ViewModel() {
         _player1Moves.value = emptyList()
         _player2Moves.value = emptyList()
         _winnerInfo.value = null
-        _player1Turn.value = true // Player 1 starts
+        // Player 1 (human) always starts a new round.
+        // If PVC, and computer just played, player1Turn is already true.
+        // If PVP, player1Turn is set based on who's next or a fixed starter.
+        // For simplicity, P1 always starts.
+        _player1Turn.value = true
         _isGameConcluded.value = false
         _gameStarted.value = true
     }

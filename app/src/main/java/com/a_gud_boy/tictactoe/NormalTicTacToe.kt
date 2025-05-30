@@ -61,11 +61,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
+import com.a_gud_boy.tictactoe.GameMode // Import GameMode
+
 @Composable
 fun NormalTicTacToePage(
     innerPadding: PaddingValues,
-    viewModel: NormalTicTacToeViewModel = viewModel()
+    gameMode: GameMode, // Add gameMode parameter
+    viewModel: NormalTicTacToeViewModel = viewModel(factory = NormalTicTacToeViewModelFactory(gameMode = gameMode))
 ) {
+    // Log or use gameMode here if needed, e.g., Log.d("NormalTicTacToePage", "Game Mode: $gameMode")
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
 

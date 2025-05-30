@@ -81,12 +81,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  */
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
+import com.a_gud_boy.tictactoe.GameMode // Import GameMode
+
 @Composable
 fun InfiniteTicTacToePage(
     innerPadding: PaddingValues,
-    viewModel: InfiniteTicTacToeViewModel = viewModel()
+    gameMode: GameMode, // Add gameMode parameter
+    viewModel: InfiniteTicTacToeViewModel = viewModel(factory = InfiniteTicTacToeViewModelFactory(gameMode = gameMode))
 ) {
-
+    // Log or use gameMode here if needed, e.g., Log.d("InfiniteTicTacToePage", "Game Mode: $gameMode")
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
 
@@ -296,12 +299,13 @@ fun InfiniteTicTacToePage(
                     }
 
                     // Corrected logic for isOldMove:
-                    // A move is "old" if it belongs to the current player,
+                    // A move is "old" if it belongs to the player who made the move,
                     // that player has MAX_VISIBLE_MOVES_PER_PLAYER on the board,
-                    // and this specific move is the oldest among them (first in their list).
+                    // and this specific move (buttonId) is the oldest among them (first in their list of visible moves).
+                    // Note: player1Moves and player2Moves from collectAsStateWithLifecycle are already the lists of visible moves.
                     val isOldMove = cellPlayer != null &&
-                        ( (player1Turn && cellPlayer == Player.X && player1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player1Moves.firstOrNull() == buttonId) ||
-                          (!player1Turn && cellPlayer == Player.O && player2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player2Moves.firstOrNull() == buttonId) )
+                            ( (cellPlayer == Player.X && player1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player1Moves.firstOrNull() == buttonId) ||
+                              (cellPlayer == Player.O && player2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player2Moves.firstOrNull() == buttonId) )
 
                     TicTacToeCell(
                         modifier = Modifier
