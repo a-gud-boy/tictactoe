@@ -73,14 +73,22 @@ class NormalTicTacToeViewModel : ViewModel() {
             isP1Turn -> "Player 1's Turn"
             else -> "Player 2's Turn"
         }
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Player 1's Turn")
+    }.stateIn(
+        viewModelScope,
+        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        "Player 1's Turn"
+    )
 
     // Derived state for reset button text
     val resetButtonText: StateFlow<String> = combine(
         isGameConcluded
     ) { concluded ->
         if (concluded[0]) "New Round" else "Reset Round"
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Reset Round")
+    }.stateIn(
+        viewModelScope,
+        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        "Reset Round"
+    )
 
 
     // Game Logic Functions (to be implemented)

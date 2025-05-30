@@ -127,7 +127,8 @@ fun MainPage() {
                     },
                     actions = {
                         IconButton(onClick = {
-                            Toast.makeText(context, "Settings button clicked", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Settings button clicked", Toast.LENGTH_SHORT)
+                                .show()
                         }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = "Settings Icon")
                         }
@@ -178,7 +179,10 @@ fun DrawerFooter() {
             .padding(16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
-        Text("Version ${stringResource(R.string.app_version)}", style = MaterialTheme.typography.labelMedium)
+        Text(
+            "Version ${stringResource(R.string.app_version)}",
+            style = MaterialTheme.typography.labelMedium
+        )
     }
 }
 

@@ -8,13 +8,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
+// The following code was commented out as they already exist in NormalTicTacToe.kt
+
 // Enum to represent the player
-enum class Player {
-    X, O
-}
+//enum class Player {
+//    X, O
+//}
 
 // Data class to hold winner information
-data class WinnerInfo(val winner: Player, val combination: Set<String>)
+//data class WinnerInfo(val winner: Player, val combination: Set<String>)
 
 class InfiniteTicTacToeViewModel : ViewModel() {
 
