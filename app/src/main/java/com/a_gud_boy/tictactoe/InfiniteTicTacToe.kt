@@ -207,7 +207,7 @@ fun InfiniteTicTacToePage(
             .padding(innerPadding)
             .wrapContentSize()
             .background(colorResource(R.color.background))
-            .padding(20.dp)
+            .padding(horizontal = 20.dp)
     ) {
         val scrollState = rememberScrollState()
 
