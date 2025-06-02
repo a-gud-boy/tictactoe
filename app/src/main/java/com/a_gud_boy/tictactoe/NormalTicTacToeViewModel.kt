@@ -26,7 +26,7 @@ data class WinnerInfo(
     val orderedWinningMoves: List<String> // Added field for ordered winning moves
 )
 
-class NormalTicTacToeViewModel : ViewModel() {
+class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewModel() {
 
     private val _isAIMode = MutableStateFlow(false)
     val isAIMode: StateFlow<Boolean> = _isAIMode.asStateFlow()
@@ -120,10 +120,12 @@ class NormalTicTacToeViewModel : ViewModel() {
             return // Button already played
         }
 
+        var moveMade = false
         if (_player1Turn.value) {
             // Player's move
             _player1Moves.value = currentP1Moves + buttonId
             _player1Turn.value = false
+            moveMade = true
             checkForWinner()
             
             // Make AI move if game is in AI mode and game is not concluded
@@ -134,12 +136,18 @@ class NormalTicTacToeViewModel : ViewModel() {
             // Only allow player 2 moves if not in AI mode
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
+            moveMade = true
             checkForWinner()
         } else {
             // This is AI's move
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
+            moveMade = true
             checkForWinner()
+        }
+
+        if (moveMade) {
+            soundManager.playMoveSound()
         }
     }
 
@@ -167,6 +175,7 @@ class NormalTicTacToeViewModel : ViewModel() {
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playWinSound()
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
@@ -176,15 +185,17 @@ class NormalTicTacToeViewModel : ViewModel() {
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playWinSound()
                 return
             }
         }
 
         // Check for draw
-        if ((p1MovesSet.size + p2MovesSet.size) == 9) {
+        if ((p1MovesSet.size + p2MovesSet.size) == 9 && _winnerInfo.value == null) { // Ensure no winner was set before declaring draw
             _winnerInfo.value = WinnerInfo(null, emptySet(), emptyList()) // Draw
             _isGameConcluded.value = true
             _gameStarted.value = false // Stop game, wait for reset
+            soundManager.playDrawSound()
         }
     }
 
@@ -301,5 +312,10 @@ class NormalTicTacToeViewModel : ViewModel() {
         if (_isAIMode.value) {
             resetRound()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        soundManager.release()
     }
 }

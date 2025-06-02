@@ -35,7 +35,11 @@ class SoundManager(private val context: Context) {
                 }
             }
 
-            // Load the sounds
+            // Load the sounds.
+            // SoundPool.load() can handle various formats, including MP3 and WAV,
+            // as long as the underlying Android framework supports the format.
+            // The resource IDs (e.g., R.raw.move) will point to the sound files
+            // (e.g., move.mp3 or move.wav) placed in the res/raw directory.
             moveSoundId = soundPool?.load(context, R.raw.move, 1) ?: 0
             winSoundId = soundPool?.load(context, R.raw.win, 1) ?: 0
             drawSoundId = soundPool?.load(context, R.raw.draw, 1) ?: 0

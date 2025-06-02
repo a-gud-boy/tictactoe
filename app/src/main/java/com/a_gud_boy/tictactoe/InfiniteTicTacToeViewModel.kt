@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
  * - **UI State Exposure**: Exposes game state information as [StateFlow]s to be observed by the UI,
  *   including derived states like `turnDenotingText` and `resetButtonText`.
  */
-class InfiniteTicTacToeViewModel : ViewModel() {
+class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewModel() {
 
     companion object {
         /**
@@ -213,6 +213,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
             checkForWinner() // Check if Player 2 (or AI) won
         }
         // Note: _player1Turn.value and checkForWinner() are handled within each branch now.
+        soundManager.playMoveSound() // Play sound after a successful move
     }
 
     /**
@@ -251,6 +252,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playWinSound()
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -260,10 +262,12 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playWinSound()
                 return
             }
         }
         // No draw condition in Infinite TicTacToe as per original logic, cells can be reused.
+        // If a draw condition were to be added, soundManager.playDrawSound() would go here.
     }
 
     /**
@@ -439,5 +443,10 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         return WINNING_COMBINATIONS.any { combination ->
             movesSet.containsAll(combination)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        soundManager.release()
     }
 }
