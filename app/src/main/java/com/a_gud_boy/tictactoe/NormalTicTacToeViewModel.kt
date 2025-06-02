@@ -76,7 +76,8 @@ class NormalTicTacToeViewModel : ViewModel() {
     private val _isGameConcluded = MutableStateFlow(false)
     val isGameConcluded: StateFlow<Boolean> = _isGameConcluded.asStateFlow()
 
-    // Derived state for turn denoting text    val turnDenotingText: StateFlow<String> = combine(
+    // Derived state for turn denoting text
+    val turnDenotingText: StateFlow<String> = combine(
         player1Turn,
         winnerInfo,
         isGameConcluded,
@@ -107,7 +108,8 @@ class NormalTicTacToeViewModel : ViewModel() {
     )
 
 
-    // Game Logic Functions    fun onButtonClick(buttonId: String) {
+    // Game Logic Functions
+    fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
         val currentP1Moves = _player1Moves.value
