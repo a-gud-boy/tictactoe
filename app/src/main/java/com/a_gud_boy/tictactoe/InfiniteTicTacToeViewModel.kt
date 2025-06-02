@@ -1,15 +1,5 @@
 package com.a_gud_boy.tictactoe
 
-// AIDifficulty Enum
-enum class AIDifficulty {
-    EASY, MEDIUM, HARD
-}
-
-// Enum to represent the player (ensure this is present or imported)
-enum class Player {
-    X, O
-}
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -19,6 +9,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+// AIDifficulty Enum
+//enum class AIDifficulty {
+//    EASY, MEDIUM, HARD
+//}
+
+// Enum to represent the player (ensure this is present or imported)
+//enum class Player {
+//    X, O
+//}
 
 // Data class to hold winner information (ensure this is compatible)
 // It is: data class WinnerInfo(val winner: Player, val combination: Set<String>, val orderedWinningMoves: List<String>)
