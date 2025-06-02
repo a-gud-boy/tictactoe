@@ -1,17 +1,21 @@
 package com.a_gud_boy.tictactoe
 
-import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,13 +25,16 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -43,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -61,6 +69,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage() {
+    var showMenu by rememberSaveable { mutableStateOf(false) }
+    var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // Added for Infinite Mode Menu
     val context = LocalContext.current
 
     val drawerState = rememberDrawerState(
@@ -153,14 +163,114 @@ fun MainPage() {
                             }
                         }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
-                        }
-                    },
+                        }                    },
                     actions = {
-                        IconButton(onClick = {
-                            Toast.makeText(context, "Settings button clicked", Toast.LENGTH_SHORT)
-                                .show()
-                        }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "Settings Icon")
+                        if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
+                            val viewModel: NormalTicTacToeViewModel = viewModel()
+                            val isAIMode by viewModel.isAIMode.collectAsState()
+                            val currentDifficulty by viewModel.aiDifficulty.collectAsState()
+
+                            Box {
+                                IconButton(onClick = { showMenu = true }) {
+                                    Icon(Icons.Filled.MoreVert, contentDescription = "Settings")
+                                }
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text("Play vs AI", Modifier.padding(end = 5.dp))
+                                                Switch(
+                                                    checked = isAIMode,
+                                                    onCheckedChange = {
+                                                        viewModel.setAIMode(it)
+                                                    }
+                                                )
+                                            }
+                                        },
+                                        onClick = { }  // Click is handled by the Switch
+                                    )
+
+                                    if (isAIMode) {
+                                        AIDifficulty.values().forEach { difficulty ->
+                                            DropdownMenuItem(
+                                                text = { Text(difficulty.name) },
+                                                onClick = {
+                                                    viewModel.setAIDifficulty(difficulty)
+                                                    showMenu = false
+                                                },
+                                                trailingIcon = {
+                                                    if (difficulty == currentDifficulty) {
+                                                        Icon(
+                                                            Icons.Default.Check,
+                                                            contentDescription = "Selected"
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
+                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel()
+                            val isAIMode by infiniteViewModel.isAIMode.collectAsState()
+                            val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
+
+                            Box {
+                                IconButton(onClick = { showInfiniteMenu = true }) {
+                                    Icon(Icons.Filled.MoreVert, contentDescription = "Infinite Settings")
+                                }
+                                DropdownMenu(
+                                    expanded = showInfiniteMenu,
+                                    onDismissRequest = { showInfiniteMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text("Play vs AI", Modifier.padding(end = 5.dp))
+                                                Switch(
+                                                    checked = isAIMode,
+                                                    onCheckedChange = {
+                                                        infiniteViewModel.setAIMode(it)
+                                                    }
+                                                )
+                                            }
+                                        },
+                                        onClick = { } // Click is handled by the Switch
+                                    )
+
+                                    if (isAIMode) {
+                                        AIDifficulty.values().forEach { difficulty ->
+                                            DropdownMenuItem(
+                                                text = { Text(difficulty.name) },
+                                                onClick = {
+                                                    infiniteViewModel.setAIDifficulty(difficulty)
+                                                    showInfiniteMenu = false
+                                                },
+                                                trailingIcon = {
+                                                    if (difficulty == currentDifficulty) {
+                                                        Icon(
+                                                            Icons.Default.Check,
+                                                            contentDescription = "Selected"
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -170,11 +280,21 @@ fun MainPage() {
                         actionIconContentColor = colorResource(R.color.darkTextColor)
                     )
                 )
-            }
-        ) { innerPadding ->
+            }        ) { innerPadding ->
             when (selectedItemIndex) {
-                0 -> NormalTicTacToePage(innerPadding)
-                1 -> InfiniteTicTacToePage(innerPadding)
+                0 -> {
+                    val viewModel: NormalTicTacToeViewModel = viewModel()
+                    val isAIMode by viewModel.isAIMode.collectAsState()
+                    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
+                    NormalTicTacToePage(
+                        innerPadding = innerPadding,
+                        viewModel = viewModel
+                    )
+                }
+                1 -> {
+                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel() // ensure viewmodel is available for the page
+                    InfiniteTicTacToePage(innerPadding, infiniteViewModel)
+                }
             }
         }
     }
@@ -233,4 +353,8 @@ fun DrawerFooter() {
         )
     }
 }
+
+
+
+
 

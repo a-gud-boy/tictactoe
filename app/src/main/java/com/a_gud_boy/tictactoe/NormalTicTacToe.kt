@@ -21,20 +21,26 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,8 +72,11 @@ fun NormalTicTacToePage(
     innerPadding: PaddingValues,
     viewModel: NormalTicTacToeViewModel = viewModel()
 ) {
+    var showMenu by rememberSaveable { mutableStateOf(false) }
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
+    val isAIMode by viewModel.isAIMode.collectAsState()
+    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
     val player1Wins by viewModel.player1Wins.collectAsStateWithLifecycle()
     val player2Wins by viewModel.player2Wins.collectAsStateWithLifecycle()
@@ -415,7 +424,6 @@ fun NormalTicTacToePage(
                     )
                 }
             }
-
             Button(
                 onClick = {
                     viewModel.resetScores()

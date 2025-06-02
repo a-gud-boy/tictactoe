@@ -2,15 +2,21 @@ package com.a_gud_boy.tictactoe
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 // Enum to represent the player
 enum class Player {
     X, O
+}
+
+enum class AIDifficulty {
+    EASY, MEDIUM, HARD
 }
 
 // Data class to hold winner information
@@ -21,6 +27,12 @@ data class WinnerInfo(
 )
 
 class NormalTicTacToeViewModel : ViewModel() {
+
+    private val _isAIMode = MutableStateFlow(false)
+    val isAIMode: StateFlow<Boolean> = _isAIMode.asStateFlow()
+
+    private val _aiDifficulty = MutableStateFlow(AIDifficulty.MEDIUM)
+    val aiDifficulty: StateFlow<AIDifficulty> = _aiDifficulty.asStateFlow()
 
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
@@ -68,19 +80,20 @@ class NormalTicTacToeViewModel : ViewModel() {
     val turnDenotingText: StateFlow<String> = combine(
         player1Turn,
         winnerInfo,
-        isGameConcluded
-    ) { isP1Turn, winnerData, gameConcluded ->
+        isGameConcluded,
+        isAIMode
+    ) { isP1Turn, winnerData, gameConcluded, aiMode ->
         when {
-            winnerData != null && winnerData.winner == Player.X -> "Player 1 Won"
-            winnerData != null && winnerData.winner == Player.O -> "Player 2 Won"
+            winnerData != null && winnerData.winner == Player.X -> "You Won!"
+            winnerData != null && winnerData.winner == Player.O -> if (aiMode) "AI Won!" else "Player 2 Won"
             gameConcluded && winnerData?.winner == null -> "It's a Draw!"
-            isP1Turn -> "Player 1's Turn"
-            else -> "Player 2's Turn"
+            isP1Turn -> "Your Turn"
+            else -> if (aiMode) "AI's Turn" else "Player 2's Turn"
         }
     }.stateIn(
         viewModelScope,
         kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
-        "Player 1's Turn"
+        "Your Turn"
     )
 
     // Derived state for reset button text
@@ -96,7 +109,6 @@ class NormalTicTacToeViewModel : ViewModel() {
 
 
     // Game Logic Functions
-
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
@@ -109,13 +121,26 @@ class NormalTicTacToeViewModel : ViewModel() {
         }
 
         if (_player1Turn.value) {
+            // Player's move
             _player1Moves.value = currentP1Moves + buttonId
-        } else {
+            _player1Turn.value = false
+            checkForWinner()
+            
+            // Make AI move if game is in AI mode and game is not concluded
+            if (_isAIMode.value && !_isGameConcluded.value) {
+                makeAIMove()
+            }
+        } else if (!_isAIMode.value) {
+            // Only allow player 2 moves if not in AI mode
             _player2Moves.value = currentP2Moves + buttonId
+            _player1Turn.value = true
+            checkForWinner()
+        } else {
+            // This is AI's move
+            _player2Moves.value = currentP2Moves + buttonId
+            _player1Turn.value = true
+            checkForWinner()
         }
-
-        _player1Turn.value = !_player1Turn.value
-        checkForWinner()
     }
 
     private fun checkForWinner() {
@@ -177,5 +202,104 @@ class NormalTicTacToeViewModel : ViewModel() {
         _player2Wins.value = 0
         // Optionally, also reset the round
         resetRound()
+    }
+
+    // AI related functions
+    private fun makeAIMove() {
+        if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value) return
+
+        // Add a small delay to make the AI move feel more natural
+        viewModelScope.launch {
+            delay(500) // 500ms delay for better UX
+            val move = when (_aiDifficulty.value) {
+                AIDifficulty.EASY -> getRandomMove()
+                AIDifficulty.MEDIUM -> if (Math.random() < 0.5) getBestMove() else getRandomMove()
+                AIDifficulty.HARD -> getBestMove()
+            }
+            move?.let { onButtonClick(it) }
+        }
+    }
+
+    private fun getRandomMove(): String? {
+        val allMoves = (1..9).map { "button$it" }
+        val availableMoves = allMoves.filter { buttonId ->
+            !_player1Moves.value.contains(buttonId) && !_player2Moves.value.contains(buttonId)
+        }
+        return availableMoves.randomOrNull()
+    }
+
+    private fun getBestMove(): String? {
+        val allMoves = (1..9).map { "button$it" }
+        val availableMoves = allMoves.filter { buttonId ->
+            !_player1Moves.value.contains(buttonId) && !_player2Moves.value.contains(buttonId)
+        }
+        
+        var bestScore = Double.NEGATIVE_INFINITY
+        var bestMove: String? = null
+        
+        for (move in availableMoves) {
+            val score = minimax(
+                p1Moves = _player1Moves.value,
+                p2Moves = _player2Moves.value + move,
+                depth = 0,
+                isMaximizing = false
+            )
+            if (score > bestScore) {
+                bestScore = score
+                bestMove = move
+            }
+        }
+        
+        return bestMove
+    }
+
+    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+        // Check for terminal states
+        when {
+            isWinningCombination(p2Moves) -> return 1.0
+            isWinningCombination(p1Moves) -> return -1.0
+            p1Moves.size + p2Moves.size == 9 -> return 0.0
+        }
+        
+        val allMoves = (1..9).map { "button$it" }
+        val availableMoves = allMoves.filter { buttonId ->
+            !p1Moves.contains(buttonId) && !p2Moves.contains(buttonId)
+        }
+        
+        if (isMaximizing) {
+            var bestScore = Double.NEGATIVE_INFINITY
+            for (move in availableMoves) {
+                val score = minimax(p1Moves, p2Moves + move, depth + 1, false)
+                bestScore = maxOf(bestScore, score)
+            }
+            return bestScore
+        } else {
+            var bestScore = Double.POSITIVE_INFINITY
+            for (move in availableMoves) {
+                val score = minimax(p1Moves + move, p2Moves, depth + 1, true)
+                bestScore = minOf(bestScore, score)
+            }
+            return bestScore
+        }
+    }
+
+    private fun isWinningCombination(moves: List<String>): Boolean {
+        val movesSet = moves.toSet()
+        return WINNING_COMBINATIONS.any { combination ->
+            movesSet.containsAll(combination)
+        }
+    }
+
+    // Functions to control AI mode
+    fun setAIMode(enabled: Boolean) {
+        _isAIMode.value = enabled
+        resetRound()
+    }
+
+    fun setAIDifficulty(difficulty: AIDifficulty) {
+        _aiDifficulty.value = difficulty
+        if (_isAIMode.value) {
+            resetRound()
+        }
     }
 }
