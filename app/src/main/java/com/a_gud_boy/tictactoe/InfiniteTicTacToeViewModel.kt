@@ -401,7 +401,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         // Available moves for recursion, based on visible moves in the current SIMULATED state
         val currentSimP1Visible = p1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
         val currentSimP2Visible = p2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
-        val availableMoves = allMoves.filter { buttonId ->
+        val availableMoves = allBoardCells.filter { buttonId -> // Changed allMoves to allBoardCells
             !currentSimP1Visible.contains(buttonId) && !currentSimP2Visible.contains(buttonId)
         }
 
