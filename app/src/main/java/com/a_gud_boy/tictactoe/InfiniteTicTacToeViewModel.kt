@@ -2,21 +2,29 @@ package com.a_gud_boy.tictactoe
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-// The following code was commented out as they already exist in NormalTicTacToe.kt
+// AIDifficulty Enum
+//enum class AIDifficulty {
+//    EASY, MEDIUM, HARD
+//}
 
-// Enum to represent the player
+// Enum to represent the player (ensure this is present or imported)
 //enum class Player {
 //    X, O
 //}
 
-// Data class to hold winner information
-//data class WinnerInfo(val winner: Player, val combination: Set<String>)
+// Data class to hold winner information (ensure this is compatible)
+// It is: data class WinnerInfo(val winner: Player, val combination: Set<String>, val orderedWinningMoves: List<String>)
+// The existing WinnerInfo in InfiniteTicTacToeViewModel is:
+// data class WinnerInfo(val winner: Player, val combination: Set<String>, val orderedWin: List<String>)
+// This is compatible.
 
 /**
  * ViewModel for the Infinite Tic Tac Toe game.
@@ -100,21 +108,34 @@ class InfiniteTicTacToeViewModel : ViewModel() {
     /** StateFlow indicating if the current round of the game has concluded (e.g., due to a win). */
     val isGameConcluded: StateFlow<Boolean> = _isGameConcluded.asStateFlow()
 
+    private val _isAIMode = MutableStateFlow(false)
+    val isAIMode: StateFlow<Boolean> = _isAIMode.asStateFlow()
+
+    private val _aiDifficulty = MutableStateFlow(AIDifficulty.MEDIUM) // Default to Medium
+    val aiDifficulty: StateFlow<AIDifficulty> = _aiDifficulty.asStateFlow()
+
     /**
      * Derived StateFlow providing a text string to display the current turn or game result.
      * Examples: "Player 1's Turn", "Player 2 Won".
      */
     val turnDenotingText: StateFlow<String> = combine(
         player1Turn,
-        winnerInfo
-        // isGameConcluded is removed as its effect on text is via winnerInfo
-    ) { isP1Turn, winnerData -> // Renamed winner to winnerData to avoid any potential scope conflicts
+        winnerInfo,
+        isAIMode,
+        isGameConcluded
+    ) { isP1Turn, winnerData, aiMode, gameConcluded ->
         when {
-            winnerData != null -> if (winnerData.winner == Player.X) "Player 1 Won" else "Player 2 Won"
-            isP1Turn -> "Player 1\'s Turn"
-            else -> "Player 2\'s Turn"
+            winnerData != null && winnerData.winner == Player.X -> "You Won!"
+            winnerData != null && winnerData.winner == Player.O -> if (aiMode) "AI Won!" else "Player 2 Won!"
+            gameConcluded && winnerData?.winner == null -> "It's a Draw!" // Explicit draw check
+            isP1Turn -> "Your Turn"
+            else -> if (aiMode) "AI's Turn" else "Player 2's Turn"
         }
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Player 1\'s Turn")
+    }.stateIn(
+        viewModelScope,
+        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        "Your Turn" // Initial value
+    )
 
     /**
      * Derived StateFlow providing the text for the reset button.
@@ -126,6 +147,17 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         if (concluded[0]) "New Round" else "Reset Round"
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Reset Round")
 
+    fun setAIMode(enabled: Boolean) {
+        _isAIMode.value = enabled
+        resetRound() // Reset round when AI mode changes
+    }
+
+    fun setAIDifficulty(difficulty: AIDifficulty) {
+        _aiDifficulty.value = difficulty
+        if (_isAIMode.value) {
+            resetRound() // Reset round if AI mode is active and difficulty changes
+        }
+    }
 
     /**
      * Handles the logic when a button (cell) on the Tic Tac Toe board is clicked.
@@ -152,7 +184,9 @@ class InfiniteTicTacToeViewModel : ViewModel() {
             return // Button already visibly played
         }
 
-        if (_player1Turn.value) {
+        val isProcessingPlayer1Move = _player1Turn.value
+
+        if (isProcessingPlayer1Move) { // Human Player 1's turn
             val newMoves = currentP1Moves.toMutableList()
             newMoves.add(buttonId)
             _player1Moves.value = if (newMoves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
@@ -160,7 +194,14 @@ class InfiniteTicTacToeViewModel : ViewModel() {
             } else {
                 newMoves
             }
-        } else {
+            _player1Turn.value = false // Switch to Player 2 (potentially AI)
+            checkForWinner() // Check if Player 1 won
+
+            // If AI mode is on, game is not over, and it's now AI's turn (player1Turn is now false)
+            if (_isAIMode.value && !_isGameConcluded.value && !_player1Turn.value) {
+                makeAIMove()
+            }
+        } else { // Player 2's turn (either Human Player 2 or AI if makeAIMove called this)
             val newMoves = currentP2Moves.toMutableList()
             newMoves.add(buttonId)
             _player2Moves.value = if (newMoves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
@@ -168,10 +209,10 @@ class InfiniteTicTacToeViewModel : ViewModel() {
             } else {
                 newMoves
             }
+            _player1Turn.value = true // Switch back to Player 1
+            checkForWinner() // Check if Player 2 (or AI) won
         }
-
-        _player1Turn.value = !_player1Turn.value
-        checkForWinner()
+        // Note: _player1Turn.value and checkForWinner() are handled within each branch now.
     }
 
     /**
@@ -249,5 +290,154 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         _player2Wins.value = 0
         // Optionally, also reset the round
         resetRound()
+    }
+
+    // AI related functions adapted for InfiniteTicTacToe
+
+    /**
+     * Initiates the AI's move based on the selected difficulty.
+     * This function is typically called after the human player makes a move
+     * and it's determined to be the AI's turn.
+     */
+    fun makeAIMove() {
+        if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value || !_isAIMode.value) return
+
+        viewModelScope.launch {
+            delay(500) // Delay for UX
+            val move = when (_aiDifficulty.value) {
+                AIDifficulty.EASY -> getRandomMove()
+                AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove() // 60% chance for best move
+                AIDifficulty.HARD -> getBestMove()
+            }
+            // IMPORTANT: The AI should use its own player identity (Player.O) for onButtonClick.
+            // However, onButtonClick in InfiniteTicTacToeViewModel currently deduces player based on _player1Turn.
+            // Since makeAIMove is called when it's AI's (Player O) turn, _player1Turn is false.
+            // So, calling onButtonClick(move) should correctly register the move for Player O.
+            move?.let { onButtonClick(it) }
+        }
+    }
+
+    /**
+     * Selects a random available move for the AI.
+     * A move is available if it's not part of the currently visible moves of either player.
+     * @return A string representing the button ID of the chosen move, or null if no moves are available.
+     */
+    private fun getRandomMove(): String? {
+        val allMoves = (1..9).map { "button$it" }
+        // Available if not in the last MAX_VISIBLE_MOVES_PER_PLAYER moves of P1 AND not in P2's
+        val availableMoves = allMoves.filter { buttonId ->
+            !_player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId) &&
+            !_player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
+        }
+        return availableMoves.randomOrNull()
+    }
+
+    /**
+     * Determines the best possible move for the AI using the minimax algorithm.
+     * It evaluates available moves based on their potential to lead to a win or block a player's win.
+     * @return A string representing the button ID of the best move, or null if no moves are available.
+     */
+    private fun getBestMove(): String? {
+        val allMoves = (1..9).map { "button$it" }
+        // Available if not in the last MAX_VISIBLE_MOVES_PER_PLAYER moves of P1 AND not in P2's
+        val availableMoves = allMoves.filter { buttonId ->
+            !_player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId) &&
+            !_player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
+        }
+
+        if (availableMoves.isEmpty()) return null
+
+        var bestScore = Double.NEGATIVE_INFINITY
+        var bestMove: String? = null
+
+        // AI is Player O (minimizing player in standard minimax, but here we treat AI as maximizing its own score)
+        for (move in availableMoves) {
+            // Simulate AI (Player O) making a move. Pass full history.
+            val score = minimax(
+                p1Moves = _player1Moves.value, // Full history for Player X
+                p2Moves = _player2Moves.value + move, // Full history for Player O + new move
+                depth = 0,
+                isMaximizing = false // Next turn is Player X (human), who will try to minimize AI's score
+            )
+            if (score > bestScore) {
+                bestScore = score
+                bestMove = move
+            }
+        }
+        return bestMove ?: availableMoves.randomOrNull() // Fallback if all scores are equally bad
+    }
+
+    /**
+     * Implements the minimax algorithm to find the optimal move.
+     * @param p1Moves Current list of moves for Player 1 (X).
+     * @param p2Moves Current list of moves for Player 2 (O).
+     * @param depth Current depth in the game tree.
+     * @param isMaximizing True if the current turn is for the maximizing player (AI - O), false for minimizing (Human - X).
+     * @return The score of the board state.
+     */
+    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+        // Visible moves for win checking
+        val p1VisibleMoves = p1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val p2VisibleMoves = p2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+
+        // Check for terminal states (Win/Loss) based on VISIBLE moves
+        // AI (Player O) is the maximizing player. Human (Player X) is the minimizing player.
+        when {
+            isAIWinningCombination(p2VisibleMoves) -> return 10.0 - depth // AI (O) wins, score is positive
+            isAIWinningCombination(p1VisibleMoves) -> return -10.0 + depth // Player (X) wins, score is negative
+        }
+
+        // Check for draw: if all cells are visibly occupied and no one won
+        val allBoardCells = (1..9).map { "button$it" }
+        val occupiedVisibleCells = (p1VisibleMoves + p2VisibleMoves).toSet()
+        if (occupiedVisibleCells.size == 9 && !isAIWinningCombination(p1VisibleMoves) && !isAIWinningCombination(p2VisibleMoves)) {
+            return 0.0 // Draw
+        }
+
+        // Limit search depth to prevent long computation, especially in infinite mode
+        // Adjust depth limit as needed for performance vs AI strength
+        if (depth > 4) return 0.0 // Heuristic: deeper searches are costly
+
+        // Available moves for recursion, based on visible moves in the current SIMULATED state
+        val currentSimP1Visible = p1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val currentSimP2Visible = p2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
+        val availableMoves = allBoardCells.filter { buttonId -> // Changed allMoves to allBoardCells
+            !currentSimP1Visible.contains(buttonId) && !currentSimP2Visible.contains(buttonId)
+        }
+
+        if (availableMoves.isEmpty()) return 0.0 // No moves left, treat as draw for this path
+
+        if (isMaximizing) { // AI's turn (Player O) - wants to maximize score
+            var bestScore = Double.NEGATIVE_INFINITY
+            for (move in availableMoves) {
+                // AI (Player O) makes a move. Pass FULL histories for recursion.
+                val score = minimax(p1Moves, p2Moves + move, depth + 1, false)
+                bestScore = maxOf(bestScore, score)
+            }
+            return bestScore
+        } else { // Human's turn (Player X) - wants to minimize AI's score
+            var bestScore = Double.POSITIVE_INFINITY
+            for (move in availableMoves) {
+                // Human (Player X) makes a move. Pass FULL histories for recursion.
+                val score = minimax(p1Moves + move, p2Moves, depth + 1, true)
+                bestScore = minOf(bestScore, score)
+            }
+            return bestScore
+        }
+    }
+
+    /**
+     * Checks if a given list of moves (assumed to be visible moves) constitutes a win.
+     * This is used by the AI's minimax algorithm.
+     * @param currentVisibleMoves A list of button IDs representing a player's visible moves.
+     * @return True if the moves form a winning combination, false otherwise.
+     */
+    private fun isAIWinningCombination(currentVisibleMoves: List<String>): Boolean {
+        if (currentVisibleMoves.size < 3) return false // Optimization
+        val movesSet = currentVisibleMoves.toSet()
+        // WINNING_COMBINATIONS is accessible from companion object
+        return WINNING_COMBINATIONS.any { combination ->
+            movesSet.containsAll(combination)
+        }
     }
 }

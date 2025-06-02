@@ -28,8 +28,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState // Already have collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -99,6 +102,8 @@ fun InfiniteTicTacToePage(
     val turnDenotingText by viewModel.turnDenotingText.collectAsStateWithLifecycle()
     val gameStarted by viewModel.gameStarted.collectAsStateWithLifecycle()
     val resetButtonText by viewModel.resetButtonText.collectAsStateWithLifecycle()
+    val isAIMode by viewModel.isAIMode.collectAsStateWithLifecycle()
+    val currentAIDifficulty by viewModel.aiDifficulty.collectAsStateWithLifecycle()
     // isGameConcluded is implicitly handled by winnerInfo and gameStarted states in ViewModel
 
     val iconSize = 70.dp
