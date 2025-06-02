@@ -1,6 +1,7 @@
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -32,8 +33,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState // Already have collectAsStateWithLifecycle
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState // Already have collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +53,8 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -109,6 +113,16 @@ fun InfiniteTicTacToePage(
     val iconSize = 70.dp
     val buttonCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
 
+    val context = LocalContext.current
+    val soundManager = remember { SoundManager(context) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            soundManager.release()
+        }
+    }
+
+    val view = LocalView.current
     // Animation state for the winning line
     val lineAnimationProgress = remember { Animatable(0f) }
     // Store the ordered winning combination for animation
@@ -116,6 +130,12 @@ fun InfiniteTicTacToePage(
 
     LaunchedEffect(winnerInfo) {
         if (winnerInfo != null) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            if (winnerInfo?.winner != null) {
+                soundManager.playWinSound()
+            } else { // Draw condition
+                soundManager.playDrawSound()
+            }
             orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
 
             lineAnimationProgress.snapTo(0f) // Reset before starting
@@ -320,7 +340,12 @@ fun InfiniteTicTacToePage(
                         player = cellPlayer,
                         isOldMove = isOldMove,
                         iconSize = iconSize,
-                        onClick = { viewModel.onButtonClick(buttonId) }
+                        buttonId = buttonId, // Pass buttonId for accessibility
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                            soundManager.playMoveSound()
+                            viewModel.onButtonClick(buttonId)
+                        }
                     )
                 }
             }
@@ -350,17 +375,28 @@ fun InfiniteTicTacToePage(
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp
                         )
+                        // Dynamic content description for turn denoting icons
+                        val turnIconContentDescription = when {
+                            winnerInfo?.winner == Player.X -> if (isAIMode) "You are the winner" else "Player X is the winner"
+                            winnerInfo?.winner == Player.O -> if (isAIMode) "AI is the winner" else "Player O is the winner"
+                            winnerInfo != null && winnerInfo?.winner == null -> "Game is a draw" // This condition might not be explicitly set in Infinite view model's turnDenotingText
+                            player1Turn -> if (isAIMode) "Your turn (Player X)" else "Player X's turn"
+                            else -> if (isAIMode) "AI's turn (Player O)" else "Player O's turn"
+                        }
+
                         if (winnerInfo?.winner == Player.X || (winnerInfo == null && player1Turn)) {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "Turn Denoting Icon"
+                                contentDescription = turnIconContentDescription
                             )
                         } else if (winnerInfo?.winner == Player.O || (winnerInfo == null && !player1Turn)) {
                             Icon(
                                 painterResource(R.drawable.player_2),
-                                contentDescription = "Turn Denoting Icon"
+                                contentDescription = turnIconContentDescription
                             )
                         }
+                        // Note: InfiniteTicTacToeViewModel's turnDenotingText already handles draw string.
+                        // The original NormalTicTacToe had a specific combined X-Handshake-O for draw, which isn't here.
                         Text(
                             text = ")",
                             style = MaterialTheme.typography.labelMedium,
@@ -376,7 +412,7 @@ fun InfiniteTicTacToePage(
                     ) {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Cross",
+                            contentDescription = "Player X score icon",
                             tint = colorResource(R.color.red_x_icon),
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
@@ -402,7 +438,7 @@ fun InfiniteTicTacToePage(
                         )
                         Icon(
                             painterResource(R.drawable.player_2),
-                            contentDescription = "Circle",
+                            contentDescription = "Player O score icon",
                             tint = colorResource(R.color.blue_o_icon),
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
@@ -441,7 +477,7 @@ fun InfiniteTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "New Round") // Changed to Refresh
+                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for new or reset round") // Changed to Refresh
                     Text(
                         text = resetButtonText,
                         modifier = Modifier
@@ -468,7 +504,7 @@ fun InfiniteTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Reset Scores") // Changed to Refresh
+                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for reset scores") // Changed to Refresh
                     Text(
                         text = "Reset Scores",
                         modifier = Modifier

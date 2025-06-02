@@ -1,6 +1,7 @@
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -21,18 +22,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +53,8 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -95,8 +96,24 @@ fun NormalTicTacToePage(
     // Store the ordered winning combination for animation
     val orderedWinningCombination = remember { mutableStateOf<List<String>>(emptyList()) }
 
+    val context = LocalContext.current
+    val soundManager = remember { SoundManager(context) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            soundManager.release()
+        }
+    }
+
+    val view = LocalView.current
     LaunchedEffect(winnerInfo) {
         if (winnerInfo != null) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            if (winnerInfo?.winner != null) {
+                soundManager.playWinSound()
+            } else { // Draw condition
+                soundManager.playDrawSound()
+            }
             orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
 
             lineAnimationProgress.snapTo(0f) // Reset before starting
@@ -285,7 +302,15 @@ fun NormalTicTacToePage(
                         player = cellPlayer,
                         isOldMove = false, // In Normal TicTacToe, moves are not "old" or dimmed
                         iconSize = iconSize,
-                        onClick = { viewModel.onButtonClick(buttonId) }
+                        buttonId = buttonId, // Pass buttonId for accessibility
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                            // TODO: Check if move is valid before playing sound,
+                            // or play sound optimistically and handle invalid move UI separately.
+                            // For now, play sound before ViewModel action.
+                            soundManager.playMoveSound()
+                            viewModel.onButtonClick(buttonId)
+                        }
                     )
                 }
             }
@@ -315,25 +340,36 @@ fun NormalTicTacToePage(
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 20.sp
                         )
+                        // Dynamic content description for turn denoting icons
+                        val turnIconContentDescription = when {
+                            winnerInfo?.winner == Player.X -> "Player X is the winner"
+                            winnerInfo?.winner == Player.O -> "Player O is the winner"
+                            winnerInfo != null && winnerInfo?.winner == null -> "Game is a draw"
+                            player1Turn -> "Player X's turn"
+                            else -> "Player O's turn"
+                        }
+
                         if (winnerInfo?.winner == Player.X || (winnerInfo == null && player1Turn)) {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "Turn Denoting Icon"
+                                contentDescription = turnIconContentDescription
                             )
                         } else if (winnerInfo?.winner == Player.O || (winnerInfo == null && !player1Turn)) {
                             Icon(
                                 painterResource(R.drawable.player_2),
-                                contentDescription = "Turn Denoting Icon"
+                                contentDescription = turnIconContentDescription
                             )
-                        } else { // Draw case or other states
+                        } else { // Draw case or other states where both icons might be shown or a general state
+                            // This specific draw case shows X, handshake, O.
+                            // The overall state is "Game is a draw", individual icons are decorative in this specific combined view.
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "Turn Denoting Icon"
+                                contentDescription = "Player X icon for draw display" // Or null if purely decorative next to text
                             )
-                            Text("\uD83E\uDD1D", Modifier.width(24.dp)) // Placeholder for icon space if needed
+                            Text("\uD83E\uDD1D", Modifier.width(24.dp)) // Placeholder for icon space if needed, decorative
                             Icon(
                                 painterResource(R.drawable.player_2),
-                                contentDescription = "Turn Denoting Icon"
+                                contentDescription = "Player O icon for draw display" // Or null
                             )
                         }
                         Text(
@@ -351,7 +387,7 @@ fun NormalTicTacToePage(
                     ) {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Cross",
+                            contentDescription = "Player X score icon",
                             tint = colorResource(R.color.red_x_icon),
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
@@ -377,7 +413,7 @@ fun NormalTicTacToePage(
                         )
                         Icon(
                             painterResource(R.drawable.player_2),
-                            contentDescription = "Circle",
+                            contentDescription = "Player O score icon",
                             tint = colorResource(R.color.blue_o_icon),
                             modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                         )
@@ -416,7 +452,7 @@ fun NormalTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "New Round")
+                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for new or reset round")
                     Text(
                         text = resetButtonText,
                         modifier = Modifier
@@ -442,7 +478,7 @@ fun NormalTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Reset Scores") 
+                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for reset scores")
                     Text(
                         text = "Reset Scores",
                         modifier = Modifier
