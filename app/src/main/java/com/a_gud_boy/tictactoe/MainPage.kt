@@ -75,8 +75,6 @@ fun MainPage() {
         initialValue = DrawerValue.Closed
     )
 
-    var showMenu by rememberSaveable { mutableStateOf(false) }
-
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
