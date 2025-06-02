@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DrawerValue
@@ -153,14 +154,57 @@ fun MainPage() {
                             }
                         }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
-                        }
-                    },
+                        }                    },
                     actions = {
-                        IconButton(onClick = {
-                            Toast.makeText(context, "Settings button clicked", Toast.LENGTH_SHORT)
-                                .show()
-                        }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "Settings Icon")
+                        if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
+                            Box {
+                                IconButton(onClick = { showMenu = true }) {
+                                    Icon(Icons.Filled.MoreVert, contentDescription = "Settings")
+                                }
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { 
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text("Play vs AI")
+                                                Switch(
+                                                    checked = isAIMode,
+                                                    onCheckedChange = { 
+                                                        viewModel.setAIMode(it)
+                                                    }
+                                                )
+                                            }
+                                        },
+                                        onClick = { viewModel.setAIMode(!isAIMode) }
+                                    )
+                                    
+                                    if (isAIMode) {
+                                        AIDifficulty.values().forEach { difficulty ->
+                                            DropdownMenuItem(
+                                                text = { Text(difficulty.name) },
+                                                onClick = { 
+                                                    viewModel.setAIDifficulty(difficulty)
+                                                    showMenu = false
+                                                },
+                                                trailingIcon = {
+                                                    if (difficulty == currentDifficulty) {
+                                                        Icon(
+                                                            Icons.Default.Check,
+                                                            contentDescription = "Selected"
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -69,8 +70,11 @@ fun NormalTicTacToePage(
     innerPadding: PaddingValues,
     viewModel: NormalTicTacToeViewModel = viewModel()
 ) {
+    var showMenu by rememberSaveable { mutableStateOf(false) }
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
+    val isAIMode by viewModel.isAIMode.collectAsState()
+    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
     val player1Wins by viewModel.player1Wins.collectAsStateWithLifecycle()
     val player2Wins by viewModel.player2Wins.collectAsStateWithLifecycle()
@@ -417,9 +421,7 @@ fun NormalTicTacToePage(
                             .padding(start = 8.dp)
                     )
                 }
-            }
-
-            Button(
+            }            Button(
                 onClick = {
                     viewModel.resetScores()
                     buttonCoordinates.clear()
@@ -443,69 +445,6 @@ fun NormalTicTacToePage(
                         modifier = Modifier
                             .padding(start = 8.dp)
                     )
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "AI Settings",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Play vs AI")
-                        Switch(
-                            checked = viewModel.isAIMode.collectAsState().value,
-                            onCheckedChange = { viewModel.setAIMode(it) }
-                        )
-                    }
-                    
-                    if (viewModel.isAIMode.collectAsState().value) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Difficulty")
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                AIDifficulty.values().forEach { difficulty ->
-                                    val isSelected = difficulty == viewModel.aiDifficulty.collectAsState().value
-                                    FilledTonalButton(
-                                        onClick = { viewModel.setAIDifficulty(difficulty) },
-                                        colors = ButtonDefaults.filledTonalButtonColors(
-                                            containerColor = if (isSelected) 
-                                                MaterialTheme.colorScheme.primaryContainer 
-                                            else 
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                        )
-                                    ) {
-                                        Text(difficulty.name)
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
