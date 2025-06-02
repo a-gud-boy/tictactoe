@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 // Enum to represent the player
 enum class Player {
@@ -118,6 +119,7 @@ class NormalTicTacToeViewModel : ViewModel() {
         }
 
         if (_player1Turn.value) {
+            // Player's move
             _player1Moves.value = currentP1Moves + buttonId
             _player1Turn.value = false
             checkForWinner()
@@ -128,6 +130,11 @@ class NormalTicTacToeViewModel : ViewModel() {
             }
         } else if (!_isAIMode.value) {
             // Only allow player 2 moves if not in AI mode
+            _player2Moves.value = currentP2Moves + buttonId
+            _player1Turn.value = true
+            checkForWinner()
+        } else {
+            // This is AI's move
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
             checkForWinner()
