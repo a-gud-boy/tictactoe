@@ -185,7 +185,7 @@ fun MainPage() {
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Text("Play vs AI")
+                                                Text("Play vs AI", Modifier.padding(end = 5.dp))
                                                 Switch(
                                                     checked = isAIMode,
                                                     onCheckedChange = {
@@ -238,7 +238,7 @@ fun MainPage() {
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Text("Play vs AI")
+                                                Text("Play vs AI", Modifier.padding(end = 5.dp))
                                                 Switch(
                                                     checked = isAIMode,
                                                     onCheckedChange = {
