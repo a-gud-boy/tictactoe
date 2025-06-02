@@ -30,22 +30,30 @@ class SoundManager(private val context: Context) {
                     Log.d("SoundManager", "Sound loaded successfully: $sampleId")
                     soundsLoadedSuccessfully[sampleId] = true
                 } else {
-                    Log.e("SoundManager", "Error loading sound $sampleId, status: $status")
+                    Log.e("SoundManager", "Error loading sound $sampleId, status: $status. Marking as not loaded.")
                     soundsLoadedSuccessfully[sampleId] = false
                 }
             }
 
-            // Load the sounds.
-            // SoundPool.load() can handle various formats, including MP3 and WAV,
-            // as long as the underlying Android framework supports the format.
-            // The resource IDs (e.g., R.raw.move) will point to the sound files
-            // (e.g., move.mp3 or move.wav) placed in the res/raw directory.
             moveSoundId = soundPool?.load(context, R.raw.move, 1) ?: 0
-            winSoundId = soundPool?.load(context, R.raw.win, 1) ?: 0
-            drawSoundId = soundPool?.load(context, R.raw.draw, 1) ?: 0
+            if (moveSoundId != 0) {
+                soundsLoadedSuccessfully[moveSoundId] = false
+            } else {
+                Log.e("SoundManager", "Error loading move sound: moveSoundId is 0")
+            }
 
-            if (moveSoundId == 0 || winSoundId == 0 || drawSoundId == 0) {
-                Log.e("SoundManager", "Error loading one or more sounds: IDs are 0")
+            winSoundId = soundPool?.load(context, R.raw.win, 1) ?: 0
+            if (winSoundId != 0) {
+                soundsLoadedSuccessfully[winSoundId] = false
+            } else {
+                Log.e("SoundManager", "Error loading win sound: winSoundId is 0")
+            }
+
+            drawSoundId = soundPool?.load(context, R.raw.draw, 1) ?: 0
+            if (drawSoundId != 0) {
+                soundsLoadedSuccessfully[drawSoundId] = false
+            } else {
+                Log.e("SoundManager", "Error loading draw sound: drawSoundId is 0")
             }
 
         } catch (e: Exception) {
@@ -54,7 +62,9 @@ class SoundManager(private val context: Context) {
     }
 
     private fun isSoundReady(soundId: Int): Boolean {
-        return soundPool != null && soundId != 0 && soundsLoadedSuccessfully[soundId] == true
+        val isReady = soundPool != null && soundId != 0 && soundsLoadedSuccessfully[soundId] == true
+        Log.v("SoundManager", "isSoundReady for ID $soundId: poolNotNull=${soundPool != null}, idNotZero=${soundId != 0}, loadedSuccessfully=${soundsLoadedSuccessfully[soundId] == true}, result=$isReady")
+        return isReady
     }
 
     fun playMoveSound() {
