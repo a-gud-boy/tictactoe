@@ -68,7 +68,7 @@ import kotlinx.coroutines.launch
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainPage() {
+fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // Added for Infinite Mode Menu
     val context = LocalContext.current
@@ -166,7 +166,7 @@ fun MainPage() {
                         }                    },
                     actions = {
                         if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
-                            val viewModel: NormalTicTacToeViewModel = viewModel()
+                            val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
                             val isAIMode by viewModel.isAIMode.collectAsState()
                             val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
@@ -219,7 +219,7 @@ fun MainPage() {
                                 }
                             }
                         } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
-                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel()
+                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = viewModelFactory)
                             val isAIMode by infiniteViewModel.isAIMode.collectAsState()
                             val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
 
@@ -283,7 +283,7 @@ fun MainPage() {
             }        ) { innerPadding ->
             when (selectedItemIndex) {
                 0 -> {
-                    val viewModel: NormalTicTacToeViewModel = viewModel()
+                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
                     val isAIMode by viewModel.isAIMode.collectAsState()
                     val currentDifficulty by viewModel.aiDifficulty.collectAsState()
                     NormalTicTacToePage(
@@ -292,7 +292,7 @@ fun MainPage() {
                     )
                 }
                 1 -> {
-                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel() // ensure viewmodel is available for the page
+                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
             }
@@ -310,7 +310,7 @@ fun MainPage() {
 @Preview
 @Composable
 fun MainPagePreview() {
-    MainPage()
+    MainPage(viewModelFactory = TicTacToeViewModelFactory(SoundManager(LocalContext.current)))
 }
 
 /**
