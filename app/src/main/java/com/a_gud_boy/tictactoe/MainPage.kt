@@ -3,6 +3,7 @@ package com.a_gud_boy.tictactoe
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,6 +63,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage() {
+    var showMenu by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     val drawerState = rememberDrawerState(
@@ -154,9 +156,12 @@ fun MainPage() {
                             }
                         }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
-                        }                    },
-                    actions = {
+                        }                    },                    actions = {
                         if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
+                            val viewModel: NormalTicTacToeViewModel = viewModel()
+                            val isAIMode by viewModel.isAIMode.collectAsState()
+                            val currentDifficulty by viewModel.aiDifficulty.collectAsState()
+                            
                             Box {
                                 IconButton(onClick = { showMenu = true }) {
                                     Icon(Icons.Filled.MoreVert, contentDescription = "Settings")
@@ -166,7 +171,7 @@ fun MainPage() {
                                     onDismissRequest = { showMenu = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { 
+                                        text = {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -181,7 +186,7 @@ fun MainPage() {
                                                 )
                                             }
                                         },
-                                        onClick = { viewModel.setAIMode(!isAIMode) }
+                                        onClick = { }  // Click is handled by the Switch
                                     )
                                     
                                     if (isAIMode) {
@@ -214,10 +219,17 @@ fun MainPage() {
                         actionIconContentColor = colorResource(R.color.darkTextColor)
                     )
                 )
-            }
-        ) { innerPadding ->
+            }        ) { innerPadding ->
             when (selectedItemIndex) {
-                0 -> NormalTicTacToePage(innerPadding)
+                0 -> {
+                    val viewModel: NormalTicTacToeViewModel = viewModel()
+                    val isAIMode by viewModel.isAIMode.collectAsState()
+                    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
+                    NormalTicTacToePage(
+                        innerPadding = innerPadding,
+                        viewModel = viewModel
+                    )
+                }
                 1 -> InfiniteTicTacToePage(innerPadding)
             }
         }
