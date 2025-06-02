@@ -423,66 +423,6 @@ fun InfiniteTicTacToePage(
                 }
             }
 
-            // AI Mode Toggle Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "AI Mode",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Switch(
-                    checked = isAIMode,
-                    onCheckedChange = { viewModel.setAIMode(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                )
-            }
-
-            // AI Difficulty Selection Row (conditionally visible)
-            if (isAIMode) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Use spacedBy for arrangement
-                ) {
-                    // Assuming AIDifficulty is directly accessible (e.g., imported or top-level in package, or from ViewModel)
-                    // For this to work, AIDifficulty needs to be resolvable.
-                    // If it's an inner class of ViewModel: InfiniteTicTacToeViewModel.AIDifficulty
-                    // If it's top-level in the same package: AIDifficulty
-                    val difficulties = listOf(
-                        AIDifficulty.EASY,
-                        AIDifficulty.MEDIUM,
-                        AIDifficulty.HARD
-                    )
-                    difficulties.forEach { difficulty ->
-                        val isSelected = currentAIDifficulty == difficulty
-                        Button(
-                            onClick = { viewModel.setAIDifficulty(difficulty) },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
-                            ),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = difficulty.name.lowercase().replaceFirstChar { it.uppercase() })
-                        }
-                    }
-                }
-            }
-
             Button(
                 onClick = {
                     viewModel.resetRound()

@@ -70,6 +70,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainPage() {
     var showMenu by rememberSaveable { mutableStateOf(false) }
+    var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // Added for Infinite Mode Menu
     val context = LocalContext.current
 
     val drawerState = rememberDrawerState(
@@ -162,12 +163,13 @@ fun MainPage() {
                             }
                         }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
-                        }                    },                    actions = {
+                        }                    },
+                    actions = {
                         if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
                             val viewModel: NormalTicTacToeViewModel = viewModel()
                             val isAIMode by viewModel.isAIMode.collectAsState()
                             val currentDifficulty by viewModel.aiDifficulty.collectAsState()
-                            
+
                             Box {
                                 IconButton(onClick = { showMenu = true }) {
                                     Icon(Icons.Filled.MoreVert, contentDescription = "Settings")
@@ -186,7 +188,7 @@ fun MainPage() {
                                                 Text("Play vs AI")
                                                 Switch(
                                                     checked = isAIMode,
-                                                    onCheckedChange = { 
+                                                    onCheckedChange = {
                                                         viewModel.setAIMode(it)
                                                     }
                                                 )
@@ -194,14 +196,67 @@ fun MainPage() {
                                         },
                                         onClick = { }  // Click is handled by the Switch
                                     )
-                                    
+
                                     if (isAIMode) {
                                         AIDifficulty.values().forEach { difficulty ->
                                             DropdownMenuItem(
                                                 text = { Text(difficulty.name) },
-                                                onClick = { 
+                                                onClick = {
                                                     viewModel.setAIDifficulty(difficulty)
                                                     showMenu = false
+                                                },
+                                                trailingIcon = {
+                                                    if (difficulty == currentDifficulty) {
+                                                        Icon(
+                                                            Icons.Default.Check,
+                                                            contentDescription = "Selected"
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
+                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel()
+                            val isAIMode by infiniteViewModel.isAIMode.collectAsState()
+                            val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
+
+                            Box {
+                                IconButton(onClick = { showInfiniteMenu = true }) {
+                                    Icon(Icons.Filled.MoreVert, contentDescription = "Infinite Settings")
+                                }
+                                DropdownMenu(
+                                    expanded = showInfiniteMenu,
+                                    onDismissRequest = { showInfiniteMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text("Play vs AI")
+                                                Switch(
+                                                    checked = isAIMode,
+                                                    onCheckedChange = {
+                                                        infiniteViewModel.setAIMode(it)
+                                                    }
+                                                )
+                                            }
+                                        },
+                                        onClick = { } // Click is handled by the Switch
+                                    )
+
+                                    if (isAIMode) {
+                                        AIDifficulty.values().forEach { difficulty ->
+                                            DropdownMenuItem(
+                                                text = { Text(difficulty.name) },
+                                                onClick = {
+                                                    infiniteViewModel.setAIDifficulty(difficulty)
+                                                    showInfiniteMenu = false
                                                 },
                                                 trailingIcon = {
                                                     if (difficulty == currentDifficulty) {
@@ -236,7 +291,10 @@ fun MainPage() {
                         viewModel = viewModel
                     )
                 }
-                1 -> InfiniteTicTacToePage(innerPadding)
+                1 -> {
+                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel() // ensure viewmodel is available for the page
+                    InfiniteTicTacToePage(innerPadding, infiniteViewModel)
+                }
             }
         }
     }
