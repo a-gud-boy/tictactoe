@@ -1,5 +1,7 @@
 package com.a_gud_boy.tictactoe
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,12 +68,12 @@ import kotlinx.coroutines.launch
  * The [TopAppBar] displays the title of the currently selected game and provides a navigation
  * icon to open the drawer and an action icon for settings (currently shows a Toast).
  */
+@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainPage() {
+fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
     var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // Added for Infinite Mode Menu
-    val context = LocalContext.current
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -166,7 +168,7 @@ fun MainPage() {
                         }                    },
                     actions = {
                         if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
-                            val viewModel: NormalTicTacToeViewModel = viewModel()
+                            val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
                             val isAIMode by viewModel.isAIMode.collectAsState()
                             val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
@@ -198,7 +200,7 @@ fun MainPage() {
                                     )
 
                                     if (isAIMode) {
-                                        AIDifficulty.values().forEach { difficulty ->
+                                        AIDifficulty.entries.forEach { difficulty ->
                                             DropdownMenuItem(
                                                 text = { Text(difficulty.name) },
                                                 onClick = {
@@ -219,7 +221,7 @@ fun MainPage() {
                                 }
                             }
                         } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
-                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel()
+                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = viewModelFactory)
                             val isAIMode by infiniteViewModel.isAIMode.collectAsState()
                             val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
 
@@ -251,7 +253,7 @@ fun MainPage() {
                                     )
 
                                     if (isAIMode) {
-                                        AIDifficulty.values().forEach { difficulty ->
+                                        AIDifficulty.entries.forEach { difficulty ->
                                             DropdownMenuItem(
                                                 text = { Text(difficulty.name) },
                                                 onClick = {
@@ -283,16 +285,14 @@ fun MainPage() {
             }        ) { innerPadding ->
             when (selectedItemIndex) {
                 0 -> {
-                    val viewModel: NormalTicTacToeViewModel = viewModel()
-                    val isAIMode by viewModel.isAIMode.collectAsState()
-                    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
+                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
                     NormalTicTacToePage(
                         innerPadding = innerPadding,
                         viewModel = viewModel
                     )
                 }
                 1 -> {
-                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel() // ensure viewmodel is available for the page
+                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
             }
@@ -307,10 +307,11 @@ fun MainPage() {
  * This allows for easy previewing of the [MainPage] layout and functionality within
  * Android Studio's Compose preview tool.
  */
+@RequiresApi(Build.VERSION_CODES.R)
 @Preview
 @Composable
 fun MainPagePreview() {
-    MainPage()
+    MainPage(viewModelFactory = TicTacToeViewModelFactory(SoundManager(LocalContext.current)))
 }
 
 /**

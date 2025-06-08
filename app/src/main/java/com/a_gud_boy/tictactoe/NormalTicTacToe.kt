@@ -1,7 +1,9 @@
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.view.HapticFeedbackConstants
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -69,6 +71,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 
+@RequiresApi(Build.VERSION_CODES.R)
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,11 +79,8 @@ fun NormalTicTacToePage(
     innerPadding: PaddingValues,
     viewModel: NormalTicTacToeViewModel = viewModel()
 ) {
-    var showMenu by rememberSaveable { mutableStateOf(false) }
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
-    val isAIMode by viewModel.isAIMode.collectAsState()
-    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
     val player1Wins by viewModel.player1Wins.collectAsStateWithLifecycle()
     val player2Wins by viewModel.player2Wins.collectAsStateWithLifecycle()
@@ -215,7 +215,7 @@ fun NormalTicTacToePage(
             ConstraintLayout(
                 constraintSet = constraints,
                 modifier = Modifier
-                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                    .padding(20.dp, 0.dp, 20.dp, 20.dp)
                     .width(300.dp)
                     .height(300.dp)
                     .shadow(4.dp, shape = RoundedCornerShape(12.dp))
