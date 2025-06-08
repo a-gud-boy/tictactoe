@@ -1,9 +1,11 @@
 package com.a_gud_boy.tictactoe
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
@@ -44,6 +46,7 @@ class MainActivity : ComponentActivity() {
      *                           this Bundle contains the data it most recently supplied in [onSaveInstanceState].
      *                           Otherwise, it is null.
      */
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
