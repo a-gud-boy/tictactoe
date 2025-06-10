@@ -5,7 +5,22 @@ This is a simple Android application that allows users to play Tic-Tac-Toe.
 ## Features
 
 - Classic Tic-Tac-Toe gameplay
+- Infinite Tic-Tac-Toe mode
+- AI opponent with multiple difficulty levels
 - Simple and intuitive user interface
+- Sound effects for game actions
+
+## Game Modes
+
+### Normal Tic-Tac-Toe
+This is the classic 3x3 game where players aim to get three of their marks (X or O) in a row, column, or diagonal.
+
+### Infinite Tic-Tac-Toe
+A variation on the 3x3 grid where players' marks disappear after a set number of subsequent moves by *either* player. For example, if the maximum visible moves per player is 3 (as implemented), a player's oldest mark disappears when they make their 4th move. This process happens independently for each player. The goal remains to get three of *your currently visible* marks in a row, column, or diagonal. This mode adds a dynamic layer of strategy as the board constantly evolves.
+
+### AI Opponent
+- Both "Normal" and "Infinite" Tic-Tac-Toe modes support playing against an AI opponent.
+- Players can choose the AI's difficulty level (Easy, Medium, Hard), allowing for a customizable challenge.
 
 ## How to Build
 
@@ -14,9 +29,8 @@ This is a simple Android application that allows users to play Tic-Tac-Toe.
     - Android SDK (latest version)
 2. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/your-repository-name.git 
+   git clone https://github.com/your-username/your-repository-name.git # Replace with the actual repository URL
    ```
-   *Replace `your-username/your-repository-name` with the actual path to this repository if you know it, otherwise, leave it as a placeholder.*
 3. **Open the project in Android Studio.**
 4. **Build the project:**
     - Select `Build > Make Project` from the Android Studio menu.
