@@ -6,13 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -62,12 +59,13 @@ fun SettingsPage(innerPadding: PaddingValues) {
         )
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(colorResource(R.color.background))
-        .padding(innerPadding),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorResource(R.color.background))
+            .padding(innerPadding),
         contentAlignment = Alignment.TopCenter
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
