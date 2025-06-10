@@ -120,12 +120,11 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             return // Button already played
         }
 
-        var moveMade = false
         if (_player1Turn.value) {
             // Player's move
             _player1Moves.value = currentP1Moves + buttonId
             _player1Turn.value = false
-            moveMade = true
+            soundManager.playMoveSound()
             checkForWinner()
 
             // Make AI move if game is in AI mode and game is not concluded
@@ -136,18 +135,14 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             // Only allow player 2 moves if not in AI mode
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
-            moveMade = true
+            soundManager.playMoveSound()
             checkForWinner()
         } else {
             // This is AI's move
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
-            moveMade = true
+            // AI move sound is handled in makeAIMove()
             checkForWinner()
-        }
-
-        if (moveMade) {
-            soundManager.playMoveSound()
         }
     }
 
