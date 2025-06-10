@@ -29,7 +29,10 @@ fun HelpPage(innerPadding: PaddingValues) {
         "Q2: How do I start a new game?" to "A2: Look for a \"New Game\" or \"Play Again\" button, usually available on the main screen or after a game ends.",
         "Q3: Can I play against the computer?" to "A3: Yes, you can play against an AI. You might be able to select the difficulty level in the settings.",
         "Q4: How is a tie game determined?" to "A4: A game is a tie if all the squares on the grid are filled, and neither player has successfully formed a line of three marks.",
-        "Q5: Are there different modes of Tic Tac Toe in this app?" to "A5: Yes, this app appears to offer both a \"Normal\" (classic 3x3) and an \"Infinite\" version of Tic Tac Toe."
+        "Q5: Are there different modes of Tic Tac Toe in this app?" to "A5: Yes, this app appears to offer both a \"Normal\" (classic 3x3) and an \"Infinite\" version of Tic Tac Toe.",
+        "Q6: Can I customize the game's appearance?" to "A6: Currently, the app does not offer theme customization, but we are considering it for future updates.",
+        "Q7: How do I adjust the sound settings?" to "A7: You can find options to toggle sound on or off in the game's main settings menu.",
+        "Q8: Is there a way to see my game statistics?" to "A8: At the moment, the app does not track game statistics like win/loss ratios. This feature may be added in a future version."
     )
 
     Box(
