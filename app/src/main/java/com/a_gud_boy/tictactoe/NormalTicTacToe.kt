@@ -311,7 +311,7 @@ fun NormalTicTacToePage(
                             // TODO: Check if move is valid before playing sound,
                             // or play sound optimistically and handle invalid move UI separately.
                             // For now, play sound before ViewModel action.
-                            soundManager.playMoveSound()
+                            // soundManager.playMoveSound()
                             viewModel.onButtonClick(buttonId)
                         }
                     )
