@@ -343,7 +343,7 @@ fun InfiniteTicTacToePage(
                         buttonId = buttonId, // Pass buttonId for accessibility
                         onClick = {
                             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                            soundManager.playMoveSound()
+                            // soundManager.playMoveSound()
                             viewModel.onButtonClick(buttonId)
                         }
                     )
