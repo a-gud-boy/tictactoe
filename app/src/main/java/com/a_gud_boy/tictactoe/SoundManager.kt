@@ -31,6 +31,11 @@ class SoundManager(private val context: Context) {
                 if (status == 0) {
                     Log.d("SoundManager", "Sound loaded successfully: $sampleId")
                     soundsLoadedSuccessfully[sampleId] = true
+                    // Prime the move sound by playing it silently once after loading
+                    if (sampleId == moveSoundId) {
+                        Log.d("SoundManager", "Priming move sound (ID: $sampleId)")
+                        soundPool?.play(moveSoundId, 0f, 0f, 0, 0, 1.0f) // Play with 0 volume, priority 0
+                    }
                 } else {
                     Log.e("SoundManager", "Error loading sound $sampleId, status: $status. Marking as not loaded.")
                     soundsLoadedSuccessfully[sampleId] = false
