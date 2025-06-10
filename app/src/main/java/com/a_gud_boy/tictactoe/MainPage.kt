@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -142,7 +142,7 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                         )
                                     } else if (index == 3) {
                                         Icon(
-                                            Icons.Filled.Help,
+                                            Icons.Outlined.Info,
                                             contentDescription = "Navigation Icon for Help",
                                             modifier = Modifier.size(30.dp)
                                         )
