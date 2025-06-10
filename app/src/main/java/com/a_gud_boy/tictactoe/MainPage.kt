@@ -12,17 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
+// import androidx.compose.material.icons.filled.MoreVert // No longer used
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+// import androidx.compose.material3.DropdownMenu // No longer used
+// import androidx.compose.material3.DropdownMenuItem // No longer used
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -74,8 +74,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
-    var showMenu by rememberSaveable { mutableStateOf(false) }
-    var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // Added for Infinite Mode Menu
+    // var showMenu by rememberSaveable { mutableStateOf(false) } // No longer needed for MoreVert
+    // var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // No longer needed for MoreVert
+
+    var showInfoDialog by rememberSaveable { mutableStateOf(false) }
+    var infoDialogTitle by rememberSaveable { mutableStateOf("") }
+    var infoDialogMessage by rememberSaveable { mutableStateOf("") }
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -182,117 +186,36 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                         }
                     },
                     actions = {
-                        if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
-                            val viewModel: NormalTicTacToeViewModel =
-                                viewModel(factory = viewModelFactory)
-                            val isAIMode by viewModel.isAIMode.collectAsState()
-                            val currentDifficulty by viewModel.aiDifficulty.collectAsState()
-
-                            Box {
-                                IconButton(onClick = { showMenu = true }) {
-                                    Icon(Icons.Filled.MoreVert, contentDescription = "Settings")
+                        IconButton(onClick = {
+                            // Determine title and message based on selectedItemIndex
+                            when (selectedItemIndex) {
+                                0 -> { // Normal TicTacToe
+                                    infoDialogTitle = "Normal Tic Tac Toe"
+                                    infoDialogMessage = "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                 }
-                                DropdownMenu(
-                                    expanded = showMenu,
-                                    onDismissRequest = { showMenu = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text("Play vs AI", Modifier.padding(end = 5.dp))
-                                                Switch(
-                                                    checked = isAIMode,
-                                                    onCheckedChange = {
-                                                        viewModel.setAIMode(it)
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = { }  // Click is handled by the Switch
-                                    )
-
-                                    if (isAIMode) {
-                                        AIDifficulty.entries.forEach { difficulty ->
-                                            DropdownMenuItem(
-                                                text = { Text(difficulty.name) },
-                                                onClick = {
-                                                    viewModel.setAIDifficulty(difficulty)
-                                                    showMenu = false
-                                                },
-                                                trailingIcon = {
-                                                    if (difficulty == currentDifficulty) {
-                                                        Icon(
-                                                            Icons.Default.Check,
-                                                            contentDescription = "Selected"
-                                                        )
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
+                                1 -> { // Infinite TicTacToe
+                                    infoDialogTitle = "Infinite Tic Tac Toe"
+                                    infoDialogMessage = "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                }
+                                2 -> { // Settings
+                                    infoDialogTitle = "Settings"
+                                    infoDialogMessage = "Here you can configure various application settings:\n" +
+                                            "- Sound: Toggle game sounds on or off.\n" +
+                                            "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
+                                            "- AI Mode: Enable or disable playing against the AI.\n" +
+                                            "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                                }
+                                3 -> { // Help
+                                    infoDialogTitle = "Help"
+                                    infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
+                                            "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
+                                            "- Game Play: Follow on-screen instructions for each game mode.\n" +
+                                            "- Settings: Customize your experience in the Settings page."
                                 }
                             }
-                        } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
-                            val infiniteViewModel: InfiniteTicTacToeViewModel =
-                                viewModel(factory = viewModelFactory)
-                            val isAIMode by infiniteViewModel.isAIMode.collectAsState()
-                            val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
-
-                            Box {
-                                IconButton(onClick = { showInfiniteMenu = true }) {
-                                    Icon(
-                                        Icons.Filled.MoreVert,
-                                        contentDescription = "Infinite Settings"
-                                    )
-                                }
-                                DropdownMenu(
-                                    expanded = showInfiniteMenu,
-                                    onDismissRequest = { showInfiniteMenu = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text("Play vs AI", Modifier.padding(end = 5.dp))
-                                                Switch(
-                                                    checked = isAIMode,
-                                                    onCheckedChange = {
-                                                        infiniteViewModel.setAIMode(it)
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = { } // Click is handled by the Switch
-                                    )
-
-                                    if (isAIMode) {
-                                        AIDifficulty.entries.forEach { difficulty ->
-                                            DropdownMenuItem(
-                                                text = { Text(difficulty.name) },
-                                                onClick = {
-                                                    infiniteViewModel.setAIDifficulty(difficulty)
-                                                    showInfiniteMenu = false
-                                                },
-                                                trailingIcon = {
-                                                    if (difficulty == currentDifficulty) {
-                                                        Icon(
-                                                            Icons.Default.Check,
-                                                            contentDescription = "Selected"
-                                                        )
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            showInfoDialog = true
+                        }) {
+                            Icon(Icons.Outlined.Info, contentDescription = "Information")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -303,6 +226,20 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                     )
                 )
             }) { innerPadding ->
+
+            if (showInfoDialog) {
+                AlertDialog(
+                    onDismissRequest = { showInfoDialog = false },
+                    title = { Text(text = infoDialogTitle) },
+                    text = { Text(text = infoDialogMessage) },
+                    confirmButton = {
+                        Button(onClick = { showInfoDialog = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
+
             when (selectedItemIndex) {
                 0 -> {
                     val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)

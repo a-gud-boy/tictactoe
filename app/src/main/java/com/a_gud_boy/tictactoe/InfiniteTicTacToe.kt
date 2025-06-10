@@ -135,7 +135,7 @@ fun InfiniteTicTacToePage(
     LaunchedEffect(winnerInfo) {
         if (winnerInfo != null) {
             // Provide haptic feedback for game conclusion.
-            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.CONFIRM)
             // Play win or draw sound based on whether there's a specific winner or it's a draw.
             if (winnerInfo?.winner != null) {
                 soundManager.playWinSound(volume)
@@ -382,7 +382,7 @@ fun InfiniteTicTacToePage(
                         iconSize = iconSize,
                         buttonId = buttonId, // Pass buttonId for accessibility, e.g., "button1", "button2", etc.
                         onClick = {
-                            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY) // Haptic feedback on cell tap.
+                            HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.VIRTUAL_KEY) // Haptic feedback on cell tap.
                             // Sound for move is typically handled by ViewModel after validation.
                             // soundManager.playMoveSound()
                             viewModel.onButtonClick(buttonId)

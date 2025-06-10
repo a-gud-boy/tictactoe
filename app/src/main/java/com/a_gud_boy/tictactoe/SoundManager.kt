@@ -29,6 +29,7 @@ class SoundManager(private val context: Context) {
     // Key is the sound ID, Value is true if loaded, false otherwise.
     private var soundsLoadedSuccessfully = mutableMapOf<Int, Boolean>()
 
+    // var isSoundEnabled: Boolean = true // Removed: Now uses AISettingsManager.isSoundEnabled
 
     init {
         Log.d("SoundManagerInit", "SoundManager initializing...")
@@ -111,6 +112,7 @@ class SoundManager(private val context: Context) {
      * @param volume The volume level for the sound (0.0 to 1.0). Defaults to 1.0f.
      */
     fun playMoveSound(volume: Float = 1.0f) {
+        if (!AISettingsManager.isSoundEnabled) return // Use AISettingsManager
         if (isSoundReady(moveSoundId)) { // Check if sound is loaded and SoundPool available.
             soundPool?.play(moveSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played move sound")
@@ -124,6 +126,7 @@ class SoundManager(private val context: Context) {
      * @param volume The volume level for the sound (0.0 to 1.0). Defaults to 1.0f.
      */
     fun playWinSound(volume: Float = 1.0f) {
+        if (!AISettingsManager.isSoundEnabled) return // Use AISettingsManager
         if (isSoundReady(winSoundId)) {
             soundPool?.play(winSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played win sound")
@@ -137,6 +140,7 @@ class SoundManager(private val context: Context) {
      * @param volume The volume level for the sound (0.0 to 1.0). Defaults to 1.0f.
      */
     fun playDrawSound(volume: Float = 1.0f) {
+        if (!AISettingsManager.isSoundEnabled) return // Use AISettingsManager
         if (isSoundReady(drawSoundId)) {
             soundPool?.play(drawSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played draw sound")
@@ -150,6 +154,7 @@ class SoundManager(private val context: Context) {
      * @param volume The volume level for the sound (0.0 to 1.0). Defaults to 1.0f.
      */
     fun playLoseSound(volume: Float = 1.0f) {
+        if (!AISettingsManager.isSoundEnabled) return // Use AISettingsManager
         loseSoundId?.let { // Ensure loseSoundId is not null.
             if (isSoundReady(it)) {
                 soundPool?.play(it, volume, volume, 1, 0, 1.0f)
@@ -165,6 +170,7 @@ class SoundManager(private val context: Context) {
      * @param volume The volume level for the sound (0.0 to 1.0). Defaults to 1.0f.
      */
     fun playComputerMoveSound(volume: Float = 1.0f) {
+        if (!AISettingsManager.isSoundEnabled) return // Use AISettingsManager
         computerMoveSoundId?.let { // Ensure computerMoveSoundId is not null.
             if (isSoundReady(it)) {
                 soundPool?.play(it, volume, volume, 1, 0, 1.0f)
