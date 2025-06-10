@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete // Ensure Delete is imported
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
@@ -76,6 +77,8 @@ fun MainPage() { // Removed viewModelFactory parameter
     var showInfoDialog by rememberSaveable { mutableStateOf(false) }
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
+    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) } // Added state for clear history dialog
+
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -197,48 +200,56 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
-                            // Determine title and message based on selectedItemIndex
-                            when (selectedItemIndex) {
-                                0 -> { // Normal TicTacToe
-                                    infoDialogTitle = "Normal Tic Tac Toe"
-                                    infoDialogMessage =
-                                        "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
-                                }
-
-                                1 -> { // Infinite TicTacToe
-                                    infoDialogTitle = "Infinite Tic Tac Toe"
-                                    infoDialogMessage =
-                                        "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
-                                }
-
-                                2 -> { // History
-                                    infoDialogTitle = "Match History"
-                                    infoDialogMessage =
-                                        "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
-                                }
-
-                                3 -> { // Settings
-                                    infoDialogTitle = "Settings"
-                                    infoDialogMessage =
-                                        "Here you can configure various application settings:\n" +
-                                                "- Sound: Toggle game sounds on or off.\n" +
-                                                "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
-                                                "- AI Mode: Enable or disable playing against the AI.\n" +
-                                                "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
-                                }
-
-                                4 -> { // Help
-                                    infoDialogTitle = "Help"
-                                    infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
-                                            "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
-                                            "- Game Play: Follow on-screen instructions for each game mode.\n" +
-                                            "- Settings: Customize your experience in the Settings page."
-                                }
+                        if (selectedItemIndex == 2) { // History Page
+                            // Clear History Icon Button
+                            IconButton(onClick = { showClearHistoryDialog = true }) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
                             }
-                            showInfoDialog = true
-                        }) {
-                            Icon(Icons.Outlined.Info, contentDescription = "Information")
+                            // Info Icon Button for History Page
+                            IconButton(onClick = {
+                                infoDialogTitle = "Match History"
+                                infoDialogMessage =
+                                    "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                showInfoDialog = true
+                            }) {
+                                Icon(Icons.Outlined.Info, contentDescription = "Information")
+                            }
+                        } else { // Other Pages
+                            // Default Info Icon Button
+                            IconButton(onClick = {
+                                // Logic to set infoDialogTitle and infoDialogMessage based on selectedItemIndex (excluding index 2)
+                                when (selectedItemIndex) {
+                                    0 -> { // Normal TicTacToe
+                                        infoDialogTitle = "Normal Tic Tac Toe"
+                                        infoDialogMessage =
+                                            "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                                    }
+                                    1 -> { // Infinite TicTacToe
+                                        infoDialogTitle = "Infinite Tic Tac Toe"
+                                        infoDialogMessage =
+                                            "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                    }
+                                    3 -> { // Settings
+                                        infoDialogTitle = "Settings"
+                                        infoDialogMessage =
+                                            "Here you can configure various application settings:\n" +
+                                                    "- Sound: Toggle game sounds on or off.\n" +
+                                                    "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
+                                                    "- AI Mode: Enable or disable playing against the AI.\n" +
+                                                    "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                                    }
+                                    4 -> { // Help
+                                        infoDialogTitle = "Help"
+                                        infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
+                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
+                                                "- Game Play: Follow on-screen instructions for each game mode.\n" +
+                                                "- Settings: Customize your experience in the Settings page."
+                                    }
+                                }
+                                showInfoDialog = true
+                            }) {
+                                Icon(Icons.Outlined.Info, contentDescription = "Information")
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -281,7 +292,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                 }
 
                 2 -> { // History Page
-                    HistoryPage() // ViewModel is obtained via LocalViewModelFactory.current
+                    HistoryPage(
+                        innerPadding = innerPadding,
+                        showClearConfirmDialog = showClearHistoryDialog,
+                        onShowClearConfirmDialogChange = { showClearHistoryDialog = it }
+                    )
                 }
 
                 3 -> { // Settings
