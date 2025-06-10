@@ -1,5 +1,6 @@
 package com.a_gud_boy.tictactoe
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
@@ -9,12 +10,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HelpPage() {
+fun HelpPage(innerPadding: PaddingValues) {
     val gameRules = listOf(
         "1. The game is played on a grid that's 3 squares by 3 squares.",
         "2. You are X, your friend (or the computer) is O. Players take turns putting their marks in empty squares.",
@@ -30,59 +32,68 @@ fun HelpPage() {
         "Q5: Are there different modes of Tic Tac Toe in this app?" to "A5: Yes, this app appears to offer both a \"Normal\" (classic 3x3) and an \"Infinite\" version of Tic Tac Toe."
     )
 
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(colorResource(R.color.background))
+            .padding(innerPadding),
+        contentAlignment = Alignment.TopCenter
     ) {
-        item {
-            Text(
-                text = "Game Rules",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
 
-        items(gameRules.size) { index ->
-            Text(
-                text = gameRules[index],
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
+        ) {
+            item {
+                Text(
+                    text = "Game Rules",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Frequently Asked Questions",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+            items(gameRules.size) { index ->
+                Text(
+                    text = gameRules[index],
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
 
-        items(faqs.size) { index ->
-            val (question, answer) = faqs[index]
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = question,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = answer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Frequently Asked Questions",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            items(faqs.size) { index ->
+                val (question, answer) = faqs[index]
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = question,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = answer,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }

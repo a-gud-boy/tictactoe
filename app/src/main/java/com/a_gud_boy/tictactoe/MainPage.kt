@@ -265,7 +265,7 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                     SettingsPage(innerPadding = innerPadding)
                 }
                 3 -> {
-                    HelpPage()
+                    HelpPage(innerPadding = innerPadding)
                 }
             }
         }
