@@ -214,11 +214,11 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
     // AI related functions
     private fun makeAIMove() {
         if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value) return
-        soundManager.playComputerMoveSound() // Play sound when AI starts its move
 
         // Add a small delay to make the AI move feel more natural
         viewModelScope.launch {
             delay(500) // 500ms delay for better UX
+            soundManager.playComputerMoveSound() // Play sound when AI starts its move
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
                 AIDifficulty.MEDIUM -> if (Math.random() < 0.5) getBestMove() else getRandomMove()
