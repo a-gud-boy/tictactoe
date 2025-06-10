@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import com.a_gud_boy.tictactoe.AISettingsManager
+import com.a_gud_boy.tictactoe.HapticFeedbackManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
@@ -86,6 +88,10 @@ class MainActivity : ComponentActivity() {
         // val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel by viewModels { viewModelFactory }
         // And then passed to MainPage.
         // For now, just making the factory available for potential use in composables.
+
+        // Initialize settings managers
+        AISettingsManager.init(this)
+        HapticFeedbackManager.init(this)
 
         setContent {
             TictactoeTheme {

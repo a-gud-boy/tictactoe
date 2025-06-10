@@ -124,7 +124,7 @@ fun NormalTicTacToePage(
     LaunchedEffect(winnerInfo) {
         if (winnerInfo != null) {
             // Provide haptic feedback for game conclusion.
-            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.CONFIRM)
             // Play win or draw sound.
             if (winnerInfo?.winner != null) {
                 soundManager.playWinSound(volume)
@@ -342,7 +342,7 @@ fun NormalTicTacToePage(
                         iconSize = iconSize,
                         buttonId = buttonId, // Pass buttonId for accessibility, e.g., "button1", "button2", etc.
                         onClick = {
-                            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY) // Haptic feedback on cell tap.
+                            HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.VIRTUAL_KEY) // Haptic feedback on cell tap.
                             // TODO: Consider moving sound playing logic into ViewModel after move validation,
                             // or play sound optimistically and handle invalid move UI separately.
                             // For now, play sound before ViewModel action.

@@ -10,10 +10,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// AIDifficulty Enum
-//enum class AIDifficulty {
-//    EASY, MEDIUM, HARD
-//}
+// AIDifficulty is now in its own file: AIDifficulty.kt
 
 // Enum to represent the player (ensure this is present or imported)
 //enum class Player {
@@ -126,11 +123,11 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
     val isGameConcluded: StateFlow<Boolean> = _isGameConcluded.asStateFlow()
 
     // True if playing against AI, false for two-player mode.
-    private val _isAIMode = MutableStateFlow(false)
+    private val _isAIMode = MutableStateFlow(AISettingsManager.isAiModeEnabled)
     val isAIMode: StateFlow<Boolean> = _isAIMode.asStateFlow()
 
     // Current difficulty level for the AI opponent.
-    private val _aiDifficulty = MutableStateFlow(AIDifficulty.MEDIUM) // Default to Medium difficulty.
+    private val _aiDifficulty = MutableStateFlow(AISettingsManager.currentDifficulty) // Default to Medium difficulty.
     val aiDifficulty: StateFlow<AIDifficulty> = _aiDifficulty.asStateFlow()
 
     /**
@@ -178,6 +175,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
      */
     fun setAIMode(enabled: Boolean) {
         _isAIMode.value = enabled
+        AISettingsManager.isAiModeEnabled = enabled
         resetRound() // Reset the game to apply mode change.
     }
 
@@ -188,6 +186,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
      */
     fun setAIDifficulty(difficulty: AIDifficulty) {
         _aiDifficulty.value = difficulty
+        AISettingsManager.currentDifficulty = difficulty
         if (_isAIMode.value) { // Only reset if AI is active.
             resetRound()
         }
