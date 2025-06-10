@@ -38,37 +38,27 @@ class SoundManager(private val context: Context) {
             }
 
             moveSoundId = soundPool?.load(context, R.raw.move, 1) ?: 0
-            if (moveSoundId != 0) {
-                soundsLoadedSuccessfully[moveSoundId] = false
-            } else {
+            if (moveSoundId == 0) {
                 Log.e("SoundManager", "Error loading move sound: moveSoundId is 0")
             }
 
             winSoundId = soundPool?.load(context, R.raw.win, 1) ?: 0
-            if (winSoundId != 0) {
-                soundsLoadedSuccessfully[winSoundId] = false
-            } else {
+            if (winSoundId == 0) {
                 Log.e("SoundManager", "Error loading win sound: winSoundId is 0")
             }
 
             drawSoundId = soundPool?.load(context, R.raw.draw, 1) ?: 0
-            if (drawSoundId != 0) {
-                soundsLoadedSuccessfully[drawSoundId] = false
-            } else {
+            if (drawSoundId == 0) {
                 Log.e("SoundManager", "Error loading draw sound: drawSoundId is 0")
             }
 
             loseSoundId = soundPool?.load(context, R.raw.lose, 1) ?: 0 // Placeholder
-            if (loseSoundId != 0) {
-                soundsLoadedSuccessfully[loseSoundId!!] = false
-            } else {
+            if (loseSoundId == 0) {
                 Log.e("SoundManager", "Error loading lose sound: loseSoundId is 0")
             }
 
             computerMoveSoundId = soundPool?.load(context, R.raw.click, 1) ?: 0 // Placeholder
-            if (computerMoveSoundId != 0) {
-                soundsLoadedSuccessfully[computerMoveSoundId!!] = false
-            } else {
+            if (computerMoveSoundId == 0) {
                 Log.e("SoundManager", "Error loading computer move sound: computerMoveSoundId is 0")
             }
 
