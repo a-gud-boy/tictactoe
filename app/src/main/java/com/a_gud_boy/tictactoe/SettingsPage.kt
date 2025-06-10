@@ -29,17 +29,19 @@ import kotlin.math.roundToInt
 @Composable
 fun SettingsPage() {
     val context = LocalContext.current
-    val soundManager = remember { SoundManager(context) }
+    // val soundManager = remember { SoundManager(context) } // Removed: SoundManager instance no longer created here
 
     // ViewModel instances - In a real app, provide a proper factory or use Hilt for DI
+    // SoundManager is still needed by ViewModels, so it's instantiated inside the factory.
+    // This is acceptable as SoundManager itself doesn't hold the isSoundEnabled state anymore.
     val normalTicTacToeViewModel: NormalTicTacToeViewModel = viewModel(
-        factory = TicTacToeViewModelFactory(soundManager)
+        factory = TicTacToeViewModelFactory(SoundManager(context))
     )
     val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel = viewModel(
-        factory = TicTacToeViewModelFactory(soundManager)
+        factory = TicTacToeViewModelFactory(SoundManager(context))
     )
 
-    var soundEnabled by remember { mutableStateOf(soundManager.isSoundEnabled) }
+    // var soundEnabled by remember { mutableStateOf(soundManager.isSoundEnabled) } // Removed: State now from AISettingsManager
     // Haptic feedback state is managed by HapticFeedbackManager
 
     // AI settings are now managed by AISettingsManager
@@ -74,10 +76,9 @@ fun SettingsPage() {
         ) {
             Text("Sound")
             Switch(
-                checked = soundEnabled,
+                checked = AISettingsManager.isSoundEnabled, // Read from AISettingsManager
                 onCheckedChange = {
-                    soundEnabled = it
-                    soundManager.isSoundEnabled = it
+                    AISettingsManager.isSoundEnabled = it // Update AISettingsManager
                 }
             )
         }

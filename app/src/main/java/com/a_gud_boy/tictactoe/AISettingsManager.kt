@@ -11,4 +11,5 @@ import androidx.compose.runtime.setValue
 object AISettingsManager {
     var currentDifficulty by mutableStateOf(AIDifficulty.MEDIUM) // Default to Medium
     var isAiModeEnabled by mutableStateOf(false) // Default AI mode to off
+    var isSoundEnabled by mutableStateOf(true) // Default sound to on
 }
