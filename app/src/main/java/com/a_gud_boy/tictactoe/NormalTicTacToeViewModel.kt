@@ -29,9 +29,14 @@ class NormalTicTacToeViewModel(
 
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
-            setOf("button1", "button2", "button3"), setOf("button4", "button5", "button6"), setOf("button7", "button8", "button9"),
-            setOf("button1", "button4", "button7"), setOf("button2", "button5", "button8"), setOf("button3", "button6", "button9"),
-            setOf("button1", "button5", "button9"), setOf("button3", "button5", "button7")
+            setOf("button1", "button2", "button3"),
+            setOf("button4", "button5", "button6"),
+            setOf("button7", "button8", "button9"),
+            setOf("button1", "button4", "button7"),
+            setOf("button2", "button5", "button8"),
+            setOf("button3", "button6", "button9"),
+            setOf("button1", "button5", "button9"),
+            setOf("button3", "button5", "button7")
         )
     }
 
@@ -128,10 +133,10 @@ class NormalTicTacToeViewModel(
             soundManager.playMoveSound(volume)
             checkForWinner()
         } else { // AI's move (already determined and passed as buttonId)
-             _player2Moves.value = currentP2FullMoves + buttonId
-             _player1Turn.value = true
-             // Sound for AI move is in makeAIMove
-             checkForWinner()
+            _player2Moves.value = currentP2FullMoves + buttonId
+            _player1Turn.value = true
+            // Sound for AI move is in makeAIMove
+            checkForWinner()
         }
     }
 
@@ -174,12 +179,19 @@ class NormalTicTacToeViewModel(
     fun resetScores() { // End of a match
         viewModelScope.launch {
             if (_isGameConcluded.value && _currentRoundMoves.value.isNotEmpty()) {
-                 val roundNumber = _currentMatchRounds.value.size + 1
-                 val roundWinner = _winnerInfo.value?.winner
-                 val roundWinnerName = determineRoundWinnerName(roundWinner)
-                 val tempRoundEntity = RoundEntity(roundId = 0, ownerMatchId = 0, roundNumber = roundNumber, winner = roundWinner?.name, roundWinnerName = roundWinnerName)
-                 val lastRoundWithMoves = RoundWithMoves(round = tempRoundEntity, moves = _currentRoundMoves.value)
-                 _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
+                val roundNumber = _currentMatchRounds.value.size + 1
+                val roundWinner = _winnerInfo.value?.winner
+                val roundWinnerName = determineRoundWinnerName(roundWinner)
+                val tempRoundEntity = RoundEntity(
+                    roundId = 0,
+                    ownerMatchId = 0,
+                    roundNumber = roundNumber,
+                    winner = roundWinner?.name,
+                    roundWinnerName = roundWinnerName
+                )
+                val lastRoundWithMoves =
+                    RoundWithMoves(round = tempRoundEntity, moves = _currentRoundMoves.value)
+                _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
             }
 
             val p1FinalScore = _player1Wins.value
@@ -226,7 +238,8 @@ class NormalTicTacToeViewModel(
 
         if (p1MovesSet.size < 3 && p2MovesSet.size < 3) return
 
-        val lastMove = if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
+        val lastMove =
+            if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
         if (lastMove == null) return
 
         val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastMove) }
@@ -299,7 +312,12 @@ class NormalTicTacToeViewModel(
         return bestMove
     }
 
-    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+    private fun minimax(
+        p1Moves: List<String>,
+        p2Moves: List<String>,
+        depth: Int,
+        isMaximizing: Boolean
+    ): Double {
         if (isWinningCombination(p2Moves)) return 1.0
         if (isWinningCombination(p1Moves)) return -1.0
         if (p1Moves.size + p2Moves.size == 9) return 0.0

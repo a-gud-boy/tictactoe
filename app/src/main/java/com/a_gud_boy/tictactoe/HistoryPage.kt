@@ -40,20 +40,25 @@ fun HistoryPage(
     // TopAppBar and its actions have been removed
 
     // The main content Column now uses innerPadding
-    Column(modifier = Modifier.padding(innerPadding).fillMaxSize().background(colorResource(R.color.background))) {
+    Column(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()
+            .background(colorResource(R.color.background))
+    ) {
         if (matchHistory.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("No match history yet.", fontSize = 18.sp)
-                }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(matchHistory) { matchWithRoundsAndMoves ->
-                        MatchHistoryItem(matchWithRoundsAndMoves = matchWithRoundsAndMoves)
-                    }
+            }
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(matchHistory) { matchWithRoundsAndMoves ->
+                    MatchHistoryItem(matchWithRoundsAndMoves = matchWithRoundsAndMoves)
                 }
             }
         }
-     // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
+    }
+    // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
 
     // The AlertDialog now uses the passed-in state and lambda
     if (showClearConfirmDialog) {
@@ -122,8 +127,11 @@ fun MatchHistoryItem(matchWithRoundsAndMoves: MatchWithRoundsAndMoves) {
                     RoundHistoryItem(roundWithMoves = roundWithMoves)
                     Divider(modifier = Modifier.padding(vertical = 4.dp))
                 }
-                if (matchWithRoundsAndMoves.roundsWithMoves.isEmpty()){
-                     Text("No rounds recorded for this match.", style = MaterialTheme.typography.bodySmall)
+                if (matchWithRoundsAndMoves.roundsWithMoves.isEmpty()) {
+                    Text(
+                        "No rounds recorded for this match.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }
@@ -143,12 +151,17 @@ fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
         if (roundWithMoves.moves.isNotEmpty()) {
             roundWithMoves.moves.forEachIndexed { index, move ->
                 Text(
-                    text = "  ${index + 1}. Player ${move.player} -> Cell ${move.cellId.replace("button", "")}",
+                    text = "  ${index + 1}. Player ${move.player} -> Cell ${
+                        move.cellId.replace(
+                            "button",
+                            ""
+                        )
+                    }",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         } else {
-             Text("  No moves recorded for this round.", style = MaterialTheme.typography.bodySmall)
+            Text("  No moves recorded for this round.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

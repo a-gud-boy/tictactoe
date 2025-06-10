@@ -32,11 +32,11 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "tictactoe_history_database" // Database file name
                 )
-                // TODO: For production, implement proper migrations instead of fallbackToDestructiveMigration.
-                // For now, if schema changes, the database will be wiped and recreated.
-                .fallbackToDestructiveMigration()
-                // .addMigrations(MIGRATION_1_2, MIGRATION_2_3) // Example of adding migrations
-                .build()
+                    // TODO: For production, implement proper migrations instead of fallbackToDestructiveMigration.
+                    // For now, if schema changes, the database will be wiped and recreated.
+                    .fallbackToDestructiveMigration()
+                    // .addMigrations(MIGRATION_1_2, MIGRATION_2_3) // Example of adding migrations
+                    .build()
                 INSTANCE = instance
                 instance
             }

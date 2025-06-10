@@ -31,9 +31,14 @@ class InfiniteTicTacToeViewModel(
     companion object {
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
-            setOf("button1", "button2", "button3"), setOf("button4", "button5", "button6"), setOf("button7", "button8", "button9"),
-            setOf("button1", "button4", "button7"), setOf("button2", "button5", "button8"), setOf("button3", "button6", "button9"),
-            setOf("button1", "button5", "button9"), setOf("button3", "button5", "button7")
+            setOf("button1", "button2", "button3"),
+            setOf("button4", "button5", "button6"),
+            setOf("button7", "button8", "button9"),
+            setOf("button1", "button4", "button7"),
+            setOf("button2", "button5", "button8"),
+            setOf("button3", "button6", "button9"),
+            setOf("button1", "button5", "button9"),
+            setOf("button3", "button5", "button7")
         )
     }
 
@@ -179,12 +184,19 @@ class InfiniteTicTacToeViewModel(
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
             if (_isGameConcluded.value && _currentRoundMoves.value.isNotEmpty()) {
-                 val roundNumber = _currentMatchRounds.value.size + 1
-                 val roundWinner = _winnerInfo.value?.winner
-                 val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
-                 val tempRoundEntity = RoundEntity(roundId = 0, ownerMatchId = 0, roundNumber = roundNumber, winner = roundWinner?.name, roundWinnerName = roundWinnerName)
-                 val lastRoundWithMoves = RoundWithMoves(round = tempRoundEntity, moves = _currentRoundMoves.value)
-                 _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
+                val roundNumber = _currentMatchRounds.value.size + 1
+                val roundWinner = _winnerInfo.value?.winner
+                val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
+                val tempRoundEntity = RoundEntity(
+                    roundId = 0,
+                    ownerMatchId = 0,
+                    roundNumber = roundNumber,
+                    winner = roundWinner?.name,
+                    roundWinnerName = roundWinnerName
+                )
+                val lastRoundWithMoves =
+                    RoundWithMoves(round = tempRoundEntity, moves = _currentRoundMoves.value)
+                _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
             }
 
             val p1FinalScore = _player1Wins.value
@@ -231,7 +243,8 @@ class InfiniteTicTacToeViewModel(
         if (p1VisibleMoves.size < 3 && p2VisibleMoves.size < 3) return
 
         val lastPlayerToMoveWasP1 = !_player1Turn.value
-        val lastMove = if (lastPlayerToMoveWasP1) p1VisibleMoves.lastOrNull() else p2VisibleMoves.lastOrNull()
+        val lastMove =
+            if (lastPlayerToMoveWasP1) p1VisibleMoves.lastOrNull() else p2VisibleMoves.lastOrNull()
         if (lastMove == null) return
 
         val relevantCombinations = WINNING_COMBINATIONS.filter { it.contains(lastMove) }
@@ -303,7 +316,12 @@ class InfiniteTicTacToeViewModel(
         return bestMove ?: availableMoves.randomOrNull()
     }
 
-    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+    private fun minimax(
+        p1Moves: List<String>,
+        p2Moves: List<String>,
+        depth: Int,
+        isMaximizing: Boolean
+    ): Double {
         val p1VisibleMoves = p1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
         val p2VisibleMoves = p2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
 
@@ -312,7 +330,10 @@ class InfiniteTicTacToeViewModel(
 
         val allBoardCells = (1..9).map { "button$it" }
         val occupiedVisibleCells = (p1VisibleMoves + p2VisibleMoves).toSet()
-        if (occupiedVisibleCells.size == 9 && !isAIWinningCombination(p1VisibleMoves) && !isAIWinningCombination(p2VisibleMoves)) {
+        if (occupiedVisibleCells.size == 9 && !isAIWinningCombination(p1VisibleMoves) && !isAIWinningCombination(
+                p2VisibleMoves
+            )
+        ) {
             return 0.0
         }
         if (depth > 4) return 0.0

@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme // Ensure this import is present
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+
 // ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
 
 // Define LocalViewModelFactory, can be in MainActivity.kt or a separate file
@@ -37,11 +38,21 @@ class TicTacToeViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return NormalTicTacToeViewModel(soundManager, appDatabase.matchDao(), appDatabase.roundDao(), appDatabase.moveDao()) as T
+            return NormalTicTacToeViewModel(
+                soundManager,
+                appDatabase.matchDao(),
+                appDatabase.roundDao(),
+                appDatabase.moveDao()
+            ) as T
         }
         if (modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return InfiniteTicTacToeViewModel(soundManager, appDatabase.matchDao(), appDatabase.roundDao(), appDatabase.moveDao()) as T
+            return InfiniteTicTacToeViewModel(
+                soundManager,
+                appDatabase.matchDao(),
+                appDatabase.roundDao(),
+                appDatabase.moveDao()
+            ) as T
         }
         if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) { // Added HistoryViewModel
             @Suppress("UNCHECKED_CAST")
@@ -103,8 +114,8 @@ class MainActivity : ComponentActivity() {
             TictactoeTheme {
                 CompositionLocalProvider(LocalViewModelFactory provides viewModelFactory) { // Provide factory
                     MainPage() // MainPage will now have access via LocalViewModelFactory.current
-                               // Assuming MainPage is updated to not expect viewModelFactory as a parameter
-                               // or can still accept it for other purposes but new ViewModels use the Local.
+                    // Assuming MainPage is updated to not expect viewModelFactory as a parameter
+                    // or can still accept it for other purposes but new ViewModels use the Local.
                 }
             }
         }

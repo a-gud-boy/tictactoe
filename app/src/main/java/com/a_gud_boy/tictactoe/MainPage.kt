@@ -224,11 +224,13 @@ fun MainPage() { // Removed viewModelFactory parameter
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
+
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
+
                                     3 -> { // Settings
                                         infoDialogTitle = "Settings"
                                         infoDialogMessage =
@@ -238,6 +240,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                     "- AI Mode: Enable or disable playing against the AI.\n" +
                                                     "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
+
                                     4 -> { // Help
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
