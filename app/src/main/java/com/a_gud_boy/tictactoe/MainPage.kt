@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete // Ensure Delete is imported
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
@@ -199,30 +200,34 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
-                            if (selectedItemIndex == 2) { // History page
-                                showClearHistoryDialog = true
-                            } else {
-                                // Existing logic to set infoDialogTitle, infoDialogMessage, and showInfoDialog = true
+                        if (selectedItemIndex == 2) { // History Page
+                            // Clear History Icon Button
+                            IconButton(onClick = { showClearHistoryDialog = true }) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
+                            }
+                            // Info Icon Button for History Page
+                            IconButton(onClick = {
+                                infoDialogTitle = "Match History"
+                                infoDialogMessage =
+                                    "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                showInfoDialog = true
+                            }) {
+                                Icon(Icons.Outlined.Info, contentDescription = "Information")
+                            }
+                        } else { // Other Pages
+                            // Default Info Icon Button
+                            IconButton(onClick = {
+                                // Logic to set infoDialogTitle and infoDialogMessage based on selectedItemIndex (excluding index 2)
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
                                         infoDialogTitle = "Normal Tic Tac Toe"
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
-
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
-                                    }
-                                    // Case 2 (History info) is now handled by the Clear History action primarily.
-                                    // If info is still desired, it needs a different trigger or combined UI.
-                                    // For this change, the action button for History page is "Clear History".
-                                     2 -> { // History (info, if we decide to keep it alongside clear)
-                                        infoDialogTitle = "Match History"
-                                        infoDialogMessage =
-                                            "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
                                     }
                                     3 -> { // Settings
                                         infoDialogTitle = "Settings"
@@ -241,34 +246,8 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                 "- Settings: Customize your experience in the Settings page."
                                     }
                                 }
-                                // showInfoDialog should only be true if not on history page, or if on history page and info is specifically requested
-                                // For this iteration, info dialog is not shown when history page's action (clear) is primary.
-                                // If you want both, the logic here needs to be more complex (e.g. another button or menu)
-                                if (selectedItemIndex != 2) { // Only show info dialog if not history page, as history action is clear
-                                   showInfoDialog = true
-                                } else {
-                                    // If selectedItemIndex is 2, the primary action is to set showClearHistoryDialog = true (handled above)
-                                    // If we still want to show an info dialog for History page via this button,
-                                    // then the logic needs to be:
-                                    // 1. Change icon to something else (e.g. three dots for menu)
-                                    // 2. onClick shows a dropdown menu with "Clear History" and "Information"
-                                    // For now, sticking to the simpler context-aware single action.
-                                    // So, if it's page 2, the `showClearHistoryDialog = true` is already set.
-                                    // We could also show the info dialog here if we want, but it might be confusing.
-                                    // Let's assume the info for History page is accessible if user *really* wants it by clicking info when on history
-                                    // but the primary action is clear.
-                                    // To keep the original info dialog functionality for history page as well:
-                                    // infoDialogTitle = "Match History"
-                                    // infoDialogMessage = "..."
-                                    // showInfoDialog = true
-                                    // However, the requirement was to change the icon to Delete for History page.
-                                    // This implies the primary action changes.
-                                }
-                            }
-                        }) { // Icon part of the IconButton
-                            if (selectedItemIndex == 2) { // History page
-                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
-                            } else {
+                                showInfoDialog = true
+                            }) {
                                 Icon(Icons.Outlined.Info, contentDescription = "Information")
                             }
                         }
