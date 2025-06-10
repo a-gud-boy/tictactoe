@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History // For History Page
 import androidx.compose.material.icons.filled.Menu
 // import androidx.compose.material.icons.filled.MoreVert // No longer used
 import androidx.compose.material.icons.filled.Settings
@@ -74,7 +75,7 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
+fun MainPage() { // Removed viewModelFactory parameter
     // var showMenu by rememberSaveable { mutableStateOf(false) } // No longer needed for MoreVert
     // var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // No longer needed for MoreVert
 
@@ -89,7 +90,9 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
-    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "Settings", "Help")
+    // Add "History" to the list of items for the drawer
+    // Order: Normal, Infinite, History, Settings, Help
+    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "History", "Settings", "Help")
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -139,13 +142,19 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                             contentDescription = "Navigation Icon for Infinite Tic Tac Toe",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 2) {
+                                    } else if (index == 2) { // History
+                                        Icon(
+                                            Icons.Filled.History,
+                                            contentDescription = "Navigation Icon for History",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    } else if (index == 3) { // Settings
                                         Icon(
                                             Icons.Filled.Settings,
                                             contentDescription = "Navigation Icon for Settings",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 3) {
+                                    } else if (index == 4) { // Help
                                         Icon(
                                             Icons.Outlined.Info,
                                             contentDescription = "Navigation Icon for Help",
@@ -172,8 +181,9 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                             when (selectedItemIndex){
                                 0 -> "Tic Tac Toe"
                                 1 -> "Infinite Tic Tac Toe"
-                                2 -> "Settings"
-                                3 -> "Help"
+                                2 -> "History" // Title for History Page
+                                3 -> "Settings"
+                                4 -> "Help"
                                 else -> "Lorem Ipsum"
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -204,7 +214,11 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                     infoDialogTitle = "Infinite Tic Tac Toe"
                                     infoDialogMessage = "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                 }
-                                2 -> { // Settings
+                                2 -> { // History
+                                    infoDialogTitle = "Match History"
+                                    infoDialogMessage = "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                }
+                                3 -> { // Settings
                                     infoDialogTitle = "Settings"
                                     infoDialogMessage = "Here you can configure various application settings:\n" +
                                             "- Sound: Toggle game sounds on or off.\n" +
@@ -212,7 +226,7 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                             "- AI Mode: Enable or disable playing against the AI.\n" +
                                             "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                 }
-                                3 -> { // Help
+                                4 -> { // Help
                                     infoDialogTitle = "Help"
                                     infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
                                             "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
@@ -249,7 +263,8 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
 
             when (selectedItemIndex) {
                 0 -> {
-                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
+                    // Use LocalViewModelFactory.current, defined in MainActivity.kt
+                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
                     NormalTicTacToePage(
                         innerPadding = innerPadding,
                         viewModel = viewModel
@@ -258,13 +273,16 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
 
                 1 -> {
                     val infiniteViewModel: InfiniteTicTacToeViewModel =
-                        viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
+                        viewModel(factory = LocalViewModelFactory.current) // Use LocalViewModelFactory
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
-                2 -> {
+                2 -> { // History Page
+                    HistoryPage() // ViewModel is obtained via LocalViewModelFactory.current
+                }
+                3 -> { // Settings
                     SettingsPage(innerPadding = innerPadding)
                 }
-                3 -> {
+                4 -> { // Help
                     HelpPage(innerPadding = innerPadding)
                 }
             }
@@ -283,7 +301,18 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
 @Preview
 @Composable
 fun MainPagePreview() {
-    MainPage(viewModelFactory = TicTacToeViewModelFactory(SoundManager(LocalContext.current)))
+    // For preview, provide a dummy factory or a real one if simple enough
+    val context = LocalContext.current
+    val soundManager = SoundManager(context)
+    // Dummy AppDatabase for preview - this might be complex if DAOs are called immediately.
+    // For a simple preview, this might be okay if DAOs are not strictly needed for initial composition.
+    // Consider a more robust test/preview setup if this becomes an issue.
+    val dummyAppDatabase = AppDatabase.getDatabase(context.applicationContext) // Or a fake/mock
+    val previewViewModelFactory = TicTacToeViewModelFactory(soundManager, dummyAppDatabase)
+
+    CompositionLocalProvider(LocalViewModelFactory provides previewViewModelFactory) {
+        MainPage()
+    }
 }
 
 /**
