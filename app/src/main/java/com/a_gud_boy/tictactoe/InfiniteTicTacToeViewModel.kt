@@ -195,6 +195,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
                 newMoves
             }
             _player1Turn.value = false // Switch to Player 2 (potentially AI)
+            soundManager.playMoveSound() // Play sound for Player 1's move
             checkForWinner() // Check if Player 1 won
 
             // If AI mode is on, game is not over, and it's now AI's turn (player1Turn is now false)
@@ -210,10 +211,14 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
                 newMoves
             }
             _player1Turn.value = true // Switch back to Player 1
+            // Only play move sound if it's not AI making the move.
+            // The AI's onButtonClick call happens *after* playComputerMoveSound in makeAIMove.
+            if (!_isAIMode.value) {
+                soundManager.playMoveSound()
+            }
             checkForWinner() // Check if Player 2 (or AI) won
         }
         // Note: _player1Turn.value and checkForWinner() are handled within each branch now.
-        soundManager.playMoveSound() // Play sound after a successful move
     }
 
     /**
@@ -252,7 +257,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound()
+                soundManager.playWinSound() // Player X wins
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -262,7 +267,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound()
+                soundManager.playLoseSound() // Player O wins
                 return
             }
         }
@@ -308,6 +313,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
 
         viewModelScope.launch {
             delay(500) // Delay for UX
+            soundManager.playComputerMoveSound() // Play sound when AI starts its move
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
                 AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove() // 60% chance for best move

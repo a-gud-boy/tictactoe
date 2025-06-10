@@ -120,14 +120,13 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             return // Button already played
         }
 
-        var moveMade = false
         if (_player1Turn.value) {
             // Player's move
             _player1Moves.value = currentP1Moves + buttonId
             _player1Turn.value = false
-            moveMade = true
+            soundManager.playMoveSound()
             checkForWinner()
-            
+
             // Make AI move if game is in AI mode and game is not concluded
             if (_isAIMode.value && !_isGameConcluded.value) {
                 makeAIMove()
@@ -136,18 +135,14 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             // Only allow player 2 moves if not in AI mode
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
-            moveMade = true
+            soundManager.playMoveSound()
             checkForWinner()
         } else {
             // This is AI's move
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
-            moveMade = true
+            // AI move sound is handled in makeAIMove()
             checkForWinner()
-        }
-
-        if (moveMade) {
-            soundManager.playMoveSound()
         }
     }
 
@@ -161,7 +156,8 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
         if (p1MovesSet.size < 3 && p2MovesSet.size < 3) return
 
         // Check only relevant winning combinations based on the last move
-        val lastMove = if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
+        val lastMove =
+            if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
         if (lastMove == null) return
 
         // Filter winning combinations that contain the last move
@@ -175,7 +171,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound()
+                soundManager.playWinSound() // Player X wins
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
@@ -185,7 +181,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound()
+                soundManager.playLoseSound() // Player O wins
                 return
             }
         }
@@ -222,6 +218,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
         // Add a small delay to make the AI move feel more natural
         viewModelScope.launch {
             delay(500) // 500ms delay for better UX
+            soundManager.playComputerMoveSound() // Play sound when AI starts its move
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
                 AIDifficulty.MEDIUM -> if (Math.random() < 0.5) getBestMove() else getRandomMove()
@@ -244,10 +241,10 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
         val availableMoves = allMoves.filter { buttonId ->
             !_player1Moves.value.contains(buttonId) && !_player2Moves.value.contains(buttonId)
         }
-        
+
         var bestScore = Double.NEGATIVE_INFINITY
         var bestMove: String? = null
-        
+
         for (move in availableMoves) {
             val score = minimax(
                 p1Moves = _player1Moves.value,
@@ -260,23 +257,28 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
                 bestMove = move
             }
         }
-        
+
         return bestMove
     }
 
-    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+    private fun minimax(
+        p1Moves: List<String>,
+        p2Moves: List<String>,
+        depth: Int,
+        isMaximizing: Boolean
+    ): Double {
         // Check for terminal states
         when {
             isWinningCombination(p2Moves) -> return 1.0
             isWinningCombination(p1Moves) -> return -1.0
             p1Moves.size + p2Moves.size == 9 -> return 0.0
         }
-        
+
         val allMoves = (1..9).map { "button$it" }
         val availableMoves = allMoves.filter { buttonId ->
             !p1Moves.contains(buttonId) && !p2Moves.contains(buttonId)
         }
-        
+
         if (isMaximizing) {
             var bestScore = Double.NEGATIVE_INFINITY
             for (move in availableMoves) {

@@ -10,6 +10,8 @@ class SoundManager(private val context: Context) {
     private var moveSoundId: Int = 0
     private var winSoundId: Int = 0
     private var drawSoundId: Int = 0
+    private var loseSoundId: Int? = 0
+    private var computerMoveSoundId: Int? = 0
     // A flag to track if sounds are loaded. More sophisticated tracking can be added.
     private var soundsLoadedSuccessfully = mutableMapOf<Int, Boolean>()
 
@@ -56,6 +58,20 @@ class SoundManager(private val context: Context) {
                 Log.e("SoundManager", "Error loading draw sound: drawSoundId is 0")
             }
 
+            loseSoundId = soundPool?.load(context, R.raw.lose, 1) ?: 0 // Placeholder
+            if (loseSoundId != 0) {
+                soundsLoadedSuccessfully[loseSoundId!!] = false
+            } else {
+                Log.e("SoundManager", "Error loading lose sound: loseSoundId is 0")
+            }
+
+            computerMoveSoundId = soundPool?.load(context, R.raw.click, 1) ?: 0 // Placeholder
+            if (computerMoveSoundId != 0) {
+                soundsLoadedSuccessfully[computerMoveSoundId!!] = false
+            } else {
+                Log.e("SoundManager", "Error loading computer move sound: computerMoveSoundId is 0")
+            }
+
         } catch (e: Exception) {
             Log.e("SoundManager", "Error initializing SoundPool", e)
         }
@@ -91,6 +107,28 @@ class SoundManager(private val context: Context) {
             Log.d("SoundManager", "Played draw sound")
         } else {
             Log.d("SoundManager", "Draw sound not ready or not loaded")
+        }
+    }
+
+    fun playLoseSound() {
+        loseSoundId?.let {
+            if (isSoundReady(it)) {
+                soundPool?.play(it, 1.0f, 1.0f, 1, 0, 1.0f)
+                Log.d("SoundManager", "Played lose sound")
+            } else {
+                Log.d("SoundManager", "Lose sound not ready or not loaded")
+            }
+        }
+    }
+
+    fun playComputerMoveSound() {
+        computerMoveSoundId?.let {
+            if (isSoundReady(it)) {
+                soundPool?.play(it, 1.0f, 1.0f, 1, 0, 1.0f)
+                Log.d("SoundManager", "Played computer move sound")
+            } else {
+                Log.d("SoundManager", "Computer move sound not ready or not loaded")
+            }
         }
     }
 
