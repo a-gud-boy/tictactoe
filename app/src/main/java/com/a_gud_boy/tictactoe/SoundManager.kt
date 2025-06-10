@@ -83,7 +83,7 @@ class SoundManager(private val context: Context) {
         return isReady
     }
 
-    fun playMoveSound(volume: Float) {
+    fun playMoveSound(volume: Float = 1.0f) {
         if (isSoundReady(moveSoundId)) {
             soundPool?.play(moveSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played move sound")
@@ -92,7 +92,7 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    fun playWinSound(volume: Float) {
+    fun playWinSound(volume: Float = 1.0f) {
         if (isSoundReady(winSoundId)) {
             soundPool?.play(winSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played win sound")
@@ -101,7 +101,7 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    fun playDrawSound(volume: Float) {
+    fun playDrawSound(volume: Float = 1.0f) {
         if (isSoundReady(drawSoundId)) {
             soundPool?.play(drawSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played draw sound")
@@ -110,7 +110,7 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    fun playLoseSound(volume: Float) {
+    fun playLoseSound(volume: Float = 1.0f) {
         loseSoundId?.let {
             if (isSoundReady(it)) {
                 soundPool?.play(it, volume, volume, 1, 0, 1.0f)
@@ -121,7 +121,7 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    fun playComputerMoveSound(volume: Float) {
+    fun playComputerMoveSound(volume: Float = 1.0f) {
         computerMoveSoundId?.let {
             if (isSoundReady(it)) {
                 soundPool?.play(it, volume, volume, 1, 0, 1.0f)
