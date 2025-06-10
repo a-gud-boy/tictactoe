@@ -17,6 +17,7 @@ class SoundManager(private val context: Context) {
 
 
     init {
+        Log.d("SoundManagerInit", "SoundManager initializing...")
         try {
             val audioAttributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME)
@@ -33,8 +34,11 @@ class SoundManager(private val context: Context) {
                     soundsLoadedSuccessfully[sampleId] = true
                     // Prime the move sound by playing it silently once after loading
                     if (sampleId == moveSoundId) {
+                        Log.d("SoundManagerDebug", "Inside setOnLoadCompleteListener for moveSoundId (ID: $sampleId)")
                         Log.d("SoundManager", "Priming move sound (ID: $sampleId)")
+                        Log.d("SoundManagerDebug", "Priming playback for moveSoundId (ID: $moveSoundId)")
                         soundPool?.play(moveSoundId, 0f, 0f, 0, 0, 1.0f) // Play with 0 volume, priority 0
+                        Log.d("SoundManagerDebug", "Priming playback for moveSoundId called (ID: $moveSoundId)")
                     }
                 } else {
                     Log.e("SoundManager", "Error loading sound $sampleId, status: $status. Marking as not loaded.")
@@ -42,6 +46,7 @@ class SoundManager(private val context: Context) {
                 }
             }
 
+            Log.d("SoundManagerDebug", "Loading move sound...")
             moveSoundId = soundPool?.load(context, R.raw.move, 1) ?: 0
             if (moveSoundId == 0) {
                 Log.e("SoundManager", "Error loading move sound: moveSoundId is 0")
@@ -70,6 +75,7 @@ class SoundManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e("SoundManager", "Error initializing SoundPool", e)
         }
+        Log.d("SoundManagerInit", "SoundManager initialization complete.")
     }
 
     private fun isSoundReady(soundId: Int): Boolean {
