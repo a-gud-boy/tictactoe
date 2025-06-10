@@ -29,13 +29,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState // Already have collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -93,6 +90,7 @@ fun InfiniteTicTacToePage(
     innerPadding: PaddingValues,
     viewModel: InfiniteTicTacToeViewModel = viewModel()
 ) {
+    val volume = 1.0f
 
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
@@ -132,9 +130,9 @@ fun InfiniteTicTacToePage(
         if (winnerInfo != null) {
             view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
             if (winnerInfo?.winner != null) {
-                soundManager.playWinSound()
+                soundManager.playWinSound(volume)
             } else { // Draw condition
-                soundManager.playDrawSound()
+                soundManager.playDrawSound(volume)
             }
             orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
 
@@ -249,7 +247,7 @@ fun InfiniteTicTacToePage(
             ConstraintLayout(
                 constraintSet = constraints,
                 modifier = Modifier
-                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                    .padding(20.dp, 0.dp, 20.dp, 20.dp)
                     .width(300.dp)
                     .height(300.dp)
                     .shadow(4.dp, shape = RoundedCornerShape(12.dp))
@@ -343,7 +341,7 @@ fun InfiniteTicTacToePage(
                         buttonId = buttonId, // Pass buttonId for accessibility
                         onClick = {
                             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                            soundManager.playMoveSound()
+                            // soundManager.playMoveSound()
                             viewModel.onButtonClick(buttonId)
                         }
                     )

@@ -1,10 +1,29 @@
 package com.a_gud_boy.tictactoe
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
+
+// Custom ViewModel Factory
+class TicTacToeViewModelFactory(private val soundManager: SoundManager) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return NormalTicTacToeViewModel(soundManager) as T
+        }
+        if (modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return InfiniteTicTacToeViewModel(soundManager) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
 /**
  * The main activity for the Tic Tac Toe application.
@@ -27,13 +46,41 @@ class MainActivity : ComponentActivity() {
      *                           this Bundle contains the data it most recently supplied in [onSaveInstanceState].
      *                           Otherwise, it is null.
      */
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Create SoundManager instance
+        val soundManager = SoundManager(this)
+
+        // Create the custom factory
+        val viewModelFactory = TicTacToeViewModelFactory(soundManager)
+
+        // Set content. MainPage will need to be able to use this factory
+        // if it or its children directly call viewModel().
+        // For example, by passing viewModelFactory to MainPage.
+        // Or, if ViewModels are to be scoped to MainActivity, they could be created here:
+        // val normalTicTacToeViewModel: NormalTicTacToeViewModel by viewModels { viewModelFactory }
+        // val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel by viewModels { viewModelFactory }
+        // And then passed to MainPage.
+        // For now, just making the factory available for potential use in composables.
+
         setContent {
             TictactoeTheme {
-                MainPage()
+                // MainPage() // Original
+                // Updated MainPage call if it needs the factory:
+                MainPage(viewModelFactory = viewModelFactory)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // It's good practice to release SoundManager resources here if it's tied to the Activity lifecycle
+        // However, ViewModels now call release() in onCleared(), which is generally preferred.
+        // If SoundManager were a singleton or shared beyond ViewModels tied to this Activity,
+        // then releasing here or in Application.onTerminate would be more appropriate.
+        // For this setup, ViewModel.onCleared() is sufficient.
     }
 }

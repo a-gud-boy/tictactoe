@@ -26,7 +26,7 @@ data class WinnerInfo(
     val orderedWinningMoves: List<String> // Added field for ordered winning moves
 )
 
-class NormalTicTacToeViewModel : ViewModel() {
+class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewModel() {
 
     private val _isAIMode = MutableStateFlow(false)
     val isAIMode: StateFlow<Boolean> = _isAIMode.asStateFlow()
@@ -49,6 +49,7 @@ class NormalTicTacToeViewModel : ViewModel() {
             setOf("button3", "button5", "button7")
         )
     }
+    private val volume = 1.0f // Default volume for sound effects
 
     private val _player1Wins = MutableStateFlow(0)
     val player1Wins: StateFlow<Int> = _player1Wins.asStateFlow()
@@ -124,8 +125,9 @@ class NormalTicTacToeViewModel : ViewModel() {
             // Player's move
             _player1Moves.value = currentP1Moves + buttonId
             _player1Turn.value = false
+            soundManager.playMoveSound(volume)
             checkForWinner()
-            
+
             // Make AI move if game is in AI mode and game is not concluded
             if (_isAIMode.value && !_isGameConcluded.value) {
                 makeAIMove()
@@ -134,11 +136,13 @@ class NormalTicTacToeViewModel : ViewModel() {
             // Only allow player 2 moves if not in AI mode
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
+            soundManager.playMoveSound(volume)
             checkForWinner()
         } else {
             // This is AI's move
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
+            // AI move sound is handled in makeAIMove()
             checkForWinner()
         }
     }
@@ -153,7 +157,8 @@ class NormalTicTacToeViewModel : ViewModel() {
         if (p1MovesSet.size < 3 && p2MovesSet.size < 3) return
 
         // Check only relevant winning combinations based on the last move
-        val lastMove = if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
+        val lastMove =
+            if (_player1Turn.value) p2CurrentMovesList.lastOrNull() else p1CurrentMovesList.lastOrNull()
         if (lastMove == null) return
 
         // Filter winning combinations that contain the last move
@@ -167,6 +172,7 @@ class NormalTicTacToeViewModel : ViewModel() {
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playWinSound(volume) // Player X wins
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
@@ -176,15 +182,17 @@ class NormalTicTacToeViewModel : ViewModel() {
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playLoseSound(volume) // Player O wins
                 return
             }
         }
 
         // Check for draw
-        if ((p1MovesSet.size + p2MovesSet.size) == 9) {
+        if ((p1MovesSet.size + p2MovesSet.size) == 9 && _winnerInfo.value == null) { // Ensure no winner was set before declaring draw
             _winnerInfo.value = WinnerInfo(null, emptySet(), emptyList()) // Draw
             _isGameConcluded.value = true
             _gameStarted.value = false // Stop game, wait for reset
+            soundManager.playDrawSound(volume)
         }
     }
 
@@ -211,6 +219,7 @@ class NormalTicTacToeViewModel : ViewModel() {
         // Add a small delay to make the AI move feel more natural
         viewModelScope.launch {
             delay(500) // 500ms delay for better UX
+            soundManager.playComputerMoveSound(volume) // Play sound when AI starts its move
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
                 AIDifficulty.MEDIUM -> if (Math.random() < 0.5) getBestMove() else getRandomMove()
@@ -233,10 +242,10 @@ class NormalTicTacToeViewModel : ViewModel() {
         val availableMoves = allMoves.filter { buttonId ->
             !_player1Moves.value.contains(buttonId) && !_player2Moves.value.contains(buttonId)
         }
-        
+
         var bestScore = Double.NEGATIVE_INFINITY
         var bestMove: String? = null
-        
+
         for (move in availableMoves) {
             val score = minimax(
                 p1Moves = _player1Moves.value,
@@ -249,23 +258,28 @@ class NormalTicTacToeViewModel : ViewModel() {
                 bestMove = move
             }
         }
-        
+
         return bestMove
     }
 
-    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+    private fun minimax(
+        p1Moves: List<String>,
+        p2Moves: List<String>,
+        depth: Int,
+        isMaximizing: Boolean
+    ): Double {
         // Check for terminal states
         when {
             isWinningCombination(p2Moves) -> return 1.0
             isWinningCombination(p1Moves) -> return -1.0
             p1Moves.size + p2Moves.size == 9 -> return 0.0
         }
-        
+
         val allMoves = (1..9).map { "button$it" }
         val availableMoves = allMoves.filter { buttonId ->
             !p1Moves.contains(buttonId) && !p2Moves.contains(buttonId)
         }
-        
+
         if (isMaximizing) {
             var bestScore = Double.NEGATIVE_INFINITY
             for (move in availableMoves) {
@@ -301,5 +315,10 @@ class NormalTicTacToeViewModel : ViewModel() {
         if (_isAIMode.value) {
             resetRound()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        soundManager.release()
     }
 }

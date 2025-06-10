@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
  * - **UI State Exposure**: Exposes game state information as [StateFlow]s to be observed by the UI,
  *   including derived states like `turnDenotingText` and `resetButtonText`.
  */
-class InfiniteTicTacToeViewModel : ViewModel() {
+class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewModel() {
 
     companion object {
         /**
@@ -69,6 +69,8 @@ class InfiniteTicTacToeViewModel : ViewModel() {
             setOf("button3", "button5", "button7")
         )
     }
+
+    private val volume = 1.0f
 
     private val _player1Wins = MutableStateFlow(0)
     /** StateFlow representing the number of wins for Player 1 (X). */
@@ -195,6 +197,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 newMoves
             }
             _player1Turn.value = false // Switch to Player 2 (potentially AI)
+            soundManager.playMoveSound(volume) // Play sound for Player 1's move
             checkForWinner() // Check if Player 1 won
 
             // If AI mode is on, game is not over, and it's now AI's turn (player1Turn is now false)
@@ -210,6 +213,11 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 newMoves
             }
             _player1Turn.value = true // Switch back to Player 1
+            // Only play move sound if it's not AI making the move.
+            // The AI's onButtonClick call happens *after* playComputerMoveSound in makeAIMove.
+            if (!_isAIMode.value) {
+                soundManager.playMoveSound(volume)
+            }
             checkForWinner() // Check if Player 2 (or AI) won
         }
         // Note: _player1Turn.value and checkForWinner() are handled within each branch now.
@@ -251,6 +259,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playWinSound(volume) // Player X wins
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -260,10 +269,12 @@ class InfiniteTicTacToeViewModel : ViewModel() {
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
+                soundManager.playLoseSound(volume) // Player O wins
                 return
             }
         }
         // No draw condition in Infinite TicTacToe as per original logic, cells can be reused.
+        // If a draw condition were to be added, soundManager.playDrawSound() would go here.
     }
 
     /**
@@ -304,6 +315,7 @@ class InfiniteTicTacToeViewModel : ViewModel() {
 
         viewModelScope.launch {
             delay(500) // Delay for UX
+            soundManager.playComputerMoveSound(volume) // Play sound when AI starts its move
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
                 AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove() // 60% chance for best move
@@ -439,5 +451,10 @@ class InfiniteTicTacToeViewModel : ViewModel() {
         return WINNING_COMBINATIONS.any { combination ->
             movesSet.containsAll(combination)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        soundManager.release()
     }
 }

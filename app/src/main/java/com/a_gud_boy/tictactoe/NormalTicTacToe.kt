@@ -1,7 +1,9 @@
 package com.a_gud_boy.tictactoe
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.view.HapticFeedbackConstants
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -33,13 +35,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 
+@RequiresApi(Build.VERSION_CODES.R)
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,11 +73,10 @@ fun NormalTicTacToePage(
     innerPadding: PaddingValues,
     viewModel: NormalTicTacToeViewModel = viewModel()
 ) {
-    var showMenu by rememberSaveable { mutableStateOf(false) }
+    val volume = 1.0f // Adjust volume as needed, or make it a parameter
+
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
-    val isAIMode by viewModel.isAIMode.collectAsState()
-    val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
     val player1Wins by viewModel.player1Wins.collectAsStateWithLifecycle()
     val player2Wins by viewModel.player2Wins.collectAsStateWithLifecycle()
@@ -110,9 +109,9 @@ fun NormalTicTacToePage(
         if (winnerInfo != null) {
             view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
             if (winnerInfo?.winner != null) {
-                soundManager.playWinSound()
+                soundManager.playWinSound(volume)
             } else { // Draw condition
-                soundManager.playDrawSound()
+                soundManager.playDrawSound(volume)
             }
             orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
 
@@ -212,7 +211,7 @@ fun NormalTicTacToePage(
             ConstraintLayout(
                 constraintSet = constraints,
                 modifier = Modifier
-                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                    .padding(20.dp, 0.dp, 20.dp, 20.dp)
                     .width(300.dp)
                     .height(300.dp)
                     .shadow(4.dp, shape = RoundedCornerShape(12.dp))
@@ -308,7 +307,7 @@ fun NormalTicTacToePage(
                             // TODO: Check if move is valid before playing sound,
                             // or play sound optimistically and handle invalid move UI separately.
                             // For now, play sound before ViewModel action.
-                            soundManager.playMoveSound()
+                            // soundManager.playMoveSound()
                             viewModel.onButtonClick(buttonId)
                         }
                     )
