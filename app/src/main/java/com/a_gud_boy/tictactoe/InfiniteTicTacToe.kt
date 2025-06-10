@@ -247,7 +247,7 @@ fun InfiniteTicTacToePage(
             ConstraintLayout(
                 constraintSet = constraints,
                 modifier = Modifier
-                    .padding(20.dp, 0.dp, 20.dp, 20.dp)
+                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
                     .width(300.dp)
                     .height(300.dp)
                     .shadow(4.dp, shape = RoundedCornerShape(12.dp))
