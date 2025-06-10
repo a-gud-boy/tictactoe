@@ -7,8 +7,18 @@ This is a simple Android application that allows users to play Tic-Tac-Toe.
 - Classic Tic-Tac-Toe gameplay
 - Infinite Tic-Tac-Toe mode
 - AI opponent with multiple difficulty levels
-- Simple and intuitive user interface
+- Intuitive user interface with navigation drawer
 - Sound effects for game actions
+- Haptic feedback for game actions
+- Configurable settings (Sound, AI, Haptic Feedback, AI Difficulty)
+- In-app help section with game rules and FAQs
+
+## Navigation and UI
+
+The app features an intuitive user interface designed for ease of use:
+
+- **Navigation Drawer:** Access all major sections of the app—Normal Tic-Tac-Toe, Infinite Tic-Tac-Toe, Settings, and Help—through a convenient navigation drawer, typically opened by swiping from the left edge of the screen or tapping the menu icon.
+- **Info Dialogs:** Each main screen (Normal Game, Infinite Game, Settings, and Help) includes an information icon in the top bar. Tapping this icon reveals a dialog box with a brief description or help text relevant to the current screen, offering quick guidance.
 
 ## Game Modes
 
@@ -19,8 +29,26 @@ This is the classic 3x3 game where players aim to get three of their marks (X or
 A variation on the 3x3 grid where players' marks disappear after a set number of subsequent moves by *either* player. For example, if the maximum visible moves per player is 3 (as implemented), a player's oldest mark disappears when they make their 4th move. This process happens independently for each player. The goal remains to get three of *your currently visible* marks in a row, column, or diagonal. This mode adds a dynamic layer of strategy as the board constantly evolves.
 
 ### AI Opponent
-- Both "Normal" and "Infinite" Tic-Tac-Toe modes support playing against an AI opponent.
-- Players can choose the AI's difficulty level (Easy, Medium, Hard), allowing for a customizable challenge.
+- Both "Normal" and "Infinite" Tic-Tac-Toe modes support playing against an AI opponent. Configuration options for the AI, such as difficulty level and enabling/disabling AI play, can be found in the "Settings" section.
+
+## Settings
+
+The app provides a dedicated Settings page where you can customize your gameplay experience:
+
+- **Sound Effects:** Toggle game sounds (e.g., for placing marks, game over) on or off.
+- **Play vs AI:** Enable or disable playing against the computer opponent. When disabled, games will be in two-player (human vs human) mode on the same device.
+- **Haptic Feedback:** Turn on or off vibrational feedback for game actions like placing a mark or game events.
+- **AI Difficulty:** When "Play vs AI" is enabled, you can adjust the AI's skill level. Choose from:
+    - Easy
+    - Medium
+    - Hard
+
+## Help
+
+A dedicated Help page is available within the app to assist users. It can be accessed via the navigation drawer and provides:
+
+- **Game Rules:** A clear explanation of the rules for classic Tic-Tac-Toe.
+- **Frequently Asked Questions (FAQs):** Answers to common questions about gameplay, features (like AI and different modes), and settings.
 
 ## How to Build
 
