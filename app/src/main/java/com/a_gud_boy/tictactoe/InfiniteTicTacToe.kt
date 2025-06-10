@@ -146,7 +146,7 @@ fun InfiniteTicTacToePage(
                 soundManager.playDrawSound(volume)
             }
             // Store the sequence of button IDs that form the winning line.
-            orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
+            orderedWinningCombination.value = winnerInfo!!.orderedWin
 
             // Reset animation progress to 0 and then animate to 1 to draw the line.
             lineAnimationProgress.snapTo(0f) // Reset before starting animation.

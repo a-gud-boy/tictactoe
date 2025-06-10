@@ -62,7 +62,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    val room_version = "2.6.1" // Use the latest stable version
+    val room_version = "2.7.1" // Use the latest stable version
 
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")

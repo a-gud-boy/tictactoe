@@ -2,43 +2,36 @@ package com.a_gud_boy.tictactoe
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History // For History Page
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Menu
-// import androidx.compose.material.icons.filled.MoreVert // No longer used
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
-// import androidx.compose.material3.DropdownMenu // No longer used
-// import androidx.compose.material3.DropdownMenuItem // No longer used
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -145,7 +138,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                                         )
                                     } else if (index == 2) { // History
                                         Icon(
-                                            Icons.Filled.History,
+                                            Icons.Filled.Build,
                                             contentDescription = "Navigation Icon for History",
                                             modifier = Modifier.size(30.dp)
                                         )
@@ -179,7 +172,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                 TopAppBar(
                     title = {
                         Text(
-                            when (selectedItemIndex){
+                            when (selectedItemIndex) {
                                 0 -> "Tic Tac Toe"
                                 1 -> "Infinite Tic Tac Toe"
                                 2 -> "History" // Title for History Page
@@ -209,24 +202,32 @@ fun MainPage() { // Removed viewModelFactory parameter
                             when (selectedItemIndex) {
                                 0 -> { // Normal TicTacToe
                                     infoDialogTitle = "Normal Tic Tac Toe"
-                                    infoDialogMessage = "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                                    infoDialogMessage =
+                                        "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                 }
+
                                 1 -> { // Infinite TicTacToe
                                     infoDialogTitle = "Infinite Tic Tac Toe"
-                                    infoDialogMessage = "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                    infoDialogMessage =
+                                        "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                 }
+
                                 2 -> { // History
                                     infoDialogTitle = "Match History"
-                                    infoDialogMessage = "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                    infoDialogMessage =
+                                        "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
                                 }
+
                                 3 -> { // Settings
                                     infoDialogTitle = "Settings"
-                                    infoDialogMessage = "Here you can configure various application settings:\n" +
-                                            "- Sound: Toggle game sounds on or off.\n" +
-                                            "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
-                                            "- AI Mode: Enable or disable playing against the AI.\n" +
-                                            "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                                    infoDialogMessage =
+                                        "Here you can configure various application settings:\n" +
+                                                "- Sound: Toggle game sounds on or off.\n" +
+                                                "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
+                                                "- AI Mode: Enable or disable playing against the AI.\n" +
+                                                "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                 }
+
                                 4 -> { // Help
                                     infoDialogTitle = "Help"
                                     infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
@@ -265,7 +266,8 @@ fun MainPage() { // Removed viewModelFactory parameter
             when (selectedItemIndex) {
                 0 -> {
                     // Use LocalViewModelFactory.current, defined in MainActivity.kt
-                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
+                    val viewModel: NormalTicTacToeViewModel =
+                        viewModel(factory = LocalViewModelFactory.current)
                     NormalTicTacToePage(
                         innerPadding = innerPadding,
                         viewModel = viewModel
@@ -277,12 +279,15 @@ fun MainPage() { // Removed viewModelFactory parameter
                         viewModel(factory = LocalViewModelFactory.current) // Use LocalViewModelFactory
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
+
                 2 -> { // History Page
                     HistoryPage() // ViewModel is obtained via LocalViewModelFactory.current
                 }
+
                 3 -> { // Settings
                     SettingsPage(innerPadding = innerPadding)
                 }
+
                 4 -> { // Help
                     HelpPage(innerPadding = innerPadding)
                 }
