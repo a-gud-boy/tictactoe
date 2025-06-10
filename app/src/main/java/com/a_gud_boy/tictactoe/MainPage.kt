@@ -52,6 +52,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType // Added
+import androidx.navigation.compose.NavHost // Added
+import androidx.navigation.compose.composable // Added
+import androidx.navigation.compose.rememberNavController // Added
+import androidx.navigation.navArgument // Added
 import kotlinx.coroutines.launch
 
 /**
@@ -91,6 +96,8 @@ fun MainPage() { // Removed viewModelFactory parameter
     // Order: Normal, Infinite, History, Settings, Help
     val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "History", "Settings", "Help")
 
+    val navController = rememberNavController() // NavController for History section
+
     ModalNavigationDrawer(
         drawerContent = {
             ModalDrawerSheet {
@@ -104,14 +111,26 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    selectedItemIndex = index
-                                    // Potentially navigate to a new screen here
-                                    // And close the drawer
-                                    scope.launch {
-                                        drawerState.close()
+                                    if (index == 2) { // History item
+                                        if (selectedItemIndex == 2) { // Already on History section
+                                            // If on match_details, pop back to history_list
+                                            if (navController.currentBackStackEntry?.destination?.route != "history_list") {
+                                                navController.navigate("history_list") {
+                                                    popUpTo(navController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                }
+                                            }
+                                            // If already on history_list, do nothing extra, just close drawer.
+                                        } else {
+                                            selectedItemIndex = index // Switch to History section
+                                            // NavHost will show "history_list" by default when selectedItemIndex becomes 2
+                                        }
+                                    } else {
+                                        selectedItemIndex = index
                                     }
+                                    scope.launch { drawerState.close() }
                                 },
-                                // icon = { Icon( /* ... */ ) } // Optional icon
                                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                                 colors = NavigationDrawerItemDefaults.colors(
                                     // For unselected items
@@ -172,65 +191,50 @@ fun MainPage() { // Removed viewModelFactory parameter
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            when (selectedItemIndex) {
-                                0 -> "Tic Tac Toe"
-                                1 -> "Infinite Tic Tac Toe"
-                                2 -> "History" // Title for History Page
-                                3 -> "Settings"
-                                4 -> "Help"
-                                else -> "Lorem Ipsum"
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.open()
-                            }
-                        }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
-                        }
-                    },
-                    actions = {
-                        if (selectedItemIndex == 2) { // History Page
-                            // Clear History Icon Button
-                            IconButton(onClick = { showClearHistoryDialog = true }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
-                            }
-                            // Info Icon Button for History Page
+                // Only show TopAppBar if not in the History section (index 2)
+                // HistoryPage and MatchDetailsPage will have their own TopAppBars
+                if (selectedItemIndex != 2) {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                when (selectedItemIndex) {
+                                    0 -> "Tic Tac Toe"
+                                    1 -> "Infinite Tic Tac Toe"
+                                    // Case 2 (History) is handled by NavHost content's own TopAppBar
+                                    3 -> "Settings"
+                                    4 -> "Help"
+                                    else -> "Lorem Ipsum"
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        navigationIcon = {
                             IconButton(onClick = {
-                                infoDialogTitle = "Match History"
-                                infoDialogMessage =
-                                    "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
-                                showInfoDialog = true
+                                scope.launch {
+                                    drawerState.open()
+                                }
                             }) {
-                                Icon(Icons.Outlined.Info, contentDescription = "Information")
+                                Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
                             }
-                        } else { // Other Pages
-                            // Default Info Icon Button
+                        },
+                        actions = {
+                            // Actions for non-History pages (excluding index 2)
                             IconButton(onClick = {
-                                // Logic to set infoDialogTitle and infoDialogMessage based on selectedItemIndex (excluding index 2)
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
                                         infoDialogTitle = "Normal Tic Tac Toe"
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
-
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
-
                                     3 -> { // Settings
                                         infoDialogTitle = "Settings"
                                         infoDialogMessage =
@@ -240,7 +244,6 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                     "- AI Mode: Enable or disable playing against the AI.\n" +
                                                     "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
-
                                     4 -> { // Help
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
@@ -253,18 +256,20 @@ fun MainPage() { // Removed viewModelFactory parameter
                             }) {
                                 Icon(Icons.Outlined.Info, contentDescription = "Information")
                             }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorResource(R.color.background),
-                        titleContentColor = colorResource(R.color.darkTextColor),
-                        navigationIconContentColor = colorResource(R.color.darkTextColor),
-                        actionIconContentColor = colorResource(R.color.darkTextColor)
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = colorResource(R.color.background),
+                            titleContentColor = colorResource(R.color.darkTextColor),
+                            navigationIconContentColor = colorResource(R.color.darkTextColor),
+                            actionIconContentColor = colorResource(R.color.darkTextColor)
+                        )
                     )
-                )
+                }
             }) { innerPadding ->
 
             if (showInfoDialog) {
+            // The rest of the Scaffold content (AlertDialog and when(selectedItemIndex) block) remains the same for now
+            // The when(selectedItemIndex) block will be modified in the next step to include the NavHost
                 AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
                     title = { Text(text = infoDialogTitle) },
@@ -294,12 +299,33 @@ fun MainPage() { // Removed viewModelFactory parameter
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
 
-                2 -> { // History Page
-                    HistoryPage(
-                        innerPadding = innerPadding,
-                        showClearConfirmDialog = showClearHistoryDialog,
-                        onShowClearConfirmDialogChange = { showClearHistoryDialog = it }
-                    )
+                2 -> { // History Page uses NavHost now
+                    // Modifier.padding(innerPadding) is applied to the NavHost
+                    // so that the NavHost itself is placed correctly within MainPage's Scaffold content area.
+                    // When selectedItemIndex == 2, MainPage's TopAppBar is hidden, so innerPadding.top should be 0.
+                    // HistoryPage and MatchDetailsPage use their own Scaffolds and will handle their own internal padding.
+                    NavHost(navController = navController, startDestination = "history_list", modifier = Modifier.padding(innerPadding)) {
+                        composable("history_list") {
+                            HistoryPage(
+                                // HistoryPage now has its own Scaffold, so it doesn't take innerPadding from MainPage.
+                                showClearConfirmDialog = showClearHistoryDialog,
+                                onShowClearConfirmDialogChange = { showClearHistoryDialog = it },
+                                navController = navController,
+                                onShowInfoDialog = { title, message -> // Pass lambda to show MainPage's dialog
+                                    infoDialogTitle = title
+                                    infoDialogMessage = message
+                                    showInfoDialog = true
+                                }
+                            )
+                        }
+                        composable(
+                            route = "match_details/{matchId}",
+                            arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+                        ) { // backStackEntry is implicitly available from the lambda
+                            // MatchDetailsPage also has its own Scaffold.
+                            MatchDetailsPage(navController = navController)
+                        }
+                    }
                 }
 
                 3 -> { // Settings

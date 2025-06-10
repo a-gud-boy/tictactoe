@@ -7,8 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Info // Added for Info icon
 // It seems Icons.AutoMirrored.Filled.ArrowBack is not available directly.
 // If needed, it would typically be: import androidx.compose.material.icons.automirrored.filled.ArrowBack
 // For now, I will remove the navigationIcon from TopAppBar as it was commented out in the prompt.
@@ -24,76 +23,108 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel // For viewModel() composable
+import androidx.navigation.NavController // Added NavController import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryPage(
-    innerPadding: PaddingValues,
-    showClearConfirmDialog: Boolean, // New parameter for state
-    onShowClearConfirmDialogChange: (Boolean) -> Unit, // New parameter for state change
+    // innerPadding: PaddingValues, // Removed, will use padding from its own Scaffold
+    showClearConfirmDialog: Boolean,
+    onShowClearConfirmDialogChange: (Boolean) -> Unit,
     historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current),
+    navController: NavController,
+    onShowInfoDialog: (title: String, message: String) -> Unit // For showing info dialog from MainPage
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
-    // Removed local state: var showClearConfirmDialog by remember { mutableStateOf(false) }
 
-    // Scaffold has been removed
-    // TopAppBar and its actions have been removed
-
-    // The main content Column now uses innerPadding
-    Column(
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()
-            .background(colorResource(R.color.background))
-    ) {
-        if (matchHistory.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No match history yet.", fontSize = 18.sp)
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(matchHistory) { matchWithRoundsAndMoves ->
-                    MatchHistoryItem(matchWithRoundsAndMoves = matchWithRoundsAndMoves)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("History") },
+                actions = {
+                    IconButton(onClick = { onShowClearConfirmDialogChange(true) }) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Clear History")
+                    }
+                    IconButton(onClick = {
+                        onShowInfoDialog(
+                            "Match History",
+                            "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                        )
+                    }) {
+                        Icon(Icons.Outlined.Info, contentDescription = "Information")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.background),
+                    titleContentColor = colorResource(R.color.darkTextColor),
+                    actionIconContentColor = colorResource(R.color.darkTextColor)
+                )
+            )
+        }
+    ) { scaffoldPadding -> // Use padding from this Scaffold
+        Column(
+            modifier = Modifier
+                .padding(scaffoldPadding) // Use padding from this Scaffold
+                .fillMaxSize()
+                .background(colorResource(R.color.background))
+        ) {
+            if (matchHistory.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No match history yet.", fontSize = 18.sp)
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(matchHistory) { matchWithRoundsAndMoves ->
+                        MatchHistoryItem(
+                            matchWithRoundsAndMoves = matchWithRoundsAndMoves,
+                            navController = navController
+                        )
+                    }
                 }
             }
         }
-    }
-    // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
 
-    // The AlertDialog now uses the passed-in state and lambda
-    if (showClearConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { onShowClearConfirmDialogChange(false) }, // Use lambda
-            title = { Text("Clear History") },
-            text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        historyViewModel.clearAllHistory()
-                        onShowClearConfirmDialogChange(false) // Use lambda
-                    }
-                ) { Text("Clear All") }
-            },
-            dismissButton = {
-                Button(onClick = { onShowClearConfirmDialogChange(false) }) { Text("Cancel") } // Use lambda
-            }
-        )
+        // The AlertDialog for clearing history is still triggered by showClearConfirmDialog
+        // which is a state managed in MainPage and passed down.
+        if (showClearConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { onShowClearConfirmDialogChange(false) },
+                title = { Text("Clear History") },
+                text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            historyViewModel.clearAllHistory()
+                            onShowClearConfirmDialogChange(false)
+                        }
+                    ) { Text("Clear All") }
+                },
+                dismissButton = {
+                    Button(onClick = { onShowClearConfirmDialogChange(false) }) { Text("Cancel") }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun MatchHistoryItem(matchWithRoundsAndMoves: MatchWithRoundsAndMoves) {
-    var expanded by remember { mutableStateOf(false) }
-    val match = matchWithRoundsAndMoves.match
+fun MatchHistoryItem(
+    matchWithRoundsAndMoves: MatchWithRoundsAndMoves,
+    navController: NavController // Added NavController
+) {
+    // var expanded by remember { mutableStateOf(false) } // REMOVED
 
-    // Date formatter
+    val match = matchWithRoundsAndMoves.match
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault()) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable { expanded = !expanded },
+            .clickable {
+                // Navigate to details page, passing matchId
+                navController.navigate("match_details/\${match.matchId}")
+            }, // MODIFIED
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -107,10 +138,7 @@ fun MatchHistoryItem(matchWithRoundsAndMoves: MatchWithRoundsAndMoves) {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand"
-                )
+                // Icon for expand/collapse REMOVED
             }
             Text(
                 text = "Date: ${dateFormatter.format(Date(match.timestamp))}",
@@ -121,19 +149,7 @@ fun MatchHistoryItem(matchWithRoundsAndMoves: MatchWithRoundsAndMoves) {
                 style = MaterialTheme.typography.bodySmall
             )
 
-            if (expanded) {
-                Spacer(modifier = Modifier.height(12.dp))
-                matchWithRoundsAndMoves.roundsWithMoves.forEach { roundWithMoves ->
-                    RoundHistoryItem(roundWithMoves = roundWithMoves)
-                    Divider(modifier = Modifier.padding(vertical = 4.dp))
-                }
-                if (matchWithRoundsAndMoves.roundsWithMoves.isEmpty()) {
-                    Text(
-                        "No rounds recorded for this match.",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
+            // if (expanded) { ... } block REMOVED
         }
     }
 }
