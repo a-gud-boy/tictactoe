@@ -2,7 +2,9 @@ package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +31,7 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage() {
+fun SettingsPage(innerPadding: PaddingValues) {
     val context = LocalContext.current
     // val soundManager = remember { SoundManager(context) } // Removed: SoundManager instance no longer created here
 
@@ -59,95 +61,101 @@ fun SettingsPage() {
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(R.color.background))
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text("Settings", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Sound Setting
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(colorResource(R.color.background))
+        .padding(innerPadding),
+        contentAlignment = Alignment.TopCenter
+    ){
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Sound")
-            Switch(
-                checked = AISettingsManager.isSoundEnabled, // Read from AISettingsManager
-                onCheckedChange = {
-                    AISettingsManager.isSoundEnabled = it // Update AISettingsManager
-                }
-            )
-        }
+//            Text("Settings", style = MaterialTheme.typography.headlineMedium)
 
-        // Play vs AI Setting
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Play vs AI")
-            Switch(
-                checked = AISettingsManager.isAiModeEnabled,
-                onCheckedChange = { enabled ->
-                    AISettingsManager.isAiModeEnabled = enabled
-                    normalTicTacToeViewModel.setAIMode(enabled)
-                    infiniteTicTacToeViewModel.setAIMode(enabled)
-                }
-            )
-        }
+//            Spacer(modifier = Modifier.height(16.dp))
 
-        // Haptic Feedback Setting
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Haptic Feedback")
-            Switch(
-                checked = HapticFeedbackManager.isHapticFeedbackEnabled,
-                onCheckedChange = { HapticFeedbackManager.isHapticFeedbackEnabled = it }
-            )
-        }
-
-        // AI Difficulty Setting
-        Column(modifier = Modifier.fillMaxWidth()) {
+            // Sound Setting
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("AI Difficulty")
-                Text(
-                    when (sliderPosition.roundToInt()) {
-                        0 -> "Easy"
-                        1 -> "Medium"
-                        else -> "Hard"
+                Text("Sound")
+                Switch(
+                    checked = AISettingsManager.isSoundEnabled, // Read from AISettingsManager
+                    onCheckedChange = {
+                        AISettingsManager.isSoundEnabled = it // Update AISettingsManager
                     }
                 )
             }
-            Slider(
-                value = sliderPosition,
-                onValueChange = { newPosition ->
-                    sliderPosition = newPosition
-                    val newDifficulty = when (newPosition.roundToInt()) {
-                        0 -> AIDifficulty.EASY
-                        1 -> AIDifficulty.MEDIUM
-                        else -> AIDifficulty.HARD
+
+            // Play vs AI Setting
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Play vs AI")
+                Switch(
+                    checked = AISettingsManager.isAiModeEnabled,
+                    onCheckedChange = { enabled ->
+                        AISettingsManager.isAiModeEnabled = enabled
+                        normalTicTacToeViewModel.setAIMode(enabled)
+                        infiniteTicTacToeViewModel.setAIMode(enabled)
                     }
-                    AISettingsManager.currentDifficulty = newDifficulty
-                    normalTicTacToeViewModel.setAIDifficulty(newDifficulty)
-                    infiniteTicTacToeViewModel.setAIDifficulty(newDifficulty)
-                },
-                valueRange = 0f..2f,
-                steps = 1 // 0 (Easy), 1 (Medium), 2 (Hard)
-            )
+                )
+            }
+
+            // Haptic Feedback Setting
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Haptic Feedback")
+                Switch(
+                    checked = HapticFeedbackManager.isHapticFeedbackEnabled,
+                    onCheckedChange = { HapticFeedbackManager.isHapticFeedbackEnabled = it }
+                )
+            }
+
+            // AI Difficulty Setting
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("AI Difficulty")
+                    Text(
+                        when (sliderPosition.roundToInt()) {
+                            0 -> "Easy"
+                            1 -> "Medium"
+                            else -> "Hard"
+                        }
+                    )
+                }
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = { newPosition ->
+                        sliderPosition = newPosition
+                        val newDifficulty = when (newPosition.roundToInt()) {
+                            0 -> AIDifficulty.EASY
+                            1 -> AIDifficulty.MEDIUM
+                            else -> AIDifficulty.HARD
+                        }
+                        AISettingsManager.currentDifficulty = newDifficulty
+                        normalTicTacToeViewModel.setAIDifficulty(newDifficulty)
+                        infiniteTicTacToeViewModel.setAIDifficulty(newDifficulty)
+                    },
+                    valueRange = 0f..2f,
+                    steps = 1 // 0 (Easy), 1 (Medium), 2 (Hard)
+                )
+            }
         }
     }
 }

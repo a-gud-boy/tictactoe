@@ -169,7 +169,13 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                 TopAppBar(
                     title = {
                         Text(
-                            if (selectedItemIndex == 0) "Tic Tac Toe" else "Infinite Tic Tac Toe",
+                            when (selectedItemIndex){
+                                0 -> "Tic Tac Toe"
+                                1 -> "Infinite Tic Tac Toe"
+                                2 -> "Settings"
+                                3 -> "Help"
+                                else -> "Lorem Ipsum"
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.labelMedium,
@@ -256,7 +262,7 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
                 2 -> {
-                    SettingsPage()
+                    SettingsPage(innerPadding = innerPadding)
                 }
                 3 -> {
                     HelpPage()
