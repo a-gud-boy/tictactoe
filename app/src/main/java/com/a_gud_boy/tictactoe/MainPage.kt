@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -82,7 +84,7 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
-    val items = listOf("Normal TicTacToe", "Infinite TicTacToe")
+    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "Settings", "Help")
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -130,6 +132,18 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                         Icon(
                                             painterResource(R.drawable.infinite_tic_tac_toe),
                                             contentDescription = "Navigation Icon for Infinite Tic Tac Toe",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    } else if (index == 2) {
+                                        Icon(
+                                            Icons.Filled.Settings,
+                                            contentDescription = "Navigation Icon for Settings",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    } else if (index == 3) {
+                                        Icon(
+                                            Icons.Filled.Help,
+                                            contentDescription = "Navigation Icon for Help",
                                             modifier = Modifier.size(30.dp)
                                         )
                                     }
@@ -302,6 +316,12 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                     val infiniteViewModel: InfiniteTicTacToeViewModel =
                         viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
+                }
+                2 -> {
+                    SettingsPage()
+                }
+                3 -> {
+                    HelpPage()
                 }
             }
         }
