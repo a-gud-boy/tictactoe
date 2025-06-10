@@ -10,9 +10,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
 
-// Custom ViewModel Factory
+/**
+ * A [ViewModelProvider.Factory] responsible for creating instances of [NormalTicTacToeViewModel]
+ * and [InfiniteTicTacToeViewModel].
+ *
+ * This factory allows the ViewModels to be instantiated with a [SoundManager] dependency,
+ * which is used for providing audio feedback during gameplay.
+ *
+ * @param soundManager The [SoundManager] instance to be used by the created ViewModels.
+ */
 class TicTacToeViewModelFactory(private val soundManager: SoundManager) :
     ViewModelProvider.Factory {
+    /**
+     * Creates a new instance of the given `Class`.
+     *
+     * This method checks the requested `modelClass` and returns an instance of either
+     * [NormalTicTacToeViewModel] or [InfiniteTicTacToeViewModel] if they are assignable
+     * from the given class. If the `modelClass` is not recognized, it throws an
+     * [IllegalArgumentException].
+     *
+     * @param modelClass A `Class` whose instance is requested.
+     * @return A newly created ViewModel.
+     * @throws IllegalArgumentException if `modelClass` is not a recognized ViewModel class.
+     */
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
