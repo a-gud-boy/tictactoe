@@ -76,6 +76,8 @@ fun MainPage() { // Removed viewModelFactory parameter
     var showInfoDialog by rememberSaveable { mutableStateOf(false) }
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
+    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) } // Added state for clear history dialog
+
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -198,47 +200,77 @@ fun MainPage() { // Removed viewModelFactory parameter
                     },
                     actions = {
                         IconButton(onClick = {
-                            // Determine title and message based on selectedItemIndex
-                            when (selectedItemIndex) {
-                                0 -> { // Normal TicTacToe
-                                    infoDialogTitle = "Normal Tic Tac Toe"
-                                    infoDialogMessage =
-                                        "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
-                                }
+                            if (selectedItemIndex == 2) { // History page
+                                showClearHistoryDialog = true
+                            } else {
+                                // Existing logic to set infoDialogTitle, infoDialogMessage, and showInfoDialog = true
+                                when (selectedItemIndex) {
+                                    0 -> { // Normal TicTacToe
+                                        infoDialogTitle = "Normal Tic Tac Toe"
+                                        infoDialogMessage =
+                                            "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                                    }
 
-                                1 -> { // Infinite TicTacToe
-                                    infoDialogTitle = "Infinite Tic Tac Toe"
-                                    infoDialogMessage =
-                                        "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                    1 -> { // Infinite TicTacToe
+                                        infoDialogTitle = "Infinite Tic Tac Toe"
+                                        infoDialogMessage =
+                                            "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                    }
+                                    // Case 2 (History info) is now handled by the Clear History action primarily.
+                                    // If info is still desired, it needs a different trigger or combined UI.
+                                    // For this change, the action button for History page is "Clear History".
+                                     2 -> { // History (info, if we decide to keep it alongside clear)
+                                        infoDialogTitle = "Match History"
+                                        infoDialogMessage =
+                                            "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                    }
+                                    3 -> { // Settings
+                                        infoDialogTitle = "Settings"
+                                        infoDialogMessage =
+                                            "Here you can configure various application settings:\n" +
+                                                    "- Sound: Toggle game sounds on or off.\n" +
+                                                    "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
+                                                    "- AI Mode: Enable or disable playing against the AI.\n" +
+                                                    "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                                    }
+                                    4 -> { // Help
+                                        infoDialogTitle = "Help"
+                                        infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
+                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
+                                                "- Game Play: Follow on-screen instructions for each game mode.\n" +
+                                                "- Settings: Customize your experience in the Settings page."
+                                    }
                                 }
-
-                                2 -> { // History
-                                    infoDialogTitle = "Match History"
-                                    infoDialogMessage =
-                                        "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
-                                }
-
-                                3 -> { // Settings
-                                    infoDialogTitle = "Settings"
-                                    infoDialogMessage =
-                                        "Here you can configure various application settings:\n" +
-                                                "- Sound: Toggle game sounds on or off.\n" +
-                                                "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
-                                                "- AI Mode: Enable or disable playing against the AI.\n" +
-                                                "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
-                                }
-
-                                4 -> { // Help
-                                    infoDialogTitle = "Help"
-                                    infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
-                                            "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
-                                            "- Game Play: Follow on-screen instructions for each game mode.\n" +
-                                            "- Settings: Customize your experience in the Settings page."
+                                // showInfoDialog should only be true if not on history page, or if on history page and info is specifically requested
+                                // For this iteration, info dialog is not shown when history page's action (clear) is primary.
+                                // If you want both, the logic here needs to be more complex (e.g. another button or menu)
+                                if (selectedItemIndex != 2) { // Only show info dialog if not history page, as history action is clear
+                                   showInfoDialog = true
+                                } else {
+                                    // If selectedItemIndex is 2, the primary action is to set showClearHistoryDialog = true (handled above)
+                                    // If we still want to show an info dialog for History page via this button,
+                                    // then the logic needs to be:
+                                    // 1. Change icon to something else (e.g. three dots for menu)
+                                    // 2. onClick shows a dropdown menu with "Clear History" and "Information"
+                                    // For now, sticking to the simpler context-aware single action.
+                                    // So, if it's page 2, the `showClearHistoryDialog = true` is already set.
+                                    // We could also show the info dialog here if we want, but it might be confusing.
+                                    // Let's assume the info for History page is accessible if user *really* wants it by clicking info when on history
+                                    // but the primary action is clear.
+                                    // To keep the original info dialog functionality for history page as well:
+                                    // infoDialogTitle = "Match History"
+                                    // infoDialogMessage = "..."
+                                    // showInfoDialog = true
+                                    // However, the requirement was to change the icon to Delete for History page.
+                                    // This implies the primary action changes.
                                 }
                             }
-                            showInfoDialog = true
-                        }) {
-                            Icon(Icons.Outlined.Info, contentDescription = "Information")
+                        }) { // Icon part of the IconButton
+                            if (selectedItemIndex == 2) { // History page
+                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
+                            } else {
+                                Icon(Icons.Outlined.Info, contentDescription = "Information")
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -281,7 +313,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                 }
 
                 2 -> { // History Page
-                    HistoryPage() // ViewModel is obtained via LocalViewModelFactory.current
+                    HistoryPage(
+                        innerPadding = innerPadding,
+                        showClearConfirmDialog = showClearHistoryDialog,
+                        onShowClearConfirmDialogChange = { showClearHistoryDialog = it }
+                    )
                 }
 
                 3 -> { // Settings

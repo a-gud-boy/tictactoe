@@ -26,29 +26,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel // For viewModel() composa
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryPage(
-    historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current), // Use the factory
-    // onNavigateBack: () -> Unit // Example for a back button - removed for now as icon isn't available
+    innerPadding: PaddingValues,
+    showClearConfirmDialog: Boolean, // New parameter for state
+    onShowClearConfirmDialogChange: (Boolean) -> Unit, // New parameter for state change
+    historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current),
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
-    var showClearConfirmDialog by remember { mutableStateOf(false) }
+    // Removed local state: var showClearConfirmDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Match History") },
-                actions = {
-                    IconButton(onClick = { showClearConfirmDialog = true }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Clear History")
-                    }
-                }
-                // navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
-            )
-        }
-    ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            if (matchHistory.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No match history yet.", fontSize = 18.sp)
+    // Scaffold has been removed
+    // TopAppBar and its actions have been removed
+
+    // The main content Column now uses innerPadding
+    Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+        if (matchHistory.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No match history yet.", fontSize = 18.sp)
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -58,23 +51,24 @@ fun HistoryPage(
                 }
             }
         }
-    }
+    } // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
 
+    // The AlertDialog now uses the passed-in state and lambda
     if (showClearConfirmDialog) {
         AlertDialog(
-            onDismissRequest = { showClearConfirmDialog = false },
+            onDismissRequest = { onShowClearConfirmDialogChange(false) }, // Use lambda
             title = { Text("Clear History") },
             text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
             confirmButton = {
                 Button(
                     onClick = {
                         historyViewModel.clearAllHistory()
-                        showClearConfirmDialog = false
+                        onShowClearConfirmDialogChange(false) // Use lambda
                     }
                 ) { Text("Clear All") }
             },
             dismissButton = {
-                Button(onClick = { showClearConfirmDialog = false }) { Text("Cancel") }
+                Button(onClick = { onShowClearConfirmDialogChange(false) }) { Text("Cancel") } // Use lambda
             }
         )
     }
