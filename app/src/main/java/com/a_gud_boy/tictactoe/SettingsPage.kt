@@ -38,11 +38,12 @@ fun SettingsPage(innerPadding: PaddingValues) {
     // ViewModel instances - In a real app, provide a proper factory or use Hilt for DI
     // SoundManager is still needed by ViewModels, so it's instantiated inside the factory.
     // This is acceptable as SoundManager itself doesn't hold the isSoundEnabled state anymore.
+    val appDatabase = AppDatabase.getDatabase(context)
     val normalTicTacToeViewModel: NormalTicTacToeViewModel = viewModel(
-        factory = TicTacToeViewModelFactory(SoundManager(context))
+        factory = TicTacToeViewModelFactory(SoundManager(context), appDatabase)
     )
     val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel = viewModel(
-        factory = TicTacToeViewModelFactory(SoundManager(context))
+        factory = TicTacToeViewModelFactory(SoundManager(context), appDatabase)
     )
 
     // var soundEnabled by remember { mutableStateOf(soundManager.isSoundEnabled) } // Removed: State now from AISettingsManager
