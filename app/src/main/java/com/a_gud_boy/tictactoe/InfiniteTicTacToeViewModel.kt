@@ -51,6 +51,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
          * and are considered for winning conditions. Older moves "disappear".
          */
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
+
         /**
          * A list of all possible winning combinations on a 3x3 Tic Tac Toe board.
          * Each combination is a set of button IDs (e.g., "button1", "button2", "button3").
@@ -73,23 +74,28 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
     private val volume = 1.0f
 
     private val _player1Wins = MutableStateFlow(0)
+
     /** StateFlow representing the number of wins for Player 1 (X). */
     val player1Wins: StateFlow<Int> = _player1Wins.asStateFlow()
 
     private val _player2Wins = MutableStateFlow(0)
+
     /** StateFlow representing the number of wins for Player 2 (O). */
     val player2Wins: StateFlow<Int> = _player2Wins.asStateFlow()
 
     // Using List<String> for moves as per current Composable logic
     private val _player1Moves = MutableStateFlow<List<String>>(emptyList())
+
     /** StateFlow representing the list of moves made by Player 1 (X). */
     val player1Moves: StateFlow<List<String>> = _player1Moves.asStateFlow()
 
     private val _player2Moves = MutableStateFlow<List<String>>(emptyList())
+
     /** StateFlow representing the list of moves made by Player 2 (O). */
     val player2Moves: StateFlow<List<String>> = _player2Moves.asStateFlow()
 
     private val _winnerInfo = MutableStateFlow<WinnerInfo?>(null)
+
     /**
      * StateFlow holding information about the winner of the current round, if any.
      * Contains the winning [Player] and the [Set] of button IDs forming the winning combination.
@@ -99,14 +105,17 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
 
     // True for Player 1 (X), False for Player 2 (O)
     private val _player1Turn = MutableStateFlow(true)
+
     /** StateFlow indicating if it is currently Player 1's (X) turn. True if yes, false for Player 2 (O). */
     val player1Turn: StateFlow<Boolean> = _player1Turn.asStateFlow()
 
     private val _gameStarted = MutableStateFlow(true) // Game starts active
+
     /** StateFlow indicating if the game is currently active (i.e., players can make moves). */
     val gameStarted: StateFlow<Boolean> = _gameStarted.asStateFlow()
 
     private val _isGameConcluded = MutableStateFlow(false)
+
     /** StateFlow indicating if the current round of the game has concluded (e.g., due to a win). */
     val isGameConcluded: StateFlow<Boolean> = _isGameConcluded.asStateFlow()
 
@@ -147,7 +156,11 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
         isGameConcluded
     ) { concluded ->
         if (concluded[0]) "New Round" else "Reset Round"
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), "Reset Round")
+    }.stateIn(
+        viewModelScope,
+        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        "Reset Round"
+    )
 
     fun setAIMode(enabled: Boolean) {
         _isAIMode.value = enabled
@@ -179,8 +192,10 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
         val currentP2Moves = _player2Moves.value
 
         // Check if button is already played by either player within visible moves
-        val isAlreadyPlayedByPlayer1 = currentP1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
-        val isAlreadyPlayedByPlayer2 = currentP2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
+        val isAlreadyPlayedByPlayer1 =
+            currentP1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
+        val isAlreadyPlayedByPlayer2 =
+            currentP2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
 
         if (isAlreadyPlayedByPlayer1 || isAlreadyPlayedByPlayer2) {
             return // Button already visibly played
@@ -245,7 +260,8 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
         if (p1VisibleMoves.size < 3 && p2VisibleMoves.size < 3) return
 
         // Check only relevant winning combinations based on the last move
-        val lastMove = if (_player1Turn.value) p2VisibleMoves.lastOrNull() else p1VisibleMoves.lastOrNull()
+        val lastMove =
+            if (_player1Turn.value) p2VisibleMoves.lastOrNull() else p1VisibleMoves.lastOrNull()
         if (lastMove == null) return
 
         // Filter winning combinations that contain the last move
@@ -339,7 +355,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
         // Available if not in the last MAX_VISIBLE_MOVES_PER_PLAYER moves of P1 AND not in P2's
         val availableMoves = allMoves.filter { buttonId ->
             !_player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId) &&
-            !_player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
+                    !_player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
         }
         return availableMoves.randomOrNull()
     }
@@ -354,7 +370,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
         // Available if not in the last MAX_VISIBLE_MOVES_PER_PLAYER moves of P1 AND not in P2's
         val availableMoves = allMoves.filter { buttonId ->
             !_player1Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId) &&
-            !_player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
+                    !_player2Moves.value.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER).contains(buttonId)
         }
 
         if (availableMoves.isEmpty()) return null
@@ -387,7 +403,12 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
      * @param isMaximizing True if the current turn is for the maximizing player (AI - O), false for minimizing (Human - X).
      * @return The score of the board state.
      */
-    private fun minimax(p1Moves: List<String>, p2Moves: List<String>, depth: Int, isMaximizing: Boolean): Double {
+    private fun minimax(
+        p1Moves: List<String>,
+        p2Moves: List<String>,
+        depth: Int,
+        isMaximizing: Boolean
+    ): Double {
         // Visible moves for win checking
         val p1VisibleMoves = p1Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
         val p2VisibleMoves = p2Moves.takeLast(MAX_VISIBLE_MOVES_PER_PLAYER)
@@ -402,7 +423,10 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
         // Check for draw: if all cells are visibly occupied and no one won
         val allBoardCells = (1..9).map { "button$it" }
         val occupiedVisibleCells = (p1VisibleMoves + p2VisibleMoves).toSet()
-        if (occupiedVisibleCells.size == 9 && !isAIWinningCombination(p1VisibleMoves) && !isAIWinningCombination(p2VisibleMoves)) {
+        if (occupiedVisibleCells.size == 9 && !isAIWinningCombination(p1VisibleMoves) && !isAIWinningCombination(
+                p2VisibleMoves
+            )
+        ) {
             return 0.0 // Draw
         }
 

@@ -165,10 +165,12 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                             }
                         }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
-                        }                    },
+                        }
+                    },
                     actions = {
                         if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
-                            val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
+                            val viewModel: NormalTicTacToeViewModel =
+                                viewModel(factory = viewModelFactory)
                             val isAIMode by viewModel.isAIMode.collectAsState()
                             val currentDifficulty by viewModel.aiDifficulty.collectAsState()
 
@@ -221,13 +223,17 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                 }
                             }
                         } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
-                            val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = viewModelFactory)
+                            val infiniteViewModel: InfiniteTicTacToeViewModel =
+                                viewModel(factory = viewModelFactory)
                             val isAIMode by infiniteViewModel.isAIMode.collectAsState()
                             val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
 
                             Box {
                                 IconButton(onClick = { showInfiniteMenu = true }) {
-                                    Icon(Icons.Filled.MoreVert, contentDescription = "Infinite Settings")
+                                    Icon(
+                                        Icons.Filled.MoreVert,
+                                        contentDescription = "Infinite Settings"
+                                    )
                                 }
                                 DropdownMenu(
                                     expanded = showInfiniteMenu,
@@ -282,7 +288,7 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                         actionIconContentColor = colorResource(R.color.darkTextColor)
                     )
                 )
-            }        ) { innerPadding ->
+            }) { innerPadding ->
             when (selectedItemIndex) {
                 0 -> {
                     val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
@@ -291,8 +297,10 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                         viewModel = viewModel
                     )
                 }
+
                 1 -> {
-                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
+                    val infiniteViewModel: InfiniteTicTacToeViewModel =
+                        viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
             }

@@ -12,6 +12,7 @@ class SoundManager(private val context: Context) {
     private var drawSoundId: Int = 0
     private var loseSoundId: Int? = 0
     private var computerMoveSoundId: Int? = 0
+
     // A flag to track if sounds are loaded. More sophisticated tracking can be added.
     private var soundsLoadedSuccessfully = mutableMapOf<Int, Boolean>()
 
@@ -34,14 +35,33 @@ class SoundManager(private val context: Context) {
                     soundsLoadedSuccessfully[sampleId] = true
                     // Prime the move sound by playing it silently once after loading
                     if (sampleId == moveSoundId) {
-                        Log.d("SoundManagerDebug", "Inside setOnLoadCompleteListener for moveSoundId (ID: $sampleId)")
+                        Log.d(
+                            "SoundManagerDebug",
+                            "Inside setOnLoadCompleteListener for moveSoundId (ID: $sampleId)"
+                        )
                         Log.d("SoundManager", "Priming move sound (ID: $sampleId)")
-                        Log.d("SoundManagerDebug", "Priming playback for moveSoundId (ID: $moveSoundId)")
-                        soundPool?.play(moveSoundId, 0f, 0f, 0, 0, 1.0f) // Play with 0 volume, priority 0
-                        Log.d("SoundManagerDebug", "Priming playback for moveSoundId called (ID: $moveSoundId)")
+                        Log.d(
+                            "SoundManagerDebug",
+                            "Priming playback for moveSoundId (ID: $moveSoundId)"
+                        )
+                        soundPool?.play(
+                            moveSoundId,
+                            0f,
+                            0f,
+                            0,
+                            0,
+                            1.0f
+                        ) // Play with 0 volume, priority 0
+                        Log.d(
+                            "SoundManagerDebug",
+                            "Priming playback for moveSoundId called (ID: $moveSoundId)"
+                        )
                     }
                 } else {
-                    Log.e("SoundManager", "Error loading sound $sampleId, status: $status. Marking as not loaded.")
+                    Log.e(
+                        "SoundManager",
+                        "Error loading sound $sampleId, status: $status. Marking as not loaded."
+                    )
                     soundsLoadedSuccessfully[sampleId] = false
                 }
             }
@@ -80,7 +100,10 @@ class SoundManager(private val context: Context) {
 
     private fun isSoundReady(soundId: Int): Boolean {
         val isReady = soundPool != null && soundId != 0 && soundsLoadedSuccessfully[soundId] == true
-        Log.v("SoundManager", "isSoundReady for ID $soundId: poolNotNull=${soundPool != null}, idNotZero=${soundId != 0}, loadedSuccessfully=${soundsLoadedSuccessfully[soundId] == true}, result=$isReady")
+        Log.v(
+            "SoundManager",
+            "isSoundReady for ID $soundId: poolNotNull=${soundPool != null}, idNotZero=${soundId != 0}, loadedSuccessfully=${soundsLoadedSuccessfully[soundId] == true}, result=$isReady"
+        )
         return isReady
     }
 

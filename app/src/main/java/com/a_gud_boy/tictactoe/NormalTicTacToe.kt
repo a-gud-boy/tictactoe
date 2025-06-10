@@ -204,7 +204,9 @@ fun NormalTicTacToePage(
         val scrollState = rememberScrollState()
 
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -220,7 +222,8 @@ fun NormalTicTacToePage(
                     .drawWithContent {
                         drawContent()
                         if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
-                            val currentWinner = winnerInfo?.winner ?: return@drawWithContent // Should have a winner if combination is present
+                            val currentWinner = winnerInfo?.winner
+                                ?: return@drawWithContent // Should have a winner if combination is present
 
                             // The line should animate from the last move in the combination to the first
                             val animationStartButtonId = orderedWinningCombination.value.last()
@@ -240,10 +243,15 @@ fun NormalTicTacToePage(
                                 )
 
                                 // Interpolate the end point of the line based on animation progress
-                                val animatedLineEnd = lerp(animOriginalLineStart, animOriginalLineEnd, lineAnimationProgress.value)
+                                val animatedLineEnd = lerp(
+                                    animOriginalLineStart,
+                                    animOriginalLineEnd,
+                                    lineAnimationProgress.value
+                                )
 
                                 val lineExtensionPx = 30.dp.toPx()
-                                val directionVector = animatedLineEnd - animOriginalLineStart // Vector based on animated end
+                                val directionVector =
+                                    animatedLineEnd - animOriginalLineStart // Vector based on animated end
 
                                 val lineColor = when (currentWinner) {
                                     Player.X -> playerXColor
@@ -255,7 +263,7 @@ fun NormalTicTacToePage(
                                     // Or, if it's meant to draw from one point to itself (e.g. a very short line), handle as needed
                                     // For now, let's just draw if progress is full for such a case.
                                     if (lineAnimationProgress.value == 1f) {
-                                         drawLine(
+                                        drawLine(
                                             color = lineColor.copy(alpha = 0.6f),
                                             start = animOriginalLineStart,
                                             end = animatedLineEnd, // which is animOriginalLineStart if vector is zero
@@ -264,11 +272,14 @@ fun NormalTicTacToePage(
                                         )
                                     }
                                 } else if (directionVector.getDistanceSquared() > 0f) { // Only draw if there's a direction
-                                    val normalizedDirection = directionVector / directionVector.getDistance()
+                                    val normalizedDirection =
+                                        directionVector / directionVector.getDistance()
                                     // Extend the line from the *start* of the animation (most recent move)
                                     // and from the *animated end point* (towards the oldest move)
-                                    val extendedLineStart = animOriginalLineStart - (normalizedDirection * lineExtensionPx)
-                                    val extendedAnimatedLineEnd = animatedLineEnd + (normalizedDirection * lineExtensionPx)
+                                    val extendedLineStart =
+                                        animOriginalLineStart - (normalizedDirection * lineExtensionPx)
+                                    val extendedAnimatedLineEnd =
+                                        animatedLineEnd + (normalizedDirection * lineExtensionPx)
 
                                     drawLine(
                                         color = lineColor.copy(alpha = 0.6f),
@@ -365,7 +376,10 @@ fun NormalTicTacToePage(
                                 Icons.Default.Close,
                                 contentDescription = "Player X icon for draw display" // Or null if purely decorative next to text
                             )
-                            Text("\uD83E\uDD1D", Modifier.width(24.dp)) // Placeholder for icon space if needed, decorative
+                            Text(
+                                "\uD83E\uDD1D",
+                                Modifier.width(24.dp)
+                            ) // Placeholder for icon space if needed, decorative
                             Icon(
                                 painterResource(R.drawable.player_2),
                                 contentDescription = "Player O icon for draw display" // Or null
@@ -451,7 +465,10 @@ fun NormalTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for new or reset round")
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = "Refresh icon for new or reset round"
+                    )
                     Text(
                         text = resetButtonText,
                         modifier = Modifier

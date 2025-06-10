@@ -235,7 +235,9 @@ fun InfiniteTicTacToePage(
         val scrollState = rememberScrollState()
 
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -258,7 +260,8 @@ fun InfiniteTicTacToePage(
 
                         // Check if we have an ordered combination and animation is in progress
                         if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
-                            val currentWinner = winnerInfo?.winner ?: return@drawWithContent // Should have a winner
+                            val currentWinner =
+                                winnerInfo?.winner ?: return@drawWithContent // Should have a winner
 
                             // Get the first and last cells in the winning combination
                             val firstButtonId = orderedWinningCombination.value.first()
@@ -278,7 +281,8 @@ fun InfiniteTicTacToePage(
                                 )
 
                                 // Interpolate the end point of the line based on animation progress
-                                val animatedLineEnd = lerp(lineStart, lineEnd, lineAnimationProgress.value)
+                                val animatedLineEnd =
+                                    lerp(lineStart, lineEnd, lineAnimationProgress.value)
 
                                 val lineColor = when (currentWinner) {
                                     Player.X -> playerXColor
@@ -295,8 +299,13 @@ fun InfiniteTicTacToePage(
 
                                 // Extend the line by 20.dp on both ends
                                 val lineExtensionPx = 30.dp.toPx()
-                                val extendedLineStart = lineStart - (normalizedDirection * lineExtensionPx)
-                                val extendedLineEnd = lerp(extendedLineStart, lineEnd + (normalizedDirection * lineExtensionPx), lineAnimationProgress.value)
+                                val extendedLineStart =
+                                    lineStart - (normalizedDirection * lineExtensionPx)
+                                val extendedLineEnd = lerp(
+                                    extendedLineStart,
+                                    lineEnd + (normalizedDirection * lineExtensionPx),
+                                    lineAnimationProgress.value
+                                )
 
                                 // Draw the line with original properties
                                 drawLine(
@@ -323,8 +332,8 @@ fun InfiniteTicTacToePage(
                     // that player has MAX_VISIBLE_MOVES_PER_PLAYER on the board,
                     // and this specific move is the oldest among them (first in their list).
                     val isOldMove = cellPlayer != null &&
-                        ( (player1Turn && cellPlayer == Player.X && player1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player1Moves.firstOrNull() == buttonId) ||
-                          (!player1Turn && cellPlayer == Player.O && player2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player2Moves.firstOrNull() == buttonId) )
+                            ((player1Turn && cellPlayer == Player.X && player1Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player1Moves.firstOrNull() == buttonId) ||
+                                    (!player1Turn && cellPlayer == Player.O && player2Moves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && player2Moves.firstOrNull() == buttonId))
 
                     TicTacToeCell(
                         modifier = Modifier
@@ -475,7 +484,10 @@ fun InfiniteTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for new or reset round") // Changed to Refresh
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = "Refresh icon for new or reset round"
+                    ) // Changed to Refresh
                     Text(
                         text = resetButtonText,
                         modifier = Modifier
@@ -502,7 +514,10 @@ fun InfiniteTicTacToePage(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for reset scores") // Changed to Refresh
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = "Refresh icon for reset scores"
+                    ) // Changed to Refresh
                     Text(
                         text = "Reset Scores",
                         modifier = Modifier

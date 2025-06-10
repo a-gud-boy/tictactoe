@@ -11,7 +11,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
 
 // Custom ViewModel Factory
-class TicTacToeViewModelFactory(private val soundManager: SoundManager) : ViewModelProvider.Factory {
+class TicTacToeViewModelFactory(private val soundManager: SoundManager) :
+    ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

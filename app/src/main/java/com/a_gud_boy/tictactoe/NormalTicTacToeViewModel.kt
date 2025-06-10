@@ -49,6 +49,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             setOf("button3", "button5", "button7")
         )
     }
+
     private val volume = 1.0f // Default volume for sound effects
 
     private val _player1Wins = MutableStateFlow(0)
