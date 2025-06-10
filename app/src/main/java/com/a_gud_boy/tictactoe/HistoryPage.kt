@@ -1,5 +1,6 @@
 package com.a_gud_boy.tictactoe
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +40,7 @@ fun HistoryPage(
     // TopAppBar and its actions have been removed
 
     // The main content Column now uses innerPadding
-    Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+    Column(modifier = Modifier.padding(innerPadding).fillMaxSize().background(colorResource(R.color.background))) {
         if (matchHistory.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("No match history yet.", fontSize = 18.sp)
@@ -51,7 +53,7 @@ fun HistoryPage(
                 }
             }
         }
-    } // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
+     // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
 
     // The AlertDialog now uses the passed-in state and lambda
     if (showClearConfirmDialog) {
