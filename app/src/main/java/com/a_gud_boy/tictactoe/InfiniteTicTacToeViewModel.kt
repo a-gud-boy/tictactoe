@@ -252,7 +252,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound()
+                soundManager.playWinSound() // Player X wins
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -262,7 +262,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound()
+                soundManager.playLoseSound() // Player O wins
                 return
             }
         }
@@ -305,6 +305,7 @@ class InfiniteTicTacToeViewModel(private val soundManager: SoundManager) : ViewM
      */
     fun makeAIMove() {
         if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value || !_isAIMode.value) return
+        soundManager.playComputerMoveSound() // Play sound when AI starts its move
 
         viewModelScope.launch {
             delay(500) // Delay for UX
