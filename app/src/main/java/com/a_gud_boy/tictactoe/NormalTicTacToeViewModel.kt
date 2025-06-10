@@ -15,9 +15,7 @@ enum class Player {
     X, O
 }
 
-enum class AIDifficulty {
-    EASY, MEDIUM, HARD
-}
+// AIDifficulty is now in its own file: AIDifficulty.kt
 
 // Data class to hold winner information
 data class WinnerInfo(
@@ -28,10 +26,10 @@ data class WinnerInfo(
 
 class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewModel() {
 
-    private val _isAIMode = MutableStateFlow(false)
+    private val _isAIMode = MutableStateFlow(AISettingsManager.isAiModeEnabled)
     val isAIMode: StateFlow<Boolean> = _isAIMode.asStateFlow()
 
-    private val _aiDifficulty = MutableStateFlow(AIDifficulty.MEDIUM)
+    private val _aiDifficulty = MutableStateFlow(AISettingsManager.currentDifficulty)
     val aiDifficulty: StateFlow<AIDifficulty> = _aiDifficulty.asStateFlow()
 
     companion object {
@@ -382,6 +380,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
      */
     fun setAIMode(enabled: Boolean) {
         _isAIMode.value = enabled
+        AISettingsManager.isAiModeEnabled = enabled
         resetRound() // Reset the board when switching modes.
     }
 
@@ -392,6 +391,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
      */
     fun setAIDifficulty(difficulty: AIDifficulty) {
         _aiDifficulty.value = difficulty
+        AISettingsManager.currentDifficulty = difficulty
         if (_isAIMode.value) {
             resetRound() // Reset board if AI is active to reflect new difficulty.
         }

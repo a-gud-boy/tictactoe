@@ -20,15 +20,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage() {
-    var soundEnabled by remember { mutableStateOf(true) }
-    var hapticFeedbackEnabled by remember { mutableStateOf(true) }
-    var aiDifficulty by remember { mutableStateOf(1f) }
+    val context = LocalContext.current
+    val soundManager = remember { SoundManager(context) }
+
+    // ViewModel instances - In a real app, provide a proper factory or use Hilt for DI
+    val normalTicTacToeViewModel: NormalTicTacToeViewModel = viewModel(
+        factory = TicTacToeViewModelFactory(soundManager)
+    )
+    val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel = viewModel(
+        factory = TicTacToeViewModelFactory(soundManager)
+    )
+
+    var soundEnabled by remember { mutableStateOf(soundManager.isSoundEnabled) }
+    // Haptic feedback state is managed by HapticFeedbackManager
+
+    // AI settings are now managed by AISettingsManager
+    // Local state for slider position might still be useful for immediate UI response
+    // then update AISettingsManager and ViewModels.
+    var sliderPosition by remember {
+        mutableStateOf(
+            when (AISettingsManager.currentDifficulty) {
+                AIDifficulty.EASY -> 0f
+                AIDifficulty.MEDIUM -> 1f
+                AIDifficulty.HARD -> 2f
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -50,7 +75,27 @@ fun SettingsPage() {
             Text("Sound")
             Switch(
                 checked = soundEnabled,
-                onCheckedChange = { soundEnabled = it }
+                onCheckedChange = {
+                    soundEnabled = it
+                    soundManager.isSoundEnabled = it
+                }
+            )
+        }
+
+        // Play vs AI Setting
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Play vs AI")
+            Switch(
+                checked = AISettingsManager.isAiModeEnabled,
+                onCheckedChange = { enabled ->
+                    AISettingsManager.isAiModeEnabled = enabled
+                    normalTicTacToeViewModel.setAIMode(enabled)
+                    infiniteTicTacToeViewModel.setAIMode(enabled)
+                }
             )
         }
 
@@ -62,8 +107,8 @@ fun SettingsPage() {
         ) {
             Text("Haptic Feedback")
             Switch(
-                checked = hapticFeedbackEnabled,
-                onCheckedChange = { hapticFeedbackEnabled = it }
+                checked = HapticFeedbackManager.isHapticFeedbackEnabled,
+                onCheckedChange = { HapticFeedbackManager.isHapticFeedbackEnabled = it }
             )
         }
 
@@ -76,7 +121,7 @@ fun SettingsPage() {
             ) {
                 Text("AI Difficulty")
                 Text(
-                    when (aiDifficulty.roundToInt()) {
+                    when (sliderPosition.roundToInt()) {
                         0 -> "Easy"
                         1 -> "Medium"
                         else -> "Hard"
@@ -84,10 +129,20 @@ fun SettingsPage() {
                 )
             }
             Slider(
-                value = aiDifficulty,
-                onValueChange = { aiDifficulty = it },
+                value = sliderPosition,
+                onValueChange = { newPosition ->
+                    sliderPosition = newPosition
+                    val newDifficulty = when (newPosition.roundToInt()) {
+                        0 -> AIDifficulty.EASY
+                        1 -> AIDifficulty.MEDIUM
+                        else -> AIDifficulty.HARD
+                    }
+                    AISettingsManager.currentDifficulty = newDifficulty
+                    normalTicTacToeViewModel.setAIDifficulty(newDifficulty)
+                    infiniteTicTacToeViewModel.setAIDifficulty(newDifficulty)
+                },
                 valueRange = 0f..2f,
-                steps = 1 // 0 (Easy), 1 (Medium), 2 (Hard) -> 2 steps means 3 possible values
+                steps = 1 // 0 (Easy), 1 (Medium), 2 (Hard)
             )
         }
     }

@@ -185,8 +185,8 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                         if (selectedItemIndex == 0) { // Only show for Normal TicTacToe
                             val viewModel: NormalTicTacToeViewModel =
                                 viewModel(factory = viewModelFactory)
-                            val isAIMode by viewModel.isAIMode.collectAsState()
-                            val currentDifficulty by viewModel.aiDifficulty.collectAsState()
+                            // val isAIMode by viewModel.isAIMode.collectAsState() // No longer needed from ViewModel here
+                            // val currentDifficulty by viewModel.aiDifficulty.collectAsState() // No longer needed from ViewModel here
 
                             Box {
                                 IconButton(onClick = { showMenu = true }) {
@@ -205,42 +205,30 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                             ) {
                                                 Text("Play vs AI", Modifier.padding(end = 5.dp))
                                                 Switch(
-                                                    checked = isAIMode,
+                                                    checked = AISettingsManager.isAiModeEnabled, // Read from AISettingsManager
                                                     onCheckedChange = {
-                                                        viewModel.setAIMode(it)
+                                                        AISettingsManager.isAiModeEnabled = it // Update AISettingsManager
+                                                        viewModel.setAIMode(it) // Update ViewModel
                                                     }
                                                 )
                                             }
                                         },
-                                        onClick = { }  // Click is handled by the Switch
-                                    )
-
-                                    if (isAIMode) {
-                                        AIDifficulty.entries.forEach { difficulty ->
-                                            DropdownMenuItem(
-                                                text = { Text(difficulty.name) },
-                                                onClick = {
-                                                    viewModel.setAIDifficulty(difficulty)
-                                                    showMenu = false
-                                                },
-                                                trailingIcon = {
-                                                    if (difficulty == currentDifficulty) {
-                                                        Icon(
-                                                            Icons.Default.Check,
-                                                            contentDescription = "Selected"
-                                                        )
-                                                    }
-                                                }
-                                            )
+                                        onClick = {
+                                            // Toggle the AI mode by triggering onCheckedChange logic indirectly
+                                            // This makes the whole item clickable to toggle the switch
+                                            val newMode = !AISettingsManager.isAiModeEnabled
+                                            AISettingsManager.isAiModeEnabled = newMode
+                                            viewModel.setAIMode(newMode)
                                         }
-                                    }
+                                    )
+                                    // AI Difficulty selection is removed from here, handled in SettingsPage
                                 }
                             }
                         } else if (selectedItemIndex == 1) { // Menu for Infinite TicTacToe
                             val infiniteViewModel: InfiniteTicTacToeViewModel =
                                 viewModel(factory = viewModelFactory)
-                            val isAIMode by infiniteViewModel.isAIMode.collectAsState()
-                            val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState()
+                            // val isAIMode by infiniteViewModel.isAIMode.collectAsState() // No longer needed
+                            // val currentDifficulty by infiniteViewModel.aiDifficulty.collectAsState() // No longer needed
 
                             Box {
                                 IconButton(onClick = { showInfiniteMenu = true }) {
@@ -262,35 +250,22 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                             ) {
                                                 Text("Play vs AI", Modifier.padding(end = 5.dp))
                                                 Switch(
-                                                    checked = isAIMode,
+                                                    checked = AISettingsManager.isAiModeEnabled, // Read from AISettingsManager
                                                     onCheckedChange = {
-                                                        infiniteViewModel.setAIMode(it)
+                                                        AISettingsManager.isAiModeEnabled = it // Update AISettingsManager
+                                                        infiniteViewModel.setAIMode(it) // Update ViewModel
                                                     }
                                                 )
                                             }
                                         },
-                                        onClick = { } // Click is handled by the Switch
-                                    )
-
-                                    if (isAIMode) {
-                                        AIDifficulty.entries.forEach { difficulty ->
-                                            DropdownMenuItem(
-                                                text = { Text(difficulty.name) },
-                                                onClick = {
-                                                    infiniteViewModel.setAIDifficulty(difficulty)
-                                                    showInfiniteMenu = false
-                                                },
-                                                trailingIcon = {
-                                                    if (difficulty == currentDifficulty) {
-                                                        Icon(
-                                                            Icons.Default.Check,
-                                                            contentDescription = "Selected"
-                                                        )
-                                                    }
-                                                }
-                                            )
+                                        onClick = {
+                                            // Toggle the AI mode
+                                            val newMode = !AISettingsManager.isAiModeEnabled
+                                            AISettingsManager.isAiModeEnabled = newMode
+                                            infiniteViewModel.setAIMode(newMode)
                                         }
-                                    }
+                                    )
+                                    // AI Difficulty selection is removed from here, handled in SettingsPage
                                 }
                             }
                         }
