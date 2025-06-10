@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Tic Tac Toe</string>
     <string name="app_version">1.0</string>
+    <string name="sound">Sound</string>
+    <string name="haptic_feedback">Haptic Feedback</string>
+    <string name="ai_difficulty">AI Difficulty</string>
+    <string name="easy">Easy</string>
+    <string name="medium">Medium</string>
+    <string name="hard">Hard</string>
 </resources>
