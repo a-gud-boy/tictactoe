@@ -49,6 +49,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             setOf("button3", "button5", "button7")
         )
     }
+    private val volume = 1.0f // Default volume for sound effects
 
     private val _player1Wins = MutableStateFlow(0)
     val player1Wins: StateFlow<Int> = _player1Wins.asStateFlow()
@@ -124,7 +125,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             // Player's move
             _player1Moves.value = currentP1Moves + buttonId
             _player1Turn.value = false
-            soundManager.playMoveSound()
+            soundManager.playMoveSound(volume)
             checkForWinner()
 
             // Make AI move if game is in AI mode and game is not concluded
@@ -135,7 +136,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             // Only allow player 2 moves if not in AI mode
             _player2Moves.value = currentP2Moves + buttonId
             _player1Turn.value = true
-            soundManager.playMoveSound()
+            soundManager.playMoveSound(volume)
             checkForWinner()
         } else {
             // This is AI's move
@@ -171,7 +172,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playWinSound() // Player X wins
+                soundManager.playWinSound(volume) // Player X wins
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
@@ -181,7 +182,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
                 _player2Wins.value += 1
                 _isGameConcluded.value = true
                 _gameStarted.value = false // Stop game, wait for reset
-                soundManager.playLoseSound() // Player O wins
+                soundManager.playLoseSound(volume) // Player O wins
                 return
             }
         }
@@ -191,7 +192,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
             _winnerInfo.value = WinnerInfo(null, emptySet(), emptyList()) // Draw
             _isGameConcluded.value = true
             _gameStarted.value = false // Stop game, wait for reset
-            soundManager.playDrawSound()
+            soundManager.playDrawSound(volume)
         }
     }
 
@@ -218,7 +219,7 @@ class NormalTicTacToeViewModel(private val soundManager: SoundManager) : ViewMod
         // Add a small delay to make the AI move feel more natural
         viewModelScope.launch {
             delay(500) // 500ms delay for better UX
-            soundManager.playComputerMoveSound() // Play sound when AI starts its move
+            soundManager.playComputerMoveSound(volume) // Play sound when AI starts its move
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
                 AIDifficulty.MEDIUM -> if (Math.random() < 0.5) getBestMove() else getRandomMove()

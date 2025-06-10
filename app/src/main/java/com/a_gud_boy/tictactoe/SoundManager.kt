@@ -83,37 +83,37 @@ class SoundManager(private val context: Context) {
         return isReady
     }
 
-    fun playMoveSound() {
+    fun playMoveSound(volume: Float) {
         if (isSoundReady(moveSoundId)) {
-            soundPool?.play(moveSoundId, 1.0f, 1.0f, 1, 0, 1.0f)
+            soundPool?.play(moveSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played move sound")
         } else {
             Log.d("SoundManager", "Move sound not ready or not loaded")
         }
     }
 
-    fun playWinSound() {
+    fun playWinSound(volume: Float) {
         if (isSoundReady(winSoundId)) {
-            soundPool?.play(winSoundId, 1.0f, 1.0f, 1, 0, 1.0f)
+            soundPool?.play(winSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played win sound")
         } else {
             Log.d("SoundManager", "Win sound not ready or not loaded")
         }
     }
 
-    fun playDrawSound() {
+    fun playDrawSound(volume: Float) {
         if (isSoundReady(drawSoundId)) {
-            soundPool?.play(drawSoundId, 1.0f, 1.0f, 1, 0, 1.0f)
+            soundPool?.play(drawSoundId, volume, volume, 1, 0, 1.0f)
             Log.d("SoundManager", "Played draw sound")
         } else {
             Log.d("SoundManager", "Draw sound not ready or not loaded")
         }
     }
 
-    fun playLoseSound() {
+    fun playLoseSound(volume: Float) {
         loseSoundId?.let {
             if (isSoundReady(it)) {
-                soundPool?.play(it, 1.0f, 1.0f, 1, 0, 1.0f)
+                soundPool?.play(it, volume, volume, 1, 0, 1.0f)
                 Log.d("SoundManager", "Played lose sound")
             } else {
                 Log.d("SoundManager", "Lose sound not ready or not loaded")
@@ -121,10 +121,10 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    fun playComputerMoveSound() {
+    fun playComputerMoveSound(volume: Float) {
         computerMoveSoundId?.let {
             if (isSoundReady(it)) {
-                soundPool?.play(it, 1.0f, 1.0f, 1, 0, 1.0f)
+                soundPool?.play(it, volume, volume, 1, 0, 1.0f)
                 Log.d("SoundManager", "Played computer move sound")
             } else {
                 Log.d("SoundManager", "Computer move sound not ready or not loaded")
