@@ -145,14 +145,13 @@ fun RoundReplayScreen(
                 .shadow(4.dp, shape = RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
                 .background(colorResource(R.color.constraint_background))
-                .padding(10.dp) // Added padding around the grid cells
         ) {
             val buttonIds = List(9) { i -> "button${i + 1}" }
             buttonIds.forEach { buttonId ->
                 TicTacToeCell(
                     modifier = Modifier
                         .layoutId(buttonId)
-                        // Individual cell background can be set here if needed, e.g., .background(Color.White, RoundedCornerShape(8.dp))
+                        .background(Color.White, RoundedCornerShape(10.dp))
                         // For now, using the ConstraintLayout background.
                         .width(80.dp) // Adjust size as needed, considering padding
                         .height(80.dp),// Adjust size as needed, considering padding
