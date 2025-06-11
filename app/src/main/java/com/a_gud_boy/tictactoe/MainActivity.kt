@@ -97,8 +97,8 @@ class TicTacToeViewModelFactory(
             modelClass.isAssignableFrom(RoundReplayViewModel::class.java) ->
                 RoundReplayViewModel(
                     appDatabase.matchDao(),
-                    appDatabase.roundDao(),
-                    appDatabase.moveDao(),
+                    // appDatabase.roundDao(), // Removed as per subtask
+                    // appDatabase.moveDao(),  // Removed as per subtask (and ViewModel update)
                     savedStateHandle
                 ) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
