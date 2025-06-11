@@ -22,9 +22,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Replay // For FAB
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton // For FAB
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination // For FAB navigation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,37 +69,57 @@ fun HistoryPage(
     // onShowInfoDialog: (title: String, message: String) -> Unit // REMOVED
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
+    val statistics by historyViewModel.matchStatistics.collectAsState() // Collect statistics
     var showDeleteMatchConfirmDialog by remember { mutableStateOf<MatchWithRoundsAndMoves?>(null) }
 
-    // No Scaffold or TopAppBar here
-
-    Column( // Or Box, whatever was the root content
-        modifier = Modifier
-            .padding(
-                start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
-                bottom = innerPadding.calculateBottomPadding()
-            )
-            .fillMaxSize()
-            .background(colorResource(R.color.background)) // Keep background if needed
-    ) {
-        if (matchHistory.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No match history yet.", fontSize = 18.sp)
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) { // This LazyColumn might not need another .fillMaxSize() if parent Column has it
-                items(matchHistory) { matchWithRoundsAndMoves ->
-                    MatchHistoryItem(
-                        matchWithRoundsAndMoves = matchWithRoundsAndMoves,
-                        navController = navController,
-                        onDeleteClicked = { showDeleteMatchConfirmDialog = matchWithRoundsAndMoves }
-                    )
+    Box(modifier = Modifier.fillMaxSize()) { // Root Box for FAB alignment
+        Column(
+            modifier = Modifier
+                .padding(innerPadding) // Apply Scaffold's padding here
+                .fillMaxSize()
+                .background(colorResource(R.color.background))
+        ) {
+            if (matchHistory.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(), // Takes full space of the Column
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No match history yet.", fontSize = 18.sp)
+                    // OverallStatsSection will not be shown here as per logic below
                 }
+            } else {
+                LazyColumn(modifier = Modifier.weight(1f)) { // LazyColumn takes available space
+                    items(matchHistory) { matchWithRoundsAndMoves ->
+                        MatchHistoryItem(
+                            matchWithRoundsAndMoves = matchWithRoundsAndMoves,
+                            navController = navController,
+                            onDeleteClicked = { showDeleteMatchConfirmDialog = matchWithRoundsAndMoves }
+                        )
+                    }
+                }
+                OverallStatsSection(stats = statistics) // Display stats below the list
             }
         }
 
-        // Dialog for clearing ALL history
+        // FloatingActionButton
+        FloatingActionButton(
+            onClick = {
+                navController.navigate("MainPage") { // Ensure "MainPage" is correct
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp) // Padding for the FAB itself
+        ) {
+            Icon(Icons.Filled.Replay, contentDescription = "Play Again")
+        }
+
+        // Dialogs remain at this level, within the Box but outside the Column
         if (showClearConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { onShowClearConfirmDialogChange(false) },
@@ -130,6 +153,28 @@ fun HistoryPage(
                     Button(onClick = { showDeleteMatchConfirmDialog = null }) { Text("Cancel") }
                 }
             )
+        }
+    } // End of Root Box
+}
+
+@Composable
+fun OverallStatsSection(stats: MatchStatistics) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Overall Statistics", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Total Matches: ${stats.totalMatches}")
+            Text("You Won: ${stats.playerWins}")
+            Text("AI Won: ${stats.aiWins}")
+            Text("Draws: ${stats.draws}")
         }
     }
 }
