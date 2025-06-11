@@ -72,17 +72,19 @@ fun HistoryPage(
     val statistics by historyViewModel.matchStatistics.collectAsState() // Collect statistics
     var showDeleteMatchConfirmDialog by remember { mutableStateOf<MatchWithRoundsAndMoves?>(null) }
 
-    Box(modifier = Modifier.fillMaxSize()) { // Root Box for FAB alignment
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorResource(R.color.background))
+    ) { // Root Box for FAB alignment
         Column(
             modifier = Modifier
                 .padding(
                     start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
                     end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
                     bottom = innerPadding.calculateBottomPadding()
-                ) // Apply Scaffold's padding
-//                .padding(innerPadding) // Apply Scaffold's padding here
+                )
                 .fillMaxSize()
-                .background(colorResource(R.color.background))
         ) {
             if (matchHistory.isEmpty()) {
                 Box(
@@ -98,7 +100,9 @@ fun HistoryPage(
                         MatchHistoryItem(
                             matchWithRoundsAndMoves = matchWithRoundsAndMoves,
                             navController = navController,
-                            onDeleteClicked = { showDeleteMatchConfirmDialog = matchWithRoundsAndMoves }
+                            onDeleteClicked = {
+                                showDeleteMatchConfirmDialog = matchWithRoundsAndMoves
+                            }
                         )
                     }
                 }
@@ -168,13 +172,20 @@ fun OverallStatsSection(stats: MatchStatistics) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(colorResource(R.color.constraint_background))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Overall Statistics", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Overall Statistics",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text("Total Matches: ${stats.totalMatches}")
             Text("You Won: ${stats.playerWins}")
