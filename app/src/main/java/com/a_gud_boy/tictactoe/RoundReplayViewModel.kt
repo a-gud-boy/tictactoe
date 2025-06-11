@@ -6,21 +6,28 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class RoundReplayViewModel(
-    private val matchDao: MatchDao, // Keep if match-level data might be needed later
-    private val roundDao: RoundDao, // Keep if round-level data might be needed later
-    private val moveDao: MoveDao,
-    savedStateHandle: SavedStateHandle // Renamed to avoid conflict with class member
+    private val matchDao: MatchDao,
+    private val roundDao: RoundDao, // Keep for now, might be useful for round-specific info later
+    // private val moveDao: MoveDao, // Removed
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val matchId: Long = savedStateHandle.get<Long>("matchId") ?: throw IllegalStateException("matchId not found in SavedStateHandle")
+    // matchId from SavedStateHandle is now used for fetching via matchDao
+    val matchIdFromNav: Long = savedStateHandle.get<Long>("matchId") ?: throw IllegalStateException("matchId not found in SavedStateHandle")
     val roundId: Long = savedStateHandle.get<Long>("roundId") ?: throw IllegalStateException("roundId not found in SavedStateHandle")
 
     private val _moves = MutableStateFlow<List<MoveEntity>>(emptyList())
     val moves: StateFlow<List<MoveEntity>> = _moves.asStateFlow()
+
+    // It seems matchId was intended for fetching, not direct exposure.
+    // If matchId (the database ID) is needed by UI, it can be exposed,
+    // but typically matchNumber (human-readable) is preferred for UI if available.
+    // For this ViewModel, matchIdFromNav is used internally for fetching.
 
     private val _currentMoveIndex = MutableStateFlow(-1)
     val currentMoveIndex: StateFlow<Int> = _currentMoveIndex.asStateFlow()
@@ -35,11 +42,27 @@ class RoundReplayViewModel(
 
     private fun loadMoves() {
         viewModelScope.launch {
-            // Assuming getMovesForRound returns List<MoveEntity> directly, not a Flow
-            // If it returns a Flow, collect it: _moves.value = moveDao.getMovesForRound(roundId).first()
-            _moves.value = moveDao.getMovesForRound(roundId)
-            // After loading moves, currentMoveIndex is still -1, so grid will be empty
-            // updateGridState will be triggered by the combine operator
+            // matchIdFromNav is the match's primary key (id), not matchNumber.
+            // The route was changed to pass matchNumber, but SavedStateHandle for ViewModel still expects "matchId" as key.
+            // This needs to be consistent. Assuming "matchId" in SavedStateHandle is indeed the MatchEntity.id
+            // If "matchId" from nav args is actually matchNumber, then the DAO call needs to change or ViewModel needs matchNumber.
+            // For now, assuming matchIdFromNav is the correct MatchEntity.id for the DAO.
+            matchDao.getMatchWithRoundsAndMovesById(matchIdFromNav).collectLatest { matchDetails ->
+                if (matchDetails != null) {
+                    val foundRound = matchDetails.roundsWithMoves.find { it.round.id == roundId }
+                    if (foundRound != null) {
+                        _moves.value = foundRound.moves
+                    } else {
+                        _moves.value = emptyList()
+                        // Log or handle case where specific roundId is not found in the match
+                        println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.id}")
+                    }
+                } else {
+                    _moves.value = emptyList()
+                    // Log or handle case where matchId is not found
+                    println("RoundReplayViewModel: Match with id $matchIdFromNav not found.")
+                }
+            }
         }
     }
 
