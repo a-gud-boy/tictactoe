@@ -6,13 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import com.a_gud_boy.tictactoe.AISettingsManager
-import com.a_gud_boy.tictactoe.HapticFeedbackManager
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme // Ensure this import is present
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
 
 // ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
 
@@ -36,6 +36,8 @@ class TicTacToeViewModelFactory(
     private val appDatabase: AppDatabase // Added AppDatabase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        // This version of create is kept for compatibility if still called directly by older framework versions
+        // or if CreationExtras are not available. It cannot create MatchDetailsViewModel.
         if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return NormalTicTacToeViewModel(
@@ -58,7 +60,36 @@ class TicTacToeViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return HistoryViewModel(appDatabase.matchDao()) as T
         }
+        if (modelClass.isAssignableFrom(MatchDetailsViewModel::class.java)) {
+            throw IllegalArgumentException("MatchDetailsViewModel requires SavedStateHandle. Use create(modelClass, extras) instead.")
+        }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+    }
+
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+        val savedStateHandle = extras.createSavedStateHandle()
+
+        return when {
+            modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java) ->
+                NormalTicTacToeViewModel(
+                    soundManager,
+                    appDatabase.matchDao(),
+                    appDatabase.roundDao(),
+                    appDatabase.moveDao()
+                ) as T
+            modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java) ->
+                InfiniteTicTacToeViewModel(
+                    soundManager,
+                    appDatabase.matchDao(),
+                    appDatabase.roundDao(),
+                    appDatabase.moveDao()
+                ) as T
+            modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
+                HistoryViewModel(appDatabase.matchDao()) as T
+            modelClass.isAssignableFrom(MatchDetailsViewModel::class.java) ->
+                MatchDetailsViewModel(appDatabase.matchDao(), savedStateHandle) as T // Pass the created SavedStateHandle
+            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        }
     }
 }
 

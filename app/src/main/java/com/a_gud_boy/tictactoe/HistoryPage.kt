@@ -2,141 +2,288 @@ package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-// It seems Icons.AutoMirrored.Filled.ArrowBack is not available directly.
-// If needed, it would typically be: import androidx.compose.material.icons.automirrored.filled.ArrowBack
-// For now, I will remove the navigationIcon from TopAppBar as it was commented out in the prompt.
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton // For FAB
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color // Import Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.LayoutDirection
+import android.text.format.DateUtils // Import for relative time
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination // For FAB navigation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.lifecycle.viewmodel.compose.viewModel // For viewModel() composable
+
+// Define colors for win, loss, and draw
+val winColor = Color(0xFF4CAF50) // Green
+val lossColor = Color(0xFFF44336) // Red
+val drawColor = Color(0xFF9E9E9E) // Gray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryPage(
-    innerPadding: PaddingValues,
-    showClearConfirmDialog: Boolean, // New parameter for state
-    onShowClearConfirmDialogChange: (Boolean) -> Unit, // New parameter for state change
+    innerPadding: PaddingValues, // RE-ADDED
+    showClearConfirmDialog: Boolean,
+    onShowClearConfirmDialogChange: (Boolean) -> Unit,
     historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current),
+    navController: NavController
+    // onShowInfoDialog: (title: String, message: String) -> Unit // REMOVED
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
-    // Removed local state: var showClearConfirmDialog by remember { mutableStateOf(false) }
+    val statistics by historyViewModel.matchStatistics.collectAsState() // Collect statistics
+    var showDeleteMatchConfirmDialog by remember { mutableStateOf<MatchWithRoundsAndMoves?>(null) }
 
-    // Scaffold has been removed
-    // TopAppBar and its actions have been removed
-
-    // The main content Column now uses innerPadding
-    Column(
+    Box(
         modifier = Modifier
-            .padding(innerPadding)
             .fillMaxSize()
             .background(colorResource(R.color.background))
-    ) {
-        if (matchHistory.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No match history yet.", fontSize = 18.sp)
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(matchHistory) { matchWithRoundsAndMoves ->
-                    MatchHistoryItem(matchWithRoundsAndMoves = matchWithRoundsAndMoves)
+    ) { // Root Box for FAB alignment
+        Column(
+            modifier = Modifier
+                .padding(
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+                    bottom = innerPadding.calculateBottomPadding()
+                )
+                .fillMaxSize()
+        ) {
+            if (matchHistory.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(), // Takes full space of the Column
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No match history yet.", fontSize = 18.sp)
+                    // OverallStatsSection will not be shown here as per logic below
                 }
+            } else {
+                LazyColumn(modifier = Modifier.weight(1f)) { // LazyColumn takes available space
+                    items(matchHistory) { matchWithRoundsAndMoves ->
+                        MatchHistoryItem(
+                            matchWithRoundsAndMoves = matchWithRoundsAndMoves,
+                            navController = navController,
+                            onDeleteClicked = {
+                                showDeleteMatchConfirmDialog = matchWithRoundsAndMoves
+                            }
+                        )
+                    }
+                }
+                OverallStatsSection(stats = statistics) // Display stats below the list
             }
         }
-    }
-    // This curly brace was the end of the Scaffold's content lambda, now it's the end of the Column
 
-    // The AlertDialog now uses the passed-in state and lambda
-    if (showClearConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { onShowClearConfirmDialogChange(false) }, // Use lambda
-            title = { Text("Clear History") },
-            text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        historyViewModel.clearAllHistory()
-                        onShowClearConfirmDialogChange(false) // Use lambda
+        // FloatingActionButton
+        FloatingActionButton(
+            onClick = {
+                navController.navigate("MainPage") { // Ensure "MainPage" is correct
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
                     }
-                ) { Text("Clear All") }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             },
-            dismissButton = {
-                Button(onClick = { onShowClearConfirmDialogChange(false) }) { Text("Cancel") } // Use lambda
-            }
-        )
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp) // Padding for the FAB itself
+        ) {
+            Icon(Icons.Filled.Refresh, contentDescription = "Play Again")
+        }
+
+        // Dialogs remain at this level, within the Box but outside the Column
+        if (showClearConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { onShowClearConfirmDialogChange(false) },
+                title = { Text("Clear All History") },
+                text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
+                confirmButton = {
+                    Button(onClick = {
+                        historyViewModel.clearAllHistory()
+                        onShowClearConfirmDialogChange(false)
+                    }) { Text("Clear All") }
+                },
+                dismissButton = {
+                    Button(onClick = { onShowClearConfirmDialogChange(false) }) { Text("Cancel") }
+                }
+            )
+        }
+
+        // Dialog for deleting a SINGLE match
+        showDeleteMatchConfirmDialog?.let { matchToDelete ->
+            AlertDialog(
+                onDismissRequest = { showDeleteMatchConfirmDialog = null },
+                title = { Text("Delete Match") },
+                text = { Text("Are you sure you want to delete this match history? This action cannot be undone.") },
+                confirmButton = {
+                    Button(onClick = {
+                        historyViewModel.deleteMatch(matchToDelete)
+                        showDeleteMatchConfirmDialog = null
+                    }) { Text("Delete") }
+                },
+                dismissButton = {
+                    Button(onClick = { showDeleteMatchConfirmDialog = null }) { Text("Cancel") }
+                }
+            )
+        }
+    } // End of Root Box
+}
+
+@Composable
+fun OverallStatsSection(stats: MatchStatistics) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(colorResource(R.color.constraint_background))
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Overall Statistics",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Total Matches: ${stats.totalMatches}")
+            Text("You Won: ${stats.playerWins}")
+            Text("AI Won: ${stats.aiWins}")
+            Text("Draws: ${stats.draws}")
+        }
     }
 }
 
 @Composable
-fun MatchHistoryItem(matchWithRoundsAndMoves: MatchWithRoundsAndMoves) {
-    var expanded by remember { mutableStateOf(false) }
+fun MatchHistoryItem(
+    matchWithRoundsAndMoves: MatchWithRoundsAndMoves,
+    navController: NavController,
+    onDeleteClicked: () -> Unit // New parameter
+) {
     val match = matchWithRoundsAndMoves.match
+    // Updated date formatter for 12-hour format with AM/PM
+    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault()) }
 
-    // Date formatter
-    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault()) }
+    val matchTimeMillis = match.timestamp
+    val now = System.currentTimeMillis()
+    val timeToDisplay = if (now - matchTimeMillis < 2 * 24 * 60 * 60 * 1000) { // Less than 2 days
+        DateUtils.getRelativeTimeSpanString(
+            matchTimeMillis,
+            now,
+            DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE // Use abbreviated format like "2 hr. ago"
+        ).toString()
+    } else {
+        dateFormatter.format(Date(matchTimeMillis))
+    }
 
-    Card(
+    val (textColor, borderColor) = when (match.winner) {
+        MatchWinner.PLAYER1 -> colorResource(R.color.numberOfWinsTextColor_x) to winColor
+        MatchWinner.PLAYER2 -> colorResource(R.color.numberOfWinsTextColor_o) to lossColor
+        MatchWinner.DRAW -> colorResource(R.color.darkTextColor) to drawColor
+    }
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable { expanded = !expanded },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Match #${match.matchNumber} - ${match.matchWinnerName}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand"
-                )
+            .padding(vertical = 4.dp) // Apply vertical padding to the Row
+            .clickable {
+                navController.navigate("match_details/${match.matchId}")
             }
-            Text(
-                text = "Date: ${dateFormatter.format(Date(match.timestamp))}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = "Score: P1 (${match.player1Score}) - P2 (${match.player2Score})",
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            if (expanded) {
-                Spacer(modifier = Modifier.height(12.dp))
-                matchWithRoundsAndMoves.roundsWithMoves.forEach { roundWithMoves ->
-                    RoundHistoryItem(roundWithMoves = roundWithMoves)
-                    Divider(modifier = Modifier.padding(vertical = 4.dp))
-                }
-                if (matchWithRoundsAndMoves.roundsWithMoves.isEmpty()) {
+    ) {
+        Box(
+            modifier = Modifier
+                .width(6.dp)
+                .fillMaxHeight()
+                .background(borderColor)
+        )
+        Card(
+            modifier = Modifier
+                .weight(1f) // Card takes remaining space
+                .padding(
+                    start = 8.dp,
+                    end = 8.dp
+                ), // Padding for the card itself, if needed, but might be better on content
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        "No rounds recorded for this match.",
-                        style = MaterialTheme.typography.bodySmall
+                        text = "Match #${match.matchNumber} - ${match.matchWinnerName}",
+                        color = textColor,
+                        fontSize = 20.sp, // Increased font size
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f) // Allow text to take space
                     )
+                    IconButton(onClick = onDeleteClicked) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Delete Match",
+                            tint = MaterialTheme.colorScheme.error // Optional: color the icon
+                        )
+                    }
                 }
+                Text(
+                    text = "Date: $timeToDisplay", // Use the new timeToDisplay string
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = "You: ${match.player1Score} – AI: ${match.player2Score}", // Updated score label
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                // if (expanded) { ... } block REMOVED
             }
         }
     }
 }
+
 
 @Composable
 fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
@@ -165,3 +312,5 @@ fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
         }
     }
 }
+
+

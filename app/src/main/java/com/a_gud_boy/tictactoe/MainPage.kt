@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete // Ensure Delete is imported
 import androidx.compose.material.icons.filled.Menu
@@ -44,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import android.util.Log
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +54,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 
 /**
@@ -91,6 +99,8 @@ fun MainPage() { // Removed viewModelFactory parameter
     // Order: Normal, Infinite, History, Settings, Help
     val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "History", "Settings", "Help")
 
+    val navController = rememberNavController() // NavController for History section
+
     ModalNavigationDrawer(
         drawerContent = {
             ModalDrawerSheet {
@@ -104,14 +114,26 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    selectedItemIndex = index
-                                    // Potentially navigate to a new screen here
-                                    // And close the drawer
-                                    scope.launch {
-                                        drawerState.close()
+                                    if (index == 2) { // History item
+                                        if (selectedItemIndex == 2) { // Already on History section
+                                            // If on match_details, pop back to history_list
+                                            if (navController.currentBackStackEntry?.destination?.route != "history_list") {
+                                                navController.navigate("history_list") {
+                                                    popUpTo(navController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                }
+                                            }
+                                            // If already on history_list, do nothing extra, just close drawer.
+                                        } else {
+                                            selectedItemIndex = index // Switch to History section
+                                            // NavHost will show "history_list" by default when selectedItemIndex becomes 2
+                                        }
+                                    } else {
+                                        selectedItemIndex = index
                                     }
+                                    scope.launch { drawerState.close() }
                                 },
-                                // icon = { Icon( /* ... */ ) } // Optional icon
                                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                                 colors = NavigationDrawerItemDefaults.colors(
                                     // For unselected items
@@ -172,17 +194,28 @@ fun MainPage() { // Removed viewModelFactory parameter
     ) {
         Scaffold(
             topBar = {
+                // TopAppBar is now always visible, title and actions adapt based on selectedItemIndex
                 TopAppBar(
                     title = {
+                        val titleText = when (selectedItemIndex) {
+                            0 -> "Tic Tac Toe"
+                            1 -> "Infinite TicTacToe"
+                            2 -> {
+                                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                val currentRoute = navBackStackEntry?.destination?.route
+                                if (currentRoute?.startsWith("match_details/") == true) {
+                                    "Match Details"
+                                } else {
+                                    // Reverted title for history_list
+                                    "History"
+                                }
+                            }
+                            3 -> "Settings"
+                            4 -> "Help"
+                            else -> "Lorem Ipsum"
+                        }
                         Text(
-                            when (selectedItemIndex) {
-                                0 -> "Tic Tac Toe"
-                                1 -> "Infinite Tic Tac Toe"
-                                2 -> "History" // Title for History Page
-                                3 -> "Settings"
-                                4 -> "Help"
-                                else -> "Lorem Ipsum"
-                            },
+                            text = titleText,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.labelMedium,
@@ -191,46 +224,47 @@ fun MainPage() { // Removed viewModelFactory parameter
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.open()
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        if (selectedItemIndex == 2 && currentRoute?.startsWith("match_details/") == true) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                             }
-                        }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                        } else {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                            }
                         }
                     },
                     actions = {
-                        if (selectedItemIndex == 2) { // History Page
-                            // Clear History Icon Button
-                            IconButton(onClick = { showClearHistoryDialog = true }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
-                            }
-                            // Info Icon Button for History Page
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        if (selectedItemIndex == 2) {
+                            if (currentRoute == "history_list") {
+                                IconButton(onClick = { showClearHistoryDialog = true }) {
+                                    Icon(Icons.Filled.Delete, contentDescription = "Clear History")
+                                }
+                                IconButton(onClick = {
+                                    infoDialogTitle = "Match History"
+                                    infoDialogMessage = "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                    showInfoDialog = true
+                                }) {
+                                    Icon(Icons.Outlined.Info, contentDescription = "Information")
+                                }
+                            } // Else (on match_details), no actions
+                        } else { // Actions for other pages (selectedItemIndex != 2)
                             IconButton(onClick = {
-                                infoDialogTitle = "Match History"
-                                infoDialogMessage =
-                                    "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
-                                showInfoDialog = true
-                            }) {
-                                Icon(Icons.Outlined.Info, contentDescription = "Information")
-                            }
-                        } else { // Other Pages
-                            // Default Info Icon Button
-                            IconButton(onClick = {
-                                // Logic to set infoDialogTitle and infoDialogMessage based on selectedItemIndex (excluding index 2)
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
                                         infoDialogTitle = "Normal Tic Tac Toe"
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
-
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
-
                                     3 -> { // Settings
                                         infoDialogTitle = "Settings"
                                         infoDialogMessage =
@@ -240,7 +274,6 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                     "- AI Mode: Enable or disable playing against the AI.\n" +
                                                     "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
-
                                     4 -> { // Help
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
@@ -264,7 +297,10 @@ fun MainPage() { // Removed viewModelFactory parameter
                 )
             }) { innerPadding ->
 
-            if (showInfoDialog) {
+            // Removed Log.d call for PaddingDebug and associated topPaddingValue variable
+
+            // Manage general info dialog (previously, this was not conditional for selectedItemIndex == 2)
+            if (showInfoDialog && selectedItemIndex != 2) { // Ensure this dialog doesn't conflict with history-specific info if any
                 AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
                     title = { Text(text = infoDialogTitle) },
@@ -275,7 +311,21 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     }
                 )
+            } else if (showInfoDialog && selectedItemIndex == 2) {
+                // This is for the History Page's own info dialog, triggered by its TopAppBar action
+                // The state `showInfoDialog` is shared, which is fine.
+                 AlertDialog(
+                    onDismissRequest = { showInfoDialog = false },
+                    title = { Text(text = infoDialogTitle) }, // This title should be set by History's action
+                    text = { Text(text = infoDialogMessage) }, // This message should be set by History's action
+                    confirmButton = {
+                        Button(onClick = { showInfoDialog = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
+
 
             when (selectedItemIndex) {
                 0 -> {
@@ -294,12 +344,31 @@ fun MainPage() { // Removed viewModelFactory parameter
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
 
-                2 -> { // History Page
-                    HistoryPage(
-                        innerPadding = innerPadding,
-                        showClearConfirmDialog = showClearHistoryDialog,
-                        onShowClearConfirmDialogChange = { showClearHistoryDialog = it }
-                    )
+                2 -> { // History Page uses NavHost now
+                    // Modifier.padding(innerPadding) is applied to the NavHost
+                    // so that the NavHost itself is placed correctly within MainPage's Scaffold content area.
+                    // When selectedItemIndex == 2, MainPage's TopAppBar is hidden, so innerPadding.top should be 0.
+                    // HistoryPage and MatchDetailsPage use their own Scaffolds and will handle their own internal padding.
+                    NavHost(navController = navController, startDestination = "history_list", modifier = Modifier.padding(innerPadding)) {
+                        composable("history_list") {
+                            HistoryPage(
+                                innerPadding = innerPadding, // PASS MainPage's Scaffold innerPadding
+                                showClearConfirmDialog = showClearHistoryDialog,
+                                onShowClearConfirmDialogChange = { showClearHistoryDialog = it },
+                                navController = navController
+                                // onShowInfoDialog lambda is removed as Info button is now in MainPage's TopAppBar
+                            )
+                        }
+                        composable(
+                            route = "match_details/{matchId}",
+                            arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+                        ) { // backStackEntry is implicitly available from the lambda
+                            MatchDetailsPage(
+                                innerPadding = innerPadding, // Pass innerPadding
+                                navController = navController
+                            )
+                        }
+                    }
                 }
 
                 3 -> { // Settings
