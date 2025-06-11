@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember // Added for SimpleDateFormat
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +35,14 @@ fun MatchDetailsPage(
 
     // Removed Scaffold and TopAppBar
 
-    Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) { // Apply innerPadding here
+    Box(modifier = Modifier
+        .padding(
+            start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+            end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+            bottom = innerPadding.calculateBottomPadding()
+        )
+        .fillMaxSize()
+    ) { // Apply specific padding components here
         matchWithRoundsAndMoves?.let { details ->
             LazyColumn(
                 modifier = Modifier

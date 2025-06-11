@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import android.util.Log
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -205,7 +206,9 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 if (currentRoute?.startsWith("match_details/") == true) {
                                     "Match Details"
                                 } else {
-                                    "History"
+                                    // Optional: Display padding in title for history_list
+                                    val topPadding = innerPadding.calculateTopPadding() // Calculate here
+                                    "History - Pad: $topPadding"
                                 }
                             }
                             3 -> "Settings"
@@ -295,9 +298,14 @@ fun MainPage() { // Removed viewModelFactory parameter
                 )
             }) { innerPadding ->
 
-            if (showInfoDialog) {
-            // The rest of the Scaffold content (AlertDialog and when(selectedItemIndex) block) remains the same for now
-            // The when(selectedItemIndex) block will be modified in the next step to include the NavHost
+            // Log top padding when History section is active
+            if (selectedItemIndex == 2) {
+                val topPaddingValue = innerPadding.calculateTopPadding()
+                Log.d("PaddingDebug", "MainPage Scaffold innerPadding for History section (selectedItemIndex == 2): $topPaddingValue")
+            }
+
+            // Manage general info dialog (previously, this was not conditional for selectedItemIndex == 2)
+            if (showInfoDialog && selectedItemIndex != 2) { // Ensure this dialog doesn't conflict with history-specific info if any
                 AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
                     title = { Text(text = infoDialogTitle) },
@@ -308,7 +316,21 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     }
                 )
+            } else if (showInfoDialog && selectedItemIndex == 2) {
+                // This is for the History Page's own info dialog, triggered by its TopAppBar action
+                // The state `showInfoDialog` is shared, which is fine.
+                 AlertDialog(
+                    onDismissRequest = { showInfoDialog = false },
+                    title = { Text(text = infoDialogTitle) }, // This title should be set by History's action
+                    text = { Text(text = infoDialogMessage) }, // This message should be set by History's action
+                    confirmButton = {
+                        Button(onClick = { showInfoDialog = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
+
 
             when (selectedItemIndex) {
                 0 -> {
