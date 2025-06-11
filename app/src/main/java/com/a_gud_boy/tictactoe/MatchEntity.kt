@@ -1,7 +1,6 @@
 package com.a_gud_boy.tictactoe
 
 
-
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey

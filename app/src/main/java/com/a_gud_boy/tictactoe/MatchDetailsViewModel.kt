@@ -3,6 +3,7 @@ package com.a_gud_boy.tictactoe
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -15,6 +16,7 @@ class MatchDetailsViewModel(
 
     private val matchId: StateFlow<Long?> = savedStateHandle.getStateFlow("matchId", null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val matchDetails: StateFlow<MatchWithRoundsAndMoves?> = matchId.flatMapLatest { id ->
         if (id != null) {
             matchDao.getMatchWithRoundsAndMovesById(id)

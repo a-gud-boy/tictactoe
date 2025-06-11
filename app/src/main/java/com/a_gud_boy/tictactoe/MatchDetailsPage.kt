@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack // Correct import for ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,13 +36,14 @@ fun MatchDetailsPage(
 
     // Removed Scaffold and TopAppBar
 
-    Box(modifier = Modifier
-        .padding(
-            start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-            end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
-            bottom = innerPadding.calculateBottomPadding()
-        )
-        .fillMaxSize()
+    Box(
+        modifier = Modifier
+            .padding(
+                start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+                bottom = innerPadding.calculateBottomPadding()
+            )
+            .fillMaxSize()
     ) { // Apply specific padding components here
         matchWithRoundsAndMoves?.let { details ->
             LazyColumn(
@@ -52,32 +54,32 @@ fun MatchDetailsPage(
             ) {
                 item {
                     MatchSummaryCard(match = details.match, dateFormatter = dateFormatter)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    if (details.roundsWithMoves.isNotEmpty()) {
-                        items(details.roundsWithMoves.size) { index ->
-                            RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index]) // Re-use existing RoundHistoryItem
-                            if (index < details.roundsWithMoves.size - 1) {
-                                Divider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-                        }
-                    } else {
-                        item {
-                            Text(
-                                "No rounds recorded for this match.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            } ?: run {
-                // Show loading indicator or empty state if needed
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator() // Or Text("Loading match details...") or Text("Match not found.")
+                if (details.roundsWithMoves.isNotEmpty()) {
+                    items(details.roundsWithMoves.size) { index ->
+                        RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index]) // Re-use existing RoundHistoryItem
+                        if (index < details.roundsWithMoves.size - 1) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+                    }
+                } else {
+                    item {
+                        Text(
+                            "No rounds recorded for this match.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
+        } ?: run {
+            // Show loading indicator or empty state if needed
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator() // Or Text("Loading match details...") or Text("Match not found.")
+            }
         }
+    }
     // Removed closing brace for Scaffold
 }
 

@@ -210,6 +210,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                                     "History"
                                 }
                             }
+
                             3 -> "Settings"
                             4 -> "Help"
                             else -> "Lorem Ipsum"
@@ -228,7 +229,10 @@ fun MainPage() { // Removed viewModelFactory parameter
                         val currentRoute = navBackStackEntry?.destination?.route
                         if (selectedItemIndex == 2 && currentRoute?.startsWith("match_details/") == true) {
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
                             }
                         } else {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -246,7 +250,8 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 }
                                 IconButton(onClick = {
                                     infoDialogTitle = "Match History"
-                                    infoDialogMessage = "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                    infoDialogMessage =
+                                        "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
                                     showInfoDialog = true
                                 }) {
                                     Icon(Icons.Outlined.Info, contentDescription = "Information")
@@ -260,11 +265,13 @@ fun MainPage() { // Removed viewModelFactory parameter
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
+
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
+
                                     3 -> { // Settings
                                         infoDialogTitle = "Settings"
                                         infoDialogMessage =
@@ -274,6 +281,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                     "- AI Mode: Enable or disable playing against the AI.\n" +
                                                     "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
+
                                     4 -> { // Help
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
@@ -314,7 +322,7 @@ fun MainPage() { // Removed viewModelFactory parameter
             } else if (showInfoDialog && selectedItemIndex == 2) {
                 // This is for the History Page's own info dialog, triggered by its TopAppBar action
                 // The state `showInfoDialog` is shared, which is fine.
-                 AlertDialog(
+                AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
                     title = { Text(text = infoDialogTitle) }, // This title should be set by History's action
                     text = { Text(text = infoDialogMessage) }, // This message should be set by History's action
@@ -349,7 +357,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                     // so that the NavHost itself is placed correctly within MainPage's Scaffold content area.
                     // When selectedItemIndex == 2, MainPage's TopAppBar is hidden, so innerPadding.top should be 0.
                     // HistoryPage and MatchDetailsPage use their own Scaffolds and will handle their own internal padding.
-                    NavHost(navController = navController, startDestination = "history_list", modifier = Modifier.padding(innerPadding)) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "history_list",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
                         composable("history_list") {
                             HistoryPage(
                                 innerPadding = innerPadding, // PASS MainPage's Scaffold innerPadding

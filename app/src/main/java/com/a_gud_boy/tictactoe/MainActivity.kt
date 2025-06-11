@@ -77,6 +77,7 @@ class TicTacToeViewModelFactory(
                     appDatabase.roundDao(),
                     appDatabase.moveDao()
                 ) as T
+
             modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java) ->
                 InfiniteTicTacToeViewModel(
                     soundManager,
@@ -84,10 +85,15 @@ class TicTacToeViewModelFactory(
                     appDatabase.roundDao(),
                     appDatabase.moveDao()
                 ) as T
+
             modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
                 HistoryViewModel(appDatabase.matchDao()) as T
+
             modelClass.isAssignableFrom(MatchDetailsViewModel::class.java) ->
-                MatchDetailsViewModel(appDatabase.matchDao(), savedStateHandle) as T // Pass the created SavedStateHandle
+                MatchDetailsViewModel(
+                    appDatabase.matchDao(),
+                    savedStateHandle
+                ) as T // Pass the created SavedStateHandle
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }
