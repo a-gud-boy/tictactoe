@@ -49,13 +49,13 @@ class RoundReplayViewModel(
             // For now, assuming matchIdFromNav is the correct MatchEntity.id for the DAO.
             matchDao.getMatchWithRoundsAndMovesById(matchIdFromNav).collectLatest { matchDetails ->
                 if (matchDetails != null) {
-                    val foundRound = matchDetails.roundsWithMoves.find { it.round.id == roundId }
+                    val foundRound = matchDetails.roundsWithMoves.find { it.round.roundId == roundId }
                     if (foundRound != null) {
                         _moves.value = foundRound.moves
                     } else {
                         _moves.value = emptyList()
                         // Log or handle case where specific roundId is not found in the match
-                        println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.id}")
+                        println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.matchId}")
                     }
                 } else {
                     _moves.value = emptyList()

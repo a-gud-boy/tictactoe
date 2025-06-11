@@ -90,7 +90,7 @@ fun MatchDetailsPage(
                             RoundHistoryItem(
                                 roundWithMoves = details.roundsWithMoves[index],
                                 navController = navController,
-                                matchId = details.match.id // Reverted to matchId
+                                matchId = details.match.matchId // Reverted to matchId
                             )
                         }
                         if (index < details.roundsWithMoves.size - 1) {
@@ -235,7 +235,7 @@ fun RoundHistoryItem(
             .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
             .fillMaxWidth() // Ensure the clickable area covers the width
             .clickable {
-                navController.navigate("roundReplay/${matchId}/${round.id}") // Reverted to matchId
+                navController.navigate("roundReplay/${matchId}/${round.roundId}") // Reverted to matchId
             }
     ) {
         Text(

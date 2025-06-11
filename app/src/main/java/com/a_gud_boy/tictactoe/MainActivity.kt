@@ -97,7 +97,7 @@ class TicTacToeViewModelFactory(
             modelClass.isAssignableFrom(RoundReplayViewModel::class.java) ->
                 RoundReplayViewModel(
                     appDatabase.matchDao(),
-                    // appDatabase.roundDao(), // Removed as per subtask
+                    appDatabase.roundDao(), // Removed as per subtask
                     // appDatabase.moveDao(),  // Removed as per subtask (and ViewModel update)
                     savedStateHandle
                 ) as T
