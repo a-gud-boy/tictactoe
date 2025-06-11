@@ -90,7 +90,7 @@ fun MatchDetailsPage(
                             RoundHistoryItem(
                                 roundWithMoves = details.roundsWithMoves[index],
                                 navController = navController,
-                                matchId = details.match.id
+                                matchNumber = details.match.matchNumber // Changed from matchId to matchNumber
                             )
                         }
                         if (index < details.roundsWithMoves.size - 1) {
@@ -227,7 +227,7 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 fun RoundHistoryItem(
     roundWithMoves: RoundWithMoves,
     navController: NavController,
-    matchId: Long
+    matchNumber: Long // Changed from matchId to matchNumber
 ) {
     val round = roundWithMoves.round
     Column(
@@ -235,7 +235,7 @@ fun RoundHistoryItem(
             .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
             .fillMaxWidth() // Ensure the clickable area covers the width
             .clickable {
-                navController.navigate("roundReplay/${matchId}/${round.id}")
+                navController.navigate("roundReplay/${matchNumber}/${round.id}") // Changed from matchId to matchNumber
             }
     ) {
         Text(
