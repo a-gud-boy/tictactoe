@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import com.a_gud_boy.tictactoe.MatchWinner // Import MatchWinner
 
 // Player enum is now in its own file: Player.kt
 // AIDifficulty is now in its own file: AIDifficulty.kt
@@ -202,12 +203,19 @@ class NormalTicTacToeViewModel(
                 else -> "Match Drawn $p1FinalScore-$p2FinalScore"
             }
 
+            val winner = when {
+                p1FinalScore > p2FinalScore -> MatchWinner.PLAYER1
+                p2FinalScore > p1FinalScore -> MatchWinner.PLAYER2
+                else -> MatchWinner.DRAW
+            }
+
             val currentMatchNumber = matchDao.getMatchesCount() + 1
             val matchEntity = MatchEntity(
                 matchNumber = currentMatchNumber,
                 player1Score = p1FinalScore,
                 player2Score = p2FinalScore,
                 matchWinnerName = matchWinnerName,
+                winner = winner, // Pass the determined winner
                 timestamp = System.currentTimeMillis()
             )
 

@@ -26,4 +26,7 @@ interface MatchDao {
     // It might be good to have a way to get the count of matches, e.g. for the next matchNumber
     @Query("SELECT COUNT(matchId) FROM matches")
     suspend fun getMatchesCount(): Int
+
+    @Query("DELETE FROM matches WHERE matchId = :matchId")
+    suspend fun deleteMatchById(matchId: Long)
 }
