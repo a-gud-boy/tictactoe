@@ -43,6 +43,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.LayoutDirection
 import android.text.format.DateUtils // Import for relative time
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.foundation.BorderStroke // Required for border
+import androidx.compose.foundation.border // Required for border
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -289,29 +292,94 @@ fun MatchHistoryItem(
 @Composable
 fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
     val round = roundWithMoves.round
-    Column(modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp)) {
+    val movesCount = roundWithMoves.moves.size
+    val winnerText = if (round.roundWinnerName == "Draw") "Draw" else "${round.roundWinnerName} Won"
+
+    Column(modifier = Modifier.padding(16.dp)) { // Increased padding for Card content
         Text(
-            text = "Round ${round.roundNumber}: ${round.roundWinnerName}",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
+            text = "Round ${round.roundNumber}: $winnerText in $movesCount moves",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        // Spacer(modifier = Modifier.height(4.dp)) // Original Spacer, can be adjusted or removed
         if (roundWithMoves.moves.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp)) // Add more space before move list
             roundWithMoves.moves.forEachIndexed { index, move ->
+                val playerName = if (move.player == "X") "You" else "AI" // Assuming X is You, O is AI
+
+                val cellNumber = move.cellId.replace("button", "")
+                val descriptiveCellName = when (cellNumber) {
+                    "1" -> "top-left"
+                    "2" -> "top-center"
+                    "3" -> "top-right"
+                    "4" -> "middle-left"
+                    "5" -> "middle-center"
+                    "6" -> "middle-right"
+                    "7" -> "bottom-left"
+                    "8" -> "bottom-center"
+                    "9" -> "bottom-right"
+                    else -> "Cell $cellNumber" // Fallback for unknown cellId
+                }
+
                 Text(
-                    text = "  ${index + 1}. Player ${move.player} -> Cell ${
-                        move.cellId.replace(
-                            "button",
-                            ""
-                        )
-                    }",
+                    text = "  ${index + 1}. $playerName placed ${move.player} in $descriptiveCellName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         } else {
+            Spacer(modifier = Modifier.height(8.dp)) // Add space even if no moves
             Text("  No moves recorded for this round.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
 
+@Composable
+fun GameBoard(moves: List<MoveEntity>, playerXSymbol: String = "X", playerOSymbol: String = "O") {
+    val boardSize = 3
+    val boardState = remember { Array(boardSize) { arrayOfNulls<String>(boardSize) } }
 
+    // Reset board state for each recomposition if moves change
+    for (i in 0 until boardSize) {
+        for (j in 0 until boardSize) {
+            boardState[i][j] = null
+        }
+    }
+
+    moves.forEach { move ->
+        val cellNum = move.cellId.replace("button", "").toIntOrNull()
+        if (cellNum != null && cellNum in 1..(boardSize * boardSize)) {
+            val row = (cellNum - 1) / boardSize
+            val col = (cellNum - 1) % boardSize
+            boardState[row][col] = move.player
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        for (i in 0 until boardSize) {
+            Row {
+                for (j in 0 until boardSize) {
+                    val symbol = boardState[i][j]
+                    val cellColor = when (symbol) {
+                        playerXSymbol -> MaterialTheme.colorScheme.primary // Blue for X (You)
+                        playerOSymbol -> MaterialTheme.colorScheme.error   // Red for O (AI)
+                        else -> MaterialTheme.colorScheme.onSurface // Default color for empty or other
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp) // Cell size
+                            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)))
+                            .padding(4.dp), // Padding inside the cell
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = symbol ?: "",
+                            fontSize = 32.sp, // Large font for X/O
+                            color = cellColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

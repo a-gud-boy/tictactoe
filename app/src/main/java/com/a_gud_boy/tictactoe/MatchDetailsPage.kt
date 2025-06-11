@@ -1,23 +1,44 @@
 package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Correct import for ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember // Added for SimpleDateFormat
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.text.SimpleDateFormat
@@ -32,7 +53,7 @@ fun MatchDetailsPage(
     matchDetailsViewModel: MatchDetailsViewModel = viewModel(factory = LocalViewModelFactory.current)
 ) {
     val matchWithRoundsAndMoves by matchDetailsViewModel.matchDetails.collectAsState()
-    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault()) }
+    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault()) }
 
     // Removed Scaffold and TopAppBar
 
@@ -58,7 +79,15 @@ fun MatchDetailsPage(
                 }
                 if (details.roundsWithMoves.isNotEmpty()) {
                     items(details.roundsWithMoves.size) { index ->
-                        RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index]) // Re-use existing RoundHistoryItem
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
+                        ) {
+                            RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index])
+                        }
                         if (index < details.roundsWithMoves.size - 1) {
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
@@ -89,24 +118,88 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Determine result text color and icon based on winner
+            val resultColor: Color
+            val resultIcon: androidx.compose.ui.graphics.vector.ImageVector?
+
+            when (match.matchWinnerName) {
+                "You Won" -> {
+                    resultColor = MaterialTheme.colorScheme.primary // Greenish color from theme
+                    resultIcon = Icons.Filled.Check
+                }
+                "AI Won" -> {
+                    resultColor = MaterialTheme.colorScheme.error // Reddish color from theme
+                    resultIcon = Icons.Filled.Clear
+                }
+                else -> { // Draw or other states
+                    resultColor = MaterialTheme.colorScheme.onSurface // Neutral color
+                    resultIcon = null // No icon for draw
+                }
+            }
+
             Text(
-                text = "Match #${match.matchNumber} - ${match.matchWinnerName}",
-                style = MaterialTheme.typography.titleLarge, // Larger title for details page
+                text = "Match #${match.matchNumber}",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Increased spacing
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = match.matchWinnerName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = resultColor
+                )
+                resultIcon?.let {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = it,
+                        contentDescription = "Match Result Icon",
+                        tint = resultColor,
+                        modifier = Modifier.size(24.dp) // Adjust size as needed
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp)) // Increased spacing
             Text(
                 text = "Date: ${dateFormatter.format(Date(match.timestamp))}",
                 style = MaterialTheme.typography.bodyMedium
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Final Score: P1 (${match.player1Score}) - P2 (${match.player2Score})",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Spacer(modifier = Modifier.height(8.dp)) // Consistent spacing
+
+            // Row for Player Icons and Score
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Player Icon
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = "You Icon",
+                    modifier = Modifier.size(20.dp) // Slightly smaller icon for score line
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "You: ${match.player1Score}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.width(16.dp)) // Space between player scores
+
+                // AI Icon
+                Icon(
+                    imageVector = Icons.Filled.Add, // Or Icons.Filled.Adb as fallback
+                    contentDescription = "AI Icon",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "AI: ${match.player2Score}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
             // Add any other summary information from MatchEntity if desired
         }
     }
