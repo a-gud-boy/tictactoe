@@ -202,6 +202,7 @@ fun MatchHistoryItem(
     onDeleteClicked: () -> Unit // New parameter
 ) {
     val match = matchWithRoundsAndMoves.match
+    val opponentName = if (match.isAgainstAi) "AI" else "Player 2" // Added opponentName
     // Updated date formatter for 12-hour format with AM/PM
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault()) }
 
@@ -274,7 +275,7 @@ fun MatchHistoryItem(
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    text = "You: ${match.player1Score} – AI: ${match.player2Score}", // Updated score label
+                    text = "You: ${match.player1Score} – $opponentName: ${match.player2Score}", // Updated score label
                     style = MaterialTheme.typography.bodySmall
                 )
 

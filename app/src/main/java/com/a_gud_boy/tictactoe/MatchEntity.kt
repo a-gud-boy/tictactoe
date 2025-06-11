@@ -21,6 +21,7 @@ data class MatchEntity(
     val player2Score: Int,
     val matchWinnerName: String, // e.g., "You Won 2-1", "AI Won 3-0"
     val winner: MatchWinner, // New field for the actual winner
+    val isAgainstAi: Boolean = false, // New field
     val timestamp: Long = System.currentTimeMillis() // Store as Long
 )
 
