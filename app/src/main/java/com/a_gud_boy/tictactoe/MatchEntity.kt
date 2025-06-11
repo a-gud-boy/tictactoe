@@ -1,5 +1,11 @@
 package com.a_gud_boy.tictactoe
 
+enum class MatchWinner {
+    PLAYER1,
+    PLAYER2,
+    DRAW
+}
+
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -13,6 +19,7 @@ data class MatchEntity(
     val player1Score: Int,
     val player2Score: Int,
     val matchWinnerName: String, // e.g., "You Won 2-1", "AI Won 3-0"
+    val winner: MatchWinner, // New field for the actual winner
     val timestamp: Long = System.currentTimeMillis() // Store as Long
 )
 

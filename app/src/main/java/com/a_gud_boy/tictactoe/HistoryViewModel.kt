@@ -24,4 +24,10 @@ class HistoryViewModel(private val matchDao: MatchDao) : ViewModel() {
             matchDao.clearAllMatches()
         }
     }
+
+    fun deleteMatch(match: MatchWithRoundsAndMoves) {
+        viewModelScope.launch {
+            matchDao.deleteMatchById(match.match.matchId)
+        }
+    }
 }
