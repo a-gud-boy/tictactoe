@@ -28,65 +28,42 @@ import androidx.navigation.NavController // Added NavController import
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryPage(
-    // innerPadding: PaddingValues, // Removed, will use padding from its own Scaffold
+    innerPadding: PaddingValues, // RE-ADDED
     showClearConfirmDialog: Boolean,
     onShowClearConfirmDialogChange: (Boolean) -> Unit,
     historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current),
-    navController: NavController,
-    onShowInfoDialog: (title: String, message: String) -> Unit // For showing info dialog from MainPage
+    navController: NavController
+    // onShowInfoDialog: (title: String, message: String) -> Unit // REMOVED
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("History") },
-                actions = {
-                    IconButton(onClick = { onShowClearConfirmDialogChange(true) }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Clear History")
-                    }
-                    IconButton(onClick = {
-                        onShowInfoDialog(
-                            "Match History",
-                            "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
-                        )
-                    }) {
-                        Icon(Icons.Outlined.Info, contentDescription = "Information")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorResource(R.color.background),
-                    titleContentColor = colorResource(R.color.darkTextColor),
-                    actionIconContentColor = colorResource(R.color.darkTextColor)
-                )
-            )
-        }
-    ) { scaffoldPadding -> // Use padding from this Scaffold
-        Column(
-            modifier = Modifier
-                .padding(scaffoldPadding) // Use padding from this Scaffold
-                .fillMaxSize()
-                .background(colorResource(R.color.background))
-        ) {
-            if (matchHistory.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No match history yet.", fontSize = 18.sp)
-                }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(matchHistory) { matchWithRoundsAndMoves ->
-                        MatchHistoryItem(
-                            matchWithRoundsAndMoves = matchWithRoundsAndMoves,
-                            navController = navController
-                        )
-                    }
+    // No Scaffold or TopAppBar here
+
+    Column( // Or Box, whatever was the root content
+        modifier = Modifier
+            .padding(innerPadding) // APPLY innerPadding
+            .fillMaxSize()
+            .background(colorResource(R.color.background)) // Keep background if needed
+    ) {
+        if (matchHistory.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No match history yet.", fontSize = 18.sp)
+            }
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) { // This LazyColumn might not need another .fillMaxSize() if parent Column has it
+                items(matchHistory) { matchWithRoundsAndMoves ->
+                    MatchHistoryItem(
+                        matchWithRoundsAndMoves = matchWithRoundsAndMoves,
+                        navController = navController
+                    )
                 }
             }
         }
+    }
 
-        // The AlertDialog for clearing history is still triggered by showClearConfirmDialog
-        // which is a state managed in MainPage and passed down.
-        if (showClearConfirmDialog) {
+    // The AlertDialog for clearing history is still triggered by showClearConfirmDialog
+    // which is a state managed in MainPage and passed down.
+    if (showClearConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { onShowClearConfirmDialogChange(false) },
                 title = { Text("Clear History") },
@@ -123,7 +100,7 @@ fun MatchHistoryItem(
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .clickable {
                 // Navigate to details page, passing matchId
-                navController.navigate("match_details/\${match.matchId}")
+                navController.navigate("match_details/${match.matchId}")
             }, // MODIFIED
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

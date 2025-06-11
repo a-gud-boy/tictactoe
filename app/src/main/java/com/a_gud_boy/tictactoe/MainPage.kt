@@ -191,38 +191,47 @@ fun MainPage() { // Removed viewModelFactory parameter
     ) {
         Scaffold(
             topBar = {
-                // Only show TopAppBar if not in the History section (index 2)
-                // HistoryPage and MatchDetailsPage will have their own TopAppBars
-                if (selectedItemIndex != 2) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                when (selectedItemIndex) {
-                                    0 -> "Tic Tac Toe"
-                                    1 -> "Infinite Tic Tac Toe"
-                                    // Case 2 (History) is handled by NavHost content's own TopAppBar
-                                    3 -> "Settings"
-                                    4 -> "Help"
-                                    else -> "Lorem Ipsum"
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = 25.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = {
-                                scope.launch {
-                                    drawerState.open()
-                                }
-                            }) {
-                                Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                // TopAppBar is now always visible, title and actions adapt based on selectedItemIndex
+                TopAppBar(
+                    title = {
+                        Text(
+                            when (selectedItemIndex) {
+                                0 -> "Tic Tac Toe"
+                                1 -> "Infinite Tic Tac Toe"
+                                2 -> "History" // Title for History when MainPage's TopAppBar is shown
+                                3 -> "Settings"
+                                4 -> "Help"
+                                else -> "Lorem Ipsum"
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                drawerState.open()
                             }
-                        },
-                        actions = {
-                            // Actions for non-History pages (excluding index 2)
+                        }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                        }
+                    },
+                    actions = {
+                        if (selectedItemIndex == 2) { // History Actions
+                            IconButton(onClick = { showClearHistoryDialog = true }) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Clear History")
+                            }
+                            IconButton(onClick = {
+                                infoDialogTitle = "Match History"
+                                infoDialogMessage = "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                showInfoDialog = true
+                            }) {
+                                Icon(Icons.Outlined.Info, contentDescription = "Information")
+                            }
+                        } else { // Actions for other pages
                             IconButton(onClick = {
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
@@ -256,15 +265,15 @@ fun MainPage() { // Removed viewModelFactory parameter
                             }) {
                                 Icon(Icons.Outlined.Info, contentDescription = "Information")
                             }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = colorResource(R.color.background),
-                            titleContentColor = colorResource(R.color.darkTextColor),
-                            navigationIconContentColor = colorResource(R.color.darkTextColor),
-                            actionIconContentColor = colorResource(R.color.darkTextColor)
-                        )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colorResource(R.color.background),
+                        titleContentColor = colorResource(R.color.darkTextColor),
+                        navigationIconContentColor = colorResource(R.color.darkTextColor),
+                        actionIconContentColor = colorResource(R.color.darkTextColor)
                     )
-                }
+                )
             }) { innerPadding ->
 
             if (showInfoDialog) {
@@ -307,15 +316,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                     NavHost(navController = navController, startDestination = "history_list", modifier = Modifier.padding(innerPadding)) {
                         composable("history_list") {
                             HistoryPage(
-                                // HistoryPage now has its own Scaffold, so it doesn't take innerPadding from MainPage.
+                                innerPadding = innerPadding, // PASS MainPage's Scaffold innerPadding
                                 showClearConfirmDialog = showClearHistoryDialog,
                                 onShowClearConfirmDialogChange = { showClearHistoryDialog = it },
-                                navController = navController,
-                                onShowInfoDialog = { title, message -> // Pass lambda to show MainPage's dialog
-                                    infoDialogTitle = title
-                                    infoDialogMessage = message
-                                    showInfoDialog = true
-                                }
+                                navController = navController
+                                // onShowInfoDialog lambda is removed as Info button is now in MainPage's TopAppBar
                             )
                         }
                         composable(
