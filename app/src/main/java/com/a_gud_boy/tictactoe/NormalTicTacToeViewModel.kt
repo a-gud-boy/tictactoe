@@ -216,6 +216,7 @@ class NormalTicTacToeViewModel(
                 player2Score = p2FinalScore,
                 matchWinnerName = matchWinnerName,
                 winner = winner, // Pass the determined winner
+                isAgainstAi = _isAIMode.value, // <<< THIS LINE IS ADDED/MODIFIED
                 timestamp = System.currentTimeMillis()
             )
 

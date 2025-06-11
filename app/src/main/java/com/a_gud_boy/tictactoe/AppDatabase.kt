@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [MatchEntity::class, RoundEntity::class, MoveEntity::class],
-    version = 2, // Incremented version
+    version = 3, // Incremented version
     exportSchema = false // Recommended to set to true for production apps for schema history
 )
 @TypeConverters(MatchWinnerTypeConverter::class) // Add the new type converter
@@ -35,7 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "tictactoe_history_database" // Database file name
                 )
                     // Removed fallbackToDestructiveMigration to use explicit migration
-                    .addMigrations(MIGRATION_1_2) // Add the migration
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3) // Add the new migration
                     .build()
                 INSTANCE = instance
                 instance
@@ -56,6 +56,13 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("UPDATE matches SET winner = '${MatchWinner.PLAYER2.name}' WHERE player2Score > player1Score")
 
                 // Rows where player1Score == player2Score will correctly remain as DRAW due to the default.
+            }
+        }
+
+        // Migration from version 2 to 3: Adds the 'isAgainstAi' column to 'matches'
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE matches ADD COLUMN isAgainstAi INTEGER NOT NULL DEFAULT 0")
             }
         }
     }
