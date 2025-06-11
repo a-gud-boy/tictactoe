@@ -6,16 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import com.a_gud_boy.tictactoe.AISettingsManager
-import com.a_gud_boy.tictactoe.HapticFeedbackManager
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.CreationExtras // Added import
-import androidx.lifecycle.createSavedStateHandle // Added import
-import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme // Ensure this import is present
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
-import com.a_gud_boy.tictactoe.MatchDetailsViewModel // Added import
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
 
 // ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
 

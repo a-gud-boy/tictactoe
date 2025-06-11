@@ -2,28 +2,40 @@ package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Info // Added for Info icon
-// It seems Icons.AutoMirrored.Filled.ArrowBack is not available directly.
-// If needed, it would typically be: import androidx.compose.material.icons.automirrored.filled.ArrowBack
-// For now, I will remove the navigationIcon from TopAppBar as it was commented out in the prompt.
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.lifecycle.viewmodel.compose.viewModel // For viewModel() composable
-import androidx.navigation.NavController // Added NavController import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,11 +71,11 @@ fun HistoryPage(
                 }
             }
         }
-    }
 
-    // The AlertDialog for clearing history is still triggered by showClearConfirmDialog
-    // which is a state managed in MainPage and passed down.
-    if (showClearConfirmDialog) {
+
+        // The AlertDialog for clearing history is still triggered by showClearConfirmDialog
+        // which is a state managed in MainPage and passed down.
+        if (showClearConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { onShowClearConfirmDialogChange(false) },
                 title = { Text("Clear History") },
@@ -158,3 +170,5 @@ fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
         }
     }
 }
+
+
