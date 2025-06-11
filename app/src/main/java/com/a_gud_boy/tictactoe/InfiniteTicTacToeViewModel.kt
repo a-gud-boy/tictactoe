@@ -282,7 +282,7 @@ class InfiniteTicTacToeViewModel(
     fun makeAIMove() {
         if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value || !_isAIMode.value) return
         viewModelScope.launch {
-            delay(500)
+            delay(100)
             soundManager.playComputerMoveSound(volume)
             val move = when (_aiDifficulty.value) {
                 AIDifficulty.EASY -> getRandomMove()
