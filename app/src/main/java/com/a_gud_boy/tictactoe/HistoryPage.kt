@@ -219,9 +219,9 @@ fun MatchHistoryItem(
     }
 
     val (textColor, borderColor) = when (match.winner) {
-        MatchWinner.PLAYER1 -> winColor to winColor
-        MatchWinner.PLAYER2 -> lossColor to lossColor
-        MatchWinner.DRAW -> drawColor to drawColor
+        MatchWinner.PLAYER1 -> colorResource(R.color.numberOfWinsTextColor_x) to winColor
+        MatchWinner.PLAYER2 -> colorResource(R.color.numberOfWinsTextColor_o) to lossColor
+        MatchWinner.DRAW -> colorResource(R.color.darkTextColor) to drawColor
     }
 
     Row(
