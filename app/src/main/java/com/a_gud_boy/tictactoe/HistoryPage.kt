@@ -121,7 +121,8 @@ fun MatchHistoryItem(
                 // Navigate to details page, passing matchId
                 navController.navigate("match_details/${match.matchId}")
             }, // MODIFIED
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background)) // Optional: Set a background color
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
