@@ -60,6 +60,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// NavType and navArgument are already imported or covered by the above
+// Ensure RoundReplayScreen is imported if not in the same package,
+// but it should be in com.a_gud_boy.tictactoe
 import kotlinx.coroutines.launch
 
 /**
@@ -374,10 +377,27 @@ fun MainPage() { // Removed viewModelFactory parameter
                         composable(
                             route = "match_details/{matchId}",
                             arguments = listOf(navArgument("matchId") { type = NavType.LongType })
-                        ) { // backStackEntry is implicitly available from the lambda
+                        ) { backStackEntry -> // Explicitly name backStackEntry for clarity
                             MatchDetailsPage(
                                 innerPadding = innerPadding, // Pass innerPadding
                                 navController = navController
+                                // viewModel is created using LocalViewModelFactory by default
+                            )
+                        }
+                        composable(
+                            route = "roundReplay/{matchId}/{roundId}",
+                            arguments = listOf(
+                                navArgument("matchId") { type = NavType.LongType },
+                                navArgument("roundId") { type = NavType.LongType }
+                            )
+                        ) { backStackEntry ->
+                            val matchId = backStackEntry.arguments?.getLong("matchId") ?: 0L
+                            val roundId = backStackEntry.arguments?.getLong("roundId") ?: 0L
+                            RoundReplayScreen(
+                                navController = navController,
+                                matchId = matchId,
+                                roundId = roundId
+                                // ViewModel will be created using LocalViewModelFactory by default
                             )
                         }
                     }

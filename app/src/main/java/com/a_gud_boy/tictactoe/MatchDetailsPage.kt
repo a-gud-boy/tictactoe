@@ -1,6 +1,7 @@
 package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -86,7 +87,11 @@ fun MatchDetailsPage(
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
                         ) {
-                            RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index])
+                            RoundHistoryItem(
+                                roundWithMoves = details.roundsWithMoves[index],
+                                navController = navController,
+                                matchId = details.match.id
+                            )
                         }
                         if (index < details.roundsWithMoves.size - 1) {
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -216,12 +221,23 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 // from `HistoryPage.kt` into `MatchDetailsPage.kt` or a shared file.
 // Let's assume for now it needs to be copied to avoid inter-dependency issues during generation.
 
-/*
+
 // Copied from HistoryPage.kt for Round details display (if not accessible directly)
 @Composable
-fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
+fun RoundHistoryItem(
+    roundWithMoves: RoundWithMoves,
+    navController: NavController,
+    matchId: Long
+) {
     val round = roundWithMoves.round
-    Column(modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
+            .fillMaxWidth() // Ensure the clickable area covers the width
+            .clickable {
+                navController.navigate("roundReplay/${matchId}/${round.id}")
+            }
+    ) {
         Text(
             text = "Round ${round.roundNumber}: ${round.roundWinnerName}",
             style = MaterialTheme.typography.titleSmall,
@@ -245,4 +261,3 @@ fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
         }
     }
 }
-*/

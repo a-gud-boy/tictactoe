@@ -94,6 +94,13 @@ class TicTacToeViewModelFactory(
                     appDatabase.matchDao(),
                     savedStateHandle
                 ) as T // Pass the created SavedStateHandle
+            modelClass.isAssignableFrom(RoundReplayViewModel::class.java) ->
+                RoundReplayViewModel(
+                    appDatabase.matchDao(),
+                    appDatabase.roundDao(),
+                    appDatabase.moveDao(),
+                    savedStateHandle
+                ) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }

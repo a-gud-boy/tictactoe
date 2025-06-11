@@ -53,6 +53,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.navigation:navigation-compose:2.7.7")
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.11.0") // Added Mockito
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1") // Added Mockito-Kotlin
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0") // Added coroutines-test
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
