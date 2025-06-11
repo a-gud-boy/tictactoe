@@ -45,6 +45,7 @@ import android.text.format.DateUtils // Import for relative time
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.BorderStroke // Required for border
 import androidx.compose.foundation.border // Required for border
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp

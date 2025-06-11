@@ -1,29 +1,44 @@
 package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // Correct import for ArrowBack
-import androidx.compose.material.icons.filled.Adb // Fallback for AI icon
-import androidx.compose.material.icons.filled.Check // Import for Check icon
-import androidx.compose.material.icons.filled.Clear // Import for Clear icon
-import androidx.compose.material.icons.filled.Computer // Import for AI icon
-import androidx.compose.material.icons.filled.Person // Import for Player icon
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember // Added for SimpleDateFormat
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color // Import for Color
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.text.SimpleDateFormat
@@ -68,7 +83,8 @@ fun MatchDetailsPage(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
                         ) {
                             RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index])
                         }
@@ -102,7 +118,8 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Determine result text color and icon based on winner
@@ -173,7 +190,7 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 
                 // AI Icon
                 Icon(
-                    imageVector = Icons.Filled.Computer, // Or Icons.Filled.Adb as fallback
+                    imageVector = Icons.Filled.Add, // Or Icons.Filled.Adb as fallback
                     contentDescription = "AI Icon",
                     modifier = Modifier.size(20.dp)
                 )
