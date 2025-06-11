@@ -25,39 +25,25 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MatchDetailsPage(
-    navController: NavController,
+    innerPadding: PaddingValues, // Added innerPadding parameter
+    navController: NavController, // navController is still needed for internal logic if any, or can be removed if MainPage handles all nav
     matchDetailsViewModel: MatchDetailsViewModel = viewModel(factory = LocalViewModelFactory.current)
 ) {
     val matchWithRoundsAndMoves by matchDetailsViewModel.matchDetails.collectAsState()
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault()) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Match Details") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorResource(R.color.background),
-                    titleContentColor = colorResource(R.color.darkTextColor),
-                    navigationIconContentColor = colorResource(R.color.darkTextColor)
-                )
-            )
-        }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            matchWithRoundsAndMoves?.let { details ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(colorResource(R.color.background))
-                        .padding(8.dp)
-                ) {
-                    item {
-                        MatchSummaryCard(match = details.match, dateFormatter = dateFormatter)
+    // Removed Scaffold and TopAppBar
+
+    Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) { // Apply innerPadding here
+        matchWithRoundsAndMoves?.let { details ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorResource(R.color.background))
+                    .padding(8.dp) // This padding is for the content within the LazyColumn itself
+            ) {
+                item {
+                    MatchSummaryCard(match = details.match, dateFormatter = dateFormatter)
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                     if (details.roundsWithMoves.isNotEmpty()) {
@@ -84,7 +70,7 @@ fun MatchDetailsPage(
                 }
             }
         }
-    }
+    // Removed closing brace for Scaffold
 }
 
 @Composable
