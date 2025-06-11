@@ -45,8 +45,17 @@ abstract class AppDatabase : RoomDatabase() {
         // Migration from version 1 to 2: Adds the 'winner' column to 'matches'
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Use MatchWinner.DRAW.name as the default value for existing rows
+                // Add the 'winner' column with DRAW as the default for all existing rows.
+                // This ensures the NOT NULL constraint is immediately satisfied.
                 database.execSQL("ALTER TABLE matches ADD COLUMN winner TEXT NOT NULL DEFAULT '${MatchWinner.DRAW.name}'")
+
+                // Now, update rows where Player 1 won
+                database.execSQL("UPDATE matches SET winner = '${MatchWinner.PLAYER1.name}' WHERE player1Score > player2Score")
+
+                // Then, update rows where Player 2 won
+                database.execSQL("UPDATE matches SET winner = '${MatchWinner.PLAYER2.name}' WHERE player2Score > player1Score")
+
+                // Rows where player1Score == player2Score will correctly remain as DRAW due to the default.
             }
         }
     }
