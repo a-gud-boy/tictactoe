@@ -206,9 +206,8 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 if (currentRoute?.startsWith("match_details/") == true) {
                                     "Match Details"
                                 } else {
-                                    // Optional: Display padding in title for history_list
-                                    val topPadding = innerPadding.calculateTopPadding() // Calculate here
-                                    "History - Pad: $topPadding"
+                                    // Reverted title for history_list
+                                    "History"
                                 }
                             }
                             3 -> "Settings"
@@ -298,11 +297,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                 )
             }) { innerPadding ->
 
-            // Log top padding when History section is active
-            if (selectedItemIndex == 2) {
-                val topPaddingValue = innerPadding.calculateTopPadding()
-                Log.d("PaddingDebug", "MainPage Scaffold innerPadding for History section (selectedItemIndex == 2): $topPaddingValue")
-            }
+            // Removed Log.d call for PaddingDebug and associated topPaddingValue variable
 
             // Manage general info dialog (previously, this was not conditional for selectedItemIndex == 2)
             if (showInfoDialog && selectedItemIndex != 2) { // Ensure this dialog doesn't conflict with history-specific info if any
