@@ -22,7 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Replay // For FAB
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +42,7 @@ import androidx.compose.ui.graphics.Color // Import Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.LayoutDirection
 import android.text.format.DateUtils // Import for relative time
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,7 +75,12 @@ fun HistoryPage(
     Box(modifier = Modifier.fillMaxSize()) { // Root Box for FAB alignment
         Column(
             modifier = Modifier
-                .padding(innerPadding) // Apply Scaffold's padding here
+                .padding(
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr),
+                    bottom = innerPadding.calculateBottomPadding()
+                ) // Apply Scaffold's padding
+//                .padding(innerPadding) // Apply Scaffold's padding here
                 .fillMaxSize()
                 .background(colorResource(R.color.background))
         ) {
@@ -116,7 +121,7 @@ fun HistoryPage(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp) // Padding for the FAB itself
         ) {
-            Icon(Icons.Filled.Replay, contentDescription = "Play Again")
+            Icon(Icons.Filled.Refresh, contentDescription = "Play Again")
         }
 
         // Dialogs remain at this level, within the Box but outside the Column
@@ -225,7 +230,10 @@ fun MatchHistoryItem(
         Card(
             modifier = Modifier
                 .weight(1f) // Card takes remaining space
-                .padding(start = 8.dp, end = 8.dp), // Padding for the card itself, if needed, but might be better on content
+                .padding(
+                    start = 8.dp,
+                    end = 8.dp
+                ), // Padding for the card itself, if needed, but might be better on content
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
         ) {
@@ -252,17 +260,19 @@ fun MatchHistoryItem(
                 }
                 Text(
                     text = "Date: $timeToDisplay", // Use the new timeToDisplay string
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = "You: ${match.player1Score} – AI: ${match.player2Score}", // Updated score label
-                style = MaterialTheme.typography.bodySmall
-            )
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = "You: ${match.player1Score} – AI: ${match.player2Score}", // Updated score label
+                    style = MaterialTheme.typography.bodySmall
+                )
 
-            // if (expanded) { ... } block REMOVED
+                // if (expanded) { ... } block REMOVED
+            }
         }
     }
 }
+
 
 @Composable
 fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {

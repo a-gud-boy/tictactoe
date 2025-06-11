@@ -1,16 +1,18 @@
 package com.a_gud_boy.tictactoe
 
-enum class MatchWinner {
-    PLAYER1,
-    PLAYER2,
-    DRAW
-}
+
 
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.util.Date // Import for Timestamp
+
+enum class MatchWinner {
+    PLAYER1,
+    PLAYER2,
+    DRAW
+}
 
 @Entity(tableName = "matches")
 data class MatchEntity(
