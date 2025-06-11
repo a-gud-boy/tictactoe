@@ -265,7 +265,7 @@ fun MatchHistoryItem(
                         Icon(
                             imageVector = Icons.Filled.Delete,
                             contentDescription = "Delete Match",
-                            tint = MaterialTheme.colorScheme.error // Optional: color the icon
+//                            tint = MaterialTheme.colorScheme.error // Optional: color the icon
                         )
                     }
                 }
