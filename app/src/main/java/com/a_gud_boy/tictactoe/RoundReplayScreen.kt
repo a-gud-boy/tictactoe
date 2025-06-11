@@ -3,12 +3,16 @@ package com.a_gud_boy.tictactoe
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -141,14 +145,13 @@ fun RoundReplayScreen(
                 .shadow(4.dp, shape = RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
                 .background(colorResource(R.color.constraint_background))
-                .padding(10.dp) // Added padding around the grid cells
         ) {
             val buttonIds = List(9) { i -> "button${i + 1}" }
             buttonIds.forEach { buttonId ->
                 TicTacToeCell(
                     modifier = Modifier
                         .layoutId(buttonId)
-                        // Individual cell background can be set here if needed, e.g., .background(Color.White, RoundedCornerShape(8.dp))
+                        .background(Color.White, RoundedCornerShape(10.dp))
                         // For now, using the ConstraintLayout background.
                         .width(80.dp) // Adjust size as needed, considering padding
                         .height(80.dp),// Adjust size as needed, considering padding
@@ -162,8 +165,33 @@ fun RoundReplayScreen(
                 )
             }
         }
-        // Placeholder for navigation buttons (Next/Previous move)
-        // Will be added in a later step
-        // For example, actual buttons could also call viewModel.previousMove() and viewModel.nextMove()
+
+        Spacer(modifier = Modifier.height(24.dp)) // Add space between grid and buttons
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = { roundReplayViewModel.previousMove() },
+                enabled = currentMoveIndex > -1,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Previous")
+            }
+
+            Spacer(modifier = Modifier.width(16.dp)) // Space between buttons
+
+            Button(
+                onClick = { roundReplayViewModel.nextMove() },
+                enabled = currentMoveIndex < moves.size - 1,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Next")
+            }
+        }
     }
 }

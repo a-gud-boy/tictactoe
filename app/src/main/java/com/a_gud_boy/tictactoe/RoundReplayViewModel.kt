@@ -42,25 +42,30 @@ class RoundReplayViewModel(
 
     private fun loadMoves() {
         viewModelScope.launch {
+            println("RoundReplayViewModel: loadMoves called with matchIdFromNav: $matchIdFromNav, roundId: $roundId")
             // matchIdFromNav is the match's primary key (id), not matchNumber.
             // The route was changed to pass matchNumber, but SavedStateHandle for ViewModel still expects "matchId" as key.
             // This needs to be consistent. Assuming "matchId" in SavedStateHandle is indeed the MatchEntity.id
             // If "matchId" from nav args is actually matchNumber, then the DAO call needs to change or ViewModel needs matchNumber.
             // For now, assuming matchIdFromNav is the correct MatchEntity.id for the DAO.
             matchDao.getMatchWithRoundsAndMovesById(matchIdFromNav).collectLatest { matchDetails ->
+                println("RoundReplayViewModel: matchDetails is null: ${matchDetails == null}")
                 if (matchDetails != null) {
+                    println("RoundReplayViewModel: matchDetails.match.matchId: ${matchDetails.match.matchId}, roundsWithMoves count: ${matchDetails.roundsWithMoves.size}")
                     val foundRound = matchDetails.roundsWithMoves.find { it.round.roundId == roundId }
                     if (foundRound != null) {
+                        println("RoundReplayViewModel: Round with id $roundId found.")
                         _moves.value = foundRound.moves
+                        println("RoundReplayViewModel: Loaded ${_moves.value.size} moves.")
                     } else {
                         _moves.value = emptyList()
                         // Log or handle case where specific roundId is not found in the match
-                        println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.matchId}")
+                        println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.matchId}. Moves not loaded.")
                     }
                 } else {
                     _moves.value = emptyList()
                     // Log or handle case where matchId is not found
-                    println("RoundReplayViewModel: Match with id $matchIdFromNav not found.")
+                    println("RoundReplayViewModel: Match with id $matchIdFromNav not found. Moves not loaded.")
                 }
             }
         }
