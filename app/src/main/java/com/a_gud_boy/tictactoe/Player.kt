@@ -4,7 +4,7 @@ enum class Player {
     X, O;
 
     companion object {
-        fun fromString(name: String): Player? {
+        fun fromString(name: String?): Player? {
             return when (name) {
                 "X" -> X
                 "O" -> O
