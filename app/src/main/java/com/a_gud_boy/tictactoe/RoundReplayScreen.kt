@@ -203,10 +203,10 @@ fun RoundReplayScreen(
 
 
                             val lineColor = if (winningPlayer == Player.X) playerXColor else playerOColor
-                            val lineStrokeWidth = 8.dp.toPx()
+                            val lineStrokeWidth = 5.dp.toPx()
 
                             drawLine(
-                                color = lineColor,
+                                color = lineColor.copy(alpha = 0.6f),
                                 start = extendedStart,
                                 end = extendedEnd,
                                 strokeWidth = lineStrokeWidth,
