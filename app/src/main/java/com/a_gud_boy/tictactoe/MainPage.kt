@@ -231,7 +231,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                     navigationIcon = {
                         val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
-                        if (selectedItemIndex == 2 && currentRoute?.startsWith("match_details/") == true) {
+                        if (selectedItemIndex == 2 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith("roundReplay/") == true)) {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
