@@ -206,10 +206,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                             2 -> {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentRoute = navBackStackEntry?.destination?.route
-                                if (currentRoute?.startsWith("match_details/") == true) {
+                                if (currentRoute?.startsWith("roundReplay/") == true) {
+                                    "Match Replay"
+                                } else if (currentRoute?.startsWith("match_details/") == true) {
                                     "Match Details"
                                 } else {
-                                    // Reverted title for history_list
                                     "History"
                                 }
                             }

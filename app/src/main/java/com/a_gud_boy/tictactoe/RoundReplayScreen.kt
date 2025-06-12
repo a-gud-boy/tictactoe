@@ -126,10 +126,6 @@ fun RoundReplayScreen(
             focusRequester.requestFocus()
         }
 
-        Text(
-            text = "Replaying Match ID: $matchId, Round ID: $roundId",
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
         val totalMoves = moves.size
         val displayMoveIndex = if (currentMoveIndex == -1) 0 else currentMoveIndex + 1
         Text(
