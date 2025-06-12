@@ -35,6 +35,28 @@ class RoundReplayViewModel(
     private val _currentGridState = MutableStateFlow<Map<String, Player?>>(emptyMap())
     val currentGridState: StateFlow<Map<String, Player?>> = _currentGridState.asStateFlow()
 
+    private val _winningPlayer = MutableStateFlow<Player?>(null)
+    val winningPlayer: StateFlow<Player?> = _winningPlayer.asStateFlow()
+
+    private val _orderedWinningCells = MutableStateFlow<List<String>>(emptyList())
+    val orderedWinningCells: StateFlow<List<String>> = _orderedWinningCells.asStateFlow()
+
+    companion object {
+        private val winningCombinations = listOf(
+            // Rows
+            listOf("button1", "button2", "button3"),
+            listOf("button4", "button5", "button6"),
+            listOf("button7", "button8", "button9"),
+            // Columns
+            listOf("button1", "button4", "button7"),
+            listOf("button2", "button5", "button8"),
+            listOf("button3", "button6", "button9"),
+            // Diagonals
+            listOf("button1", "button5", "button9"),
+            listOf("button3", "button5", "button7")
+        )
+    }
+
     init {
         loadMoves()
         observeMovesAndIndexChanges()
@@ -56,19 +78,40 @@ class RoundReplayViewModel(
                     if (foundRound != null) {
                         println("RoundReplayViewModel: Round with id $roundId found.")
                         _moves.value = foundRound.moves
-                        println("RoundReplayViewModel: Loaded ${_moves.value.size} moves.")
+                        val winner = Player.fromString(foundRound.round.winner)
+                        _winningPlayer.value = winner
+                        if (winner != null) {
+                            _orderedWinningCells.value = findWinningCombination(foundRound.moves, winner)
+                        } else {
+                            _orderedWinningCells.value = emptyList()
+                        }
+                        println("RoundReplayViewModel: Loaded ${_moves.value.size} moves. Winner: ${foundRound.round.winner}. Winning cells: ${_orderedWinningCells.value}")
                     } else {
                         _moves.value = emptyList()
+                        _winningPlayer.value = null
+                        _orderedWinningCells.value = emptyList()
                         // Log or handle case where specific roundId is not found in the match
                         println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.matchId}. Moves not loaded.")
                     }
                 } else {
                     _moves.value = emptyList()
+                    _winningPlayer.value = null
+                    _orderedWinningCells.value = emptyList()
                     // Log or handle case where matchId is not found
                     println("RoundReplayViewModel: Match with id $matchIdFromNav not found. Moves not loaded.")
                 }
             }
         }
+    }
+
+    private fun findWinningCombination(moves: List<MoveEntity>, winner: Player): List<String> {
+        val winnerMoves = moves.filter { Player.fromString(it.player) == winner }.map { it.cellId }.toSet()
+        for (combination in winningCombinations) {
+            if (winnerMoves.containsAll(combination)) {
+                return combination
+            }
+        }
+        return emptyList()
     }
 
     private fun observeMovesAndIndexChanges() {
