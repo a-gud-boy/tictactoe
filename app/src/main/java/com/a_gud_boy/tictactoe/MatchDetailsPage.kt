@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -195,7 +196,7 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 
                 // AI Icon
                 Icon(
-                    imageVector = Icons.Filled.Add, // Or Icons.Filled.Adb as fallback
+                    painter = painterResource(R.drawable.microchip), // Or Icons.Filled.Adb as fallback
                     contentDescription = "AI Icon",
                     modifier = Modifier.size(20.dp)
                 )
