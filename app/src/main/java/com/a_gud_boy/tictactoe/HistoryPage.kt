@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.Color // Import Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.LayoutDirection
 import android.text.format.DateUtils // Import for relative time
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.BorderStroke // Required for border
 import androidx.compose.foundation.border // Required for border
 import androidx.compose.foundation.layout.size
@@ -51,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination // For FAB navigation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -111,24 +109,6 @@ fun HistoryPage(
                 }
                 OverallStatsSection(stats = statistics) // Display stats below the list
             }
-        }
-
-        // FloatingActionButton
-        FloatingActionButton(
-            onClick = {
-                navController.navigate("MainPage") { // Ensure "MainPage" is correct
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp) // Padding for the FAB itself
-        ) {
-            Icon(Icons.Filled.Refresh, contentDescription = "Play Again")
         }
 
         // Dialogs remain at this level, within the Box but outside the Column
