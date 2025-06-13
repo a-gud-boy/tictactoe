@@ -204,28 +204,28 @@ fun RoundReplayScreen(
             modifier = Modifier.padding(bottom = 20.dp)
         )
 
-        // Display Round Result (Win/Loss/Draw)
-        if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty()) {
-            roundWinnerName?.let { winnerName ->
-                // Determine text color based on winnerName content
-                val resultTextColor = when {
-                    winnerName.isBlank() -> defaultReplayTextColor // Use isBlank to catch null, empty or whitespace only
-                    winnerName.contains("Won", ignoreCase = true) && (winnerName.contains("You", ignoreCase = true) || winnerName.contains("Player 1", ignoreCase = true)) -> replayWinColor
-                    winnerName.contains("Won", ignoreCase = true) && (winnerName.contains("AI", ignoreCase = true) || winnerName.contains("Player 2", ignoreCase = true)) -> replayLossColor
-                    winnerName.contains("Draw", ignoreCase = true) -> replayDrawColor
-                    else -> defaultReplayTextColor // Fallback for any other text
-                }
-
-                if (winnerName.isNotEmpty()) { // Still ensure it's not empty before trying to display
-                    Text(
-                        text = winnerName,
-                        fontSize = 20.sp,
-                        color = resultTextColor, // Apply dynamic color
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                }
-            }
+        // Determine text color based on roundWinnerName content
+        // This logic remains active to set the color, which will be applied to the Text,
+        // even if the text is currently empty.
+        val resultTextColor = when {
+            roundWinnerName == null || roundWinnerName.isBlank() -> defaultReplayTextColor
+            roundWinnerName.contains("Won", ignoreCase = true) && (roundWinnerName.contains("You", ignoreCase = true) || roundWinnerName.contains("Player 1", ignoreCase = true)) -> replayWinColor
+            roundWinnerName.contains("Won", ignoreCase = true) && (roundWinnerName.contains("AI", ignoreCase = true) || roundWinnerName.contains("Player 2", ignoreCase = true)) -> replayLossColor
+            roundWinnerName.contains("Draw", ignoreCase = true) -> replayDrawColor
+            else -> defaultReplayTextColor
         }
+
+        // Text composable for round result - always present, text content conditional
+        Text(
+            text = if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && roundWinnerName != null && roundWinnerName!!.isNotEmpty()) {
+                roundWinnerName!! // Show the actual result string
+            } else {
+                "" // Show empty string when not the last move or no result
+            },
+            fontSize = 20.sp,
+            color = resultTextColor, // Apply dynamic color
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         ConstraintLayout(
             constraintSet = constraints,
