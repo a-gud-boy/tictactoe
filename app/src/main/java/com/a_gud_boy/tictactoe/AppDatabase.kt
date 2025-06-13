@@ -11,12 +11,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // Add TypeConverter for Date/Long if you plan to use Date objects directly
 // For now, we are using Long for timestamp, so it's not immediately needed unless other Date fields are added.
 
+import com.a_gud_boy.tictactoe.GameTypeConverter // Import new converter
+
 @Database(
     entities = [MatchEntity::class, RoundEntity::class, MoveEntity::class],
-    version = 3, // Incremented version
+    version = 4, // Incremented version
     exportSchema = false // Recommended to set to true for production apps for schema history
 )
-@TypeConverters(MatchWinnerTypeConverter::class) // Add the new type converter
+@TypeConverters(MatchWinnerTypeConverter::class, GameTypeConverter::class) // Added GameTypeConverter
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun matchDao(): MatchDao
@@ -35,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "tictactoe_history_database" // Database file name
                 )
                     // Removed fallbackToDestructiveMigration to use explicit migration
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3) // Add the new migration
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) // Add the new migration
                     .build()
                 INSTANCE = instance
                 instance
@@ -63,6 +65,13 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE matches ADD COLUMN isAgainstAi INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        // Migration from version 3 to 4: Adds the 'gameType' column to 'matches'
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE matches ADD COLUMN gameType TEXT NOT NULL DEFAULT '${GameType.NORMAL.name}'")
             }
         }
     }

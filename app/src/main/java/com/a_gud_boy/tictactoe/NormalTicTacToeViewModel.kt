@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.a_gud_boy.tictactoe.GameType // Import GameType
 
 // Player enum is now in its own file: Player.kt
 // AIDifficulty is now in its own file: AIDifficulty.kt
@@ -215,7 +216,8 @@ class NormalTicTacToeViewModel(
                 player2Score = p2FinalScore,
                 matchWinnerName = matchWinnerName,
                 winner = winner, // Pass the determined winner
-                isAgainstAi = _isAIMode.value, // <<< THIS LINE IS ADDED/MODIFIED
+                isAgainstAi = _isAIMode.value,
+                gameType = GameType.NORMAL, // Use GameType.NORMAL
                 timestamp = System.currentTimeMillis()
             )
 

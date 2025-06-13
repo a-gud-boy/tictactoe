@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import com.a_gud_boy.tictactoe.GameType // Import GameType
 
 class RoundReplayViewModel(
     private val matchDao: MatchDao,
@@ -23,6 +24,13 @@ class RoundReplayViewModel(
     )
     val roundId: Long = savedStateHandle.get<Long>("roundId")
         ?: throw IllegalStateException("roundId not found in SavedStateHandle")
+
+    private val gameTypeString: String? = savedStateHandle.get<String>("gameType")
+    val gameType: GameType = try {
+        gameTypeString?.let { GameType.valueOf(it.uppercase()) } ?: GameType.NORMAL
+    } catch (e: IllegalArgumentException) {
+        GameType.NORMAL // Fallback if string is not a valid GameType
+    }
 
     private val _moves = MutableStateFlow<List<MoveEntity>>(emptyList())
     val moves: StateFlow<List<MoveEntity>> = _moves.asStateFlow()
@@ -124,14 +132,36 @@ class RoundReplayViewModel(
         viewModelScope.launch {
             combine(_moves, _currentMoveIndex) { movesList, index ->
                 val newGridState = mutableMapOf<String, Player?>()
-                if (index >= 0 && movesList.isNotEmpty()) {
-                    for (i in 0..index.coerceAtMost(movesList.size - 1)) {
-                        val move = movesList[i]
-                        newGridState[move.cellId] =
-                            Player.fromString(move.player) // Assuming Player.fromString exists
+                // Ensure movesList is not empty and index is valid before subList
+                if (movesList.isNotEmpty() && index >= 0) {
+                    val currentMovesInSequence = movesList.subList(0, (index + 1).coerceAtMost(movesList.size))
+
+                    if (gameType == GameType.INFINITE) { // Use the enum here
+                        // Separate moves by player
+                        val playerXMoves = currentMovesInSequence.filter { Player.fromString(it.player) == Player.X }
+                        val playerOMoves = currentMovesInSequence.filter { Player.fromString(it.player) == Player.O }
+
+                        // Get only the cellIds for taking the last 3
+                        val playerXCellIds = playerXMoves.map { it.cellId }
+                        val playerOCellIds = playerOMoves.map { it.cellId }
+
+                        val visiblePlayerXCellIds = playerXCellIds.takeLast(3) // MAX_VISIBLE_MOVES_PER_PLAYER is 3
+                        val visiblePlayerOCellIds = playerOCellIds.takeLast(3) // MAX_VISIBLE_MOVES_PER_PLAYER is 3
+
+                        // Populate grid state for visible moves
+                        visiblePlayerXCellIds.forEach { cellId -> newGridState[cellId] = Player.X }
+                        visiblePlayerOCellIds.forEach { cellId -> newGridState[cellId] = Player.O }
+
+                    } else { // NORMAL game type
+                        currentMovesInSequence.forEach { move ->
+                            newGridState[move.cellId] = Player.fromString(move.player)
+                        }
                     }
+                } else if (index == -1) {
+                    // Grid is empty, newGridState remains empty (or explicitly clear if needed)
+                    // newGridState.clear() // Depending on desired behavior for index -1
                 }
-                newGridState
+                newGridState // Return the calculated state
             }.collect { gridState ->
                 _currentGridState.value = gridState
             }

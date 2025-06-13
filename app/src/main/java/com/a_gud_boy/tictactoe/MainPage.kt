@@ -388,19 +388,20 @@ fun MainPage() { // Removed viewModelFactory parameter
                             )
                         }
                         composable(
-                            route = "roundReplay/{matchId}/{roundId}",
+                            route = "roundReplay/{matchId}/{roundId}/{gameType}", // Added {gameType}
                             arguments = listOf(
                                 navArgument("matchId") { type = NavType.LongType },
-                                navArgument("roundId") { type = NavType.LongType }
+                                navArgument("roundId") { type = NavType.LongType },
+                                navArgument("gameType") { type = NavType.StringType } // Added gameType argument as String
                             )
                         ) { backStackEntry ->
                             val matchId = backStackEntry.arguments?.getLong("matchId") ?: 0L
                             val roundId = backStackEntry.arguments?.getLong("roundId") ?: 0L
+                            // val gameTypeString = backStackEntry.arguments?.getString("gameType") // ViewModel handles this
                             RoundReplayScreen(
                                 navController = navController,
                                 matchId = matchId,
                                 roundId = roundId
-                                // ViewModel will be created using LocalViewModelFactory by default
                             )
                         }
                     }
