@@ -1,6 +1,6 @@
 package com.a_gud_boy.tictactoe
 
-import androidx.compose.ui.graphics.Color // Ensure this is imported
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -42,23 +42,15 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
-import android.util.Log // Import Log
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.colorResource
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.a_gud_boy.tictactoe.GameType // Import GameType
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-
-// Color definitions for round result text
-private val replayWinColor = Color(0xFF4CAF50) // Green
-private val replayLossColor = Color(0xFFF44336) // Red
-private val replayDrawColor = Color(0xFF9E9E9E) // Gray
-private val defaultReplayTextColor = Color.Black // Default/fallback color
 
 @Composable
 fun RoundReplayScreen(
@@ -67,6 +59,12 @@ fun RoundReplayScreen(
     roundId: Long,
     roundReplayViewModel: RoundReplayViewModel = viewModel(factory = LocalViewModelFactory.current)
 ) {
+    // Color definitions for round result text
+    val replayWinColor = colorResource(R.color.red_x_icon)
+    val replayLossColor = colorResource(R.color.blue_o_icon)
+    val replayDrawColor = colorResource(R.color.darkTextColor)
+    val defaultReplayTextColor = Color.Black // Default/fallback color
+
     val focusRequester = remember { FocusRequester() }
 
     val gameType = roundReplayViewModel.gameType // Access gameType from ViewModel
@@ -209,25 +207,36 @@ fun RoundReplayScreen(
         // even if the text is currently empty.
         val resultTextColor = when {
             // Check the value of the state object
-            roundWinnerName.value == null || (roundWinnerName.value?.isBlank() ?: true) -> defaultReplayTextColor
-            roundWinnerName.value?.contains("Won", ignoreCase = true) == true &&
-                    (roundWinnerName.value?.contains("You", ignoreCase = true) == true ||
-                            roundWinnerName.value?.contains("Player 1", ignoreCase = true) == true) -> replayWinColor
-            roundWinnerName.value?.contains("Won", ignoreCase = true) == true &&
-                    (roundWinnerName.value?.contains("AI", ignoreCase = true) == true ||
-                            roundWinnerName.value?.contains("Player 2", ignoreCase = true) == true) -> replayLossColor
-            roundWinnerName.value?.contains("Draw", ignoreCase = true) == true -> replayDrawColor
+            roundWinnerName == null || (roundWinnerName?.isBlank()
+                ?: true) -> defaultReplayTextColor
+
+            roundWinnerName?.contains("Won", ignoreCase = true) == true &&
+                    (roundWinnerName?.contains("You", ignoreCase = true) == true ||
+                            roundWinnerName?.contains(
+                                "Player 1",
+                                ignoreCase = true
+                            ) == true) -> replayWinColor
+
+            roundWinnerName?.contains("Won", ignoreCase = true) == true &&
+                    (roundWinnerName?.contains("AI", ignoreCase = true) == true ||
+                            roundWinnerName?.contains(
+                                "Player 2",
+                                ignoreCase = true
+                            ) == true) -> replayLossColor
+
+            roundWinnerName?.contains("Draw", ignoreCase = true) == true -> replayDrawColor
             else -> defaultReplayTextColor
         }
 
         // Text composable for round result - always present, text content conditional
         Text(
-            text = if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && roundWinnerName.value != null && roundWinnerName.value!!.isNotEmpty()) {
-                roundWinnerName.value!! // Show the actual result string from the state's value
+            text = if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && roundWinnerName != null && roundWinnerName!!.isNotEmpty()) {
+                roundWinnerName!! // Show the actual result string from the state's value
             } else {
                 "" // Show empty string when not the last move or no result
             },
             fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
             color = resultTextColor, // Apply dynamic color
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -251,10 +260,22 @@ fun RoundReplayScreen(
                         val endCoordinates = replayCellCoordinates[endCellId]
 
                         Log.d("WinningLineDebug", "Drawing line for winner: ${winningPlayer?.name}")
-                        Log.d("WinningLineDebug", "OrderedWinningCells: ${orderedWinningCells.joinToString()}")
-                        Log.d("WinningLineDebug", "StartCellId: $startCellId, EndCellId: $endCellId")
-                        Log.d("WinningLineDebug", "StartCoords: $startCoordinates, EndCoords: $endCoordinates")
-                        Log.d("WinningLineDebug", "ReplayCellCoordinates Dump: ${replayCellCoordinates.entries.joinToString { entry -> "${entry.key}=${entry.value?.size},${entry.value?.positionInParent()}" }}")
+                        Log.d(
+                            "WinningLineDebug",
+                            "OrderedWinningCells: ${orderedWinningCells.joinToString()}"
+                        )
+                        Log.d(
+                            "WinningLineDebug",
+                            "StartCellId: $startCellId, EndCellId: $endCellId"
+                        )
+                        Log.d(
+                            "WinningLineDebug",
+                            "StartCoords: $startCoordinates, EndCoords: $endCoordinates"
+                        )
+                        Log.d(
+                            "WinningLineDebug",
+                            "ReplayCellCoordinates Dump: ${replayCellCoordinates.entries.joinToString { entry -> "${entry.key}=${entry.value?.size},${entry.value?.positionInParent()}" }}"
+                        )
 
                         if (startCoordinates != null && endCoordinates != null) {
                             val startOffsetInParent = startCoordinates.positionInParent()
@@ -300,34 +321,41 @@ fun RoundReplayScreen(
                                 cap = StrokeCap.Round
                             )
                         } else {
-                            Log.e("WinningLineDebug", "Cannot draw line: Start or End coordinates are null. StartCellId: $startCellId, EndCellId: $endCellId")
+                            Log.e(
+                                "WinningLineDebug",
+                                "Cannot draw line: Start or End coordinates are null. StartCellId: $startCellId, EndCellId: $endCellId"
+                            )
                         }
                     }
                 }
         ) {
             val buttonIds = List(9) { i -> "button${i + 1}" }
             buttonIds.forEach { buttonId ->
-                val playerOnCell = currentGridState[buttonId] // Player occupying this cell from ViewModel's perspective
+                val playerOnCell =
+                    currentGridState[buttonId] // Player occupying this cell from ViewModel's perspective
                 var isOldMoveValue = false // Default to no dimming
 
                 if (gameType == GameType.INFINITE) {
                     // Current "Option B" logic for Infinite mode dimming:
                     // (Dim the oldest of 3 visible moves for the player whose turn is NEXT)
-                    if (playerOnCell != null && currentMoveIndex >= 0 && moves.value.isNotEmpty()) {
-                        if (currentMoveIndex < moves.value.size) {
-                            val lastMoveMadeEntity = moves.value[currentMoveIndex]
+                    if (playerOnCell != null && currentMoveIndex >= 0 && moves.isNotEmpty()) {
+                        if (currentMoveIndex < moves.size) {
+                            val lastMoveMadeEntity = moves[currentMoveIndex]
                             val lastPlayerWhoMoved = Player.fromString(lastMoveMadeEntity.player)
-                            val nextPlayerToMove = if (lastPlayerWhoMoved == Player.X) Player.O else Player.X
+                            val nextPlayerToMove =
+                                if (lastPlayerWhoMoved == Player.X) Player.O else Player.X
 
                             if (playerOnCell == nextPlayerToMove) {
-                                val allMovesOfNextPlayerUpToCurrentBoardState = moves.value
+                                val allMovesOfNextPlayerUpToCurrentBoardState = moves
                                     .subList(0, currentMoveIndex + 1)
                                     .filter { Player.fromString(it.player) == nextPlayerToMove }
                                     .map { it.cellId }
-                                val visibleMovesOfNextPlayer = allMovesOfNextPlayerUpToCurrentBoardState.takeLast(3)
+                                val visibleMovesOfNextPlayer =
+                                    allMovesOfNextPlayerUpToCurrentBoardState.takeLast(3)
 
                                 if (visibleMovesOfNextPlayer.size == 3) {
-                                    val oldestVisibleMoveCellIdForNextPlayer = visibleMovesOfNextPlayer.first()
+                                    val oldestVisibleMoveCellIdForNextPlayer =
+                                        visibleMovesOfNextPlayer.first()
                                     if (buttonId == oldestVisibleMoveCellIdForNextPlayer) {
                                         isOldMoveValue = true
                                     }
