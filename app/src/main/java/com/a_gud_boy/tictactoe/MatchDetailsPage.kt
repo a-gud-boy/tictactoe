@@ -1,6 +1,7 @@
 package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -86,7 +88,11 @@ fun MatchDetailsPage(
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             colors = CardDefaults.cardColors(containerColor = colorResource(R.color.constraint_background))
                         ) {
-                            RoundHistoryItem(roundWithMoves = details.roundsWithMoves[index])
+                            RoundHistoryItem(
+                                roundWithMoves = details.roundsWithMoves[index],
+                                navController = navController,
+                                matchId = details.match.matchId // Reverted to matchId
+                            )
                         }
                         if (index < details.roundsWithMoves.size - 1) {
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -190,7 +196,7 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 
                 // AI Icon
                 Icon(
-                    imageVector = Icons.Filled.Add, // Or Icons.Filled.Adb as fallback
+                    painter = painterResource(R.drawable.microchip), // Or Icons.Filled.Adb as fallback
                     contentDescription = "AI Icon",
                     modifier = Modifier.size(20.dp)
                 )
@@ -216,12 +222,23 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 // from `HistoryPage.kt` into `MatchDetailsPage.kt` or a shared file.
 // Let's assume for now it needs to be copied to avoid inter-dependency issues during generation.
 
-/*
+
 // Copied from HistoryPage.kt for Round details display (if not accessible directly)
 @Composable
-fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
+fun RoundHistoryItem(
+    roundWithMoves: RoundWithMoves,
+    navController: NavController,
+    matchId: Long // Reverted to matchId
+) {
     val round = roundWithMoves.round
-    Column(modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
+            .fillMaxWidth() // Ensure the clickable area covers the width
+            .clickable {
+                navController.navigate("roundReplay/${matchId}/${round.roundId}") // Reverted to matchId
+            }
+    ) {
         Text(
             text = "Round ${round.roundNumber}: ${round.roundWinnerName}",
             style = MaterialTheme.typography.titleSmall,
@@ -245,4 +262,3 @@ fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
         }
     }
 }
-*/
