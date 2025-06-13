@@ -41,6 +41,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
+import android.util.Log // Import Log
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
@@ -211,6 +212,12 @@ fun RoundReplayScreen(
                         val startCoordinates = replayCellCoordinates[startCellId]
                         val endCoordinates = replayCellCoordinates[endCellId]
 
+                        Log.d("WinningLineDebug", "Drawing line for winner: ${winningPlayer?.name}")
+                        Log.d("WinningLineDebug", "OrderedWinningCells: ${orderedWinningCells.joinToString()}")
+                        Log.d("WinningLineDebug", "StartCellId: $startCellId, EndCellId: $endCellId")
+                        Log.d("WinningLineDebug", "StartCoords: $startCoordinates, EndCoords: $endCoordinates")
+                        Log.d("WinningLineDebug", "ReplayCellCoordinates Dump: ${replayCellCoordinates.entries.joinToString { entry -> "${entry.key}=${entry.value?.size},${entry.value?.positionInParent()}" }}")
+
                         if (startCoordinates != null && endCoordinates != null) {
                             val startOffsetInParent = startCoordinates.positionInParent()
                             val endOffsetInParent = endCoordinates.positionInParent()
@@ -254,6 +261,8 @@ fun RoundReplayScreen(
                                 strokeWidth = lineStrokeWidth,
                                 cap = StrokeCap.Round
                             )
+                        } else {
+                            Log.e("WinningLineDebug", "Cannot draw line: Start or End coordinates are null. StartCellId: $startCellId, EndCellId: $endCellId")
                         }
                     }
                 }
@@ -261,30 +270,22 @@ fun RoundReplayScreen(
             val buttonIds = List(9) { i -> "button${i + 1}" }
             buttonIds.forEach { buttonId ->
                 val playerOnCell = currentGridState[buttonId] // Player occupying this cell from ViewModel's perspective
-                var isOldMoveValue = false
+                var isOldMoveValue = false // Default to no dimming
 
-                if (playerOnCell != null && currentMoveIndex >= 0 && moves.value.isNotEmpty()) {
-                    if (gameType == GameType.INFINITE) {
-                        // Infinite Mode: Dim the oldest of 3 visible moves for the player whose turn is NEXT.
-                        if (currentMoveIndex < moves.value.size) { // Ensure currentMoveIndex is a valid index for moves.value
+                if (gameType == GameType.INFINITE) {
+                    // Current "Option B" logic for Infinite mode dimming:
+                    // (Dim the oldest of 3 visible moves for the player whose turn is NEXT)
+                    if (playerOnCell != null && currentMoveIndex >= 0 && moves.value.isNotEmpty()) {
+                        if (currentMoveIndex < moves.value.size) {
                             val lastMoveMadeEntity = moves.value[currentMoveIndex]
                             val lastPlayerWhoMoved = Player.fromString(lastMoveMadeEntity.player)
-
-                            // Determine player whose turn it would be next
                             val nextPlayerToMove = if (lastPlayerWhoMoved == Player.X) Player.O else Player.X
 
-                            // Only proceed if the cell currently being rendered belongs to the 'nextPlayerToMove'
                             if (playerOnCell == nextPlayerToMove) {
-                                // Get all historical moves of 'nextPlayerToMove' up to the point *before* the current move was made.
-                                // Or rather, all moves of nextPlayerToMove that are currently on the board (visible).
-                                // The currentGridState reflects the board *after* moves.value[currentMoveIndex] is played.
-                                // So, we need to find the visible moves of nextPlayerToMove based on all moves up to currentMoveIndex.
-
                                 val allMovesOfNextPlayerUpToCurrentBoardState = moves.value
-                                    .subList(0, currentMoveIndex + 1) // All moves contributing to current board state
+                                    .subList(0, currentMoveIndex + 1)
                                     .filter { Player.fromString(it.player) == nextPlayerToMove }
                                     .map { it.cellId }
-
                                 val visibleMovesOfNextPlayer = allMovesOfNextPlayerUpToCurrentBoardState.takeLast(3)
 
                                 if (visibleMovesOfNextPlayer.size == 3) {
@@ -295,18 +296,9 @@ fun RoundReplayScreen(
                                 }
                             }
                         }
-                    } else { // GameType.NORMAL (or any other type)
-                        // Normal Mode: Dim any move that is not the current move.
-                        val moveInstance = moves.value.findLast { mv -> // Renamed playerOnCell to playerOnCell for clarity
-                            mv.cellId == buttonId && Player.fromString(mv.player) == playerOnCell
-                        }
-                        if (moveInstance != null) {
-                            val indexOfThisMoveInFullList = moves.value.indexOf(moveInstance)
-                            if (indexOfThisMoveInFullList < currentMoveIndex) {
-                                isOldMoveValue = true
-                            }
-                        }
                     }
+                } else { // GameType.NORMAL (and any other unspecified types)
+                    isOldMoveValue = false // No dimming for normal mode
                 }
 
                 TicTacToeCell(
