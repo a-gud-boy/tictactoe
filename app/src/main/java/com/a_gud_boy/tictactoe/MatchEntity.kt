@@ -3,6 +3,7 @@ package com.a_gud_boy.tictactoe
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.util.Date // Import for Timestamp
@@ -13,7 +14,7 @@ enum class MatchWinner {
     DRAW
 }
 
-@Entity(tableName = "matches")
+@Entity(tableName = "matches", indices = [Index(value = ["timestamp"])])
 data class MatchEntity(
     @PrimaryKey(autoGenerate = true) val matchId: Long = 0,
     val matchNumber: Int, // Could be a sequence or based on count
