@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.a_gud_boy.tictactoe.GameType // Import GameType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -90,7 +91,8 @@ fun MatchDetailsPage(
                             RoundHistoryItem(
                                 roundWithMoves = details.roundsWithMoves[index],
                                 navController = navController,
-                                matchId = details.match.matchId // Reverted to matchId
+                                matchId = details.match.matchId,
+                                gameType = details.match.gameType // Pass the GameType enum instance
                             )
                         }
                         if (index < details.roundsWithMoves.size - 1) {
@@ -229,7 +231,8 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 fun RoundHistoryItem(
     roundWithMoves: RoundWithMoves,
     navController: NavController,
-    matchId: Long // Reverted to matchId
+    matchId: Long,
+    gameType: GameType // Changed to GameType enum
 ) {
     val round = roundWithMoves.round
     Column(
@@ -237,7 +240,7 @@ fun RoundHistoryItem(
             .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
             .fillMaxWidth() // Ensure the clickable area covers the width
             .clickable {
-                navController.navigate("roundReplay/${matchId}/${round.roundId}") // Reverted to matchId
+                navController.navigate("roundReplay/${matchId}/${round.roundId}/${gameType.name}") // Use gameType.name
             }
     ) {
         Text(

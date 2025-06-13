@@ -41,9 +41,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
+import android.util.Log // Import Log
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.a_gud_boy.tictactoe.GameType // Import GameType
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,6 +59,8 @@ fun RoundReplayScreen(
     roundReplayViewModel: RoundReplayViewModel = viewModel(factory = LocalViewModelFactory.current)
 ) {
     val focusRequester = remember { FocusRequester() }
+
+    val gameType = roundReplayViewModel.gameType // Access gameType from ViewModel
 
     val currentGridState by roundReplayViewModel.currentGridState.collectAsState()
     val currentMoveIndex by roundReplayViewModel.currentMoveIndex.collectAsState()
@@ -208,6 +212,12 @@ fun RoundReplayScreen(
                         val startCoordinates = replayCellCoordinates[startCellId]
                         val endCoordinates = replayCellCoordinates[endCellId]
 
+                        Log.d("WinningLineDebug", "Drawing line for winner: ${winningPlayer?.name}")
+                        Log.d("WinningLineDebug", "OrderedWinningCells: ${orderedWinningCells.joinToString()}")
+                        Log.d("WinningLineDebug", "StartCellId: $startCellId, EndCellId: $endCellId")
+                        Log.d("WinningLineDebug", "StartCoords: $startCoordinates, EndCoords: $endCoordinates")
+                        Log.d("WinningLineDebug", "ReplayCellCoordinates Dump: ${replayCellCoordinates.entries.joinToString { entry -> "${entry.key}=${entry.value?.size},${entry.value?.positionInParent()}" }}")
+
                         if (startCoordinates != null && endCoordinates != null) {
                             val startOffsetInParent = startCoordinates.positionInParent()
                             val endOffsetInParent = endCoordinates.positionInParent()
@@ -251,12 +261,46 @@ fun RoundReplayScreen(
                                 strokeWidth = lineStrokeWidth,
                                 cap = StrokeCap.Round
                             )
+                        } else {
+                            Log.e("WinningLineDebug", "Cannot draw line: Start or End coordinates are null. StartCellId: $startCellId, EndCellId: $endCellId")
                         }
                     }
                 }
         ) {
             val buttonIds = List(9) { i -> "button${i + 1}" }
             buttonIds.forEach { buttonId ->
+                val playerOnCell = currentGridState[buttonId] // Player occupying this cell from ViewModel's perspective
+                var isOldMoveValue = false // Default to no dimming
+
+                if (gameType == GameType.INFINITE) {
+                    // Current "Option B" logic for Infinite mode dimming:
+                    // (Dim the oldest of 3 visible moves for the player whose turn is NEXT)
+                    if (playerOnCell != null && currentMoveIndex >= 0 && moves.value.isNotEmpty()) {
+                        if (currentMoveIndex < moves.value.size) {
+                            val lastMoveMadeEntity = moves.value[currentMoveIndex]
+                            val lastPlayerWhoMoved = Player.fromString(lastMoveMadeEntity.player)
+                            val nextPlayerToMove = if (lastPlayerWhoMoved == Player.X) Player.O else Player.X
+
+                            if (playerOnCell == nextPlayerToMove) {
+                                val allMovesOfNextPlayerUpToCurrentBoardState = moves.value
+                                    .subList(0, currentMoveIndex + 1)
+                                    .filter { Player.fromString(it.player) == nextPlayerToMove }
+                                    .map { it.cellId }
+                                val visibleMovesOfNextPlayer = allMovesOfNextPlayerUpToCurrentBoardState.takeLast(3)
+
+                                if (visibleMovesOfNextPlayer.size == 3) {
+                                    val oldestVisibleMoveCellIdForNextPlayer = visibleMovesOfNextPlayer.first()
+                                    if (buttonId == oldestVisibleMoveCellIdForNextPlayer) {
+                                        isOldMoveValue = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else { // GameType.NORMAL (and any other unspecified types)
+                    isOldMoveValue = false // No dimming for normal mode
+                }
+
                 TicTacToeCell(
                     modifier = Modifier
                         .layoutId(buttonId)
@@ -267,8 +311,8 @@ fun RoundReplayScreen(
                         // For now, using the ConstraintLayout background.
                         .width(80.dp) // Adjust size as needed, considering padding
                         .height(80.dp),// Adjust size as needed, considering padding
-                    player = currentGridState[buttonId],
-                    isOldMove = false, // This could be enhanced later if needed
+                    player = playerOnCell, // playerOnCell was already defined as currentGridState[buttonId]
+                    isOldMove = isOldMoveValue, // Use the new logic
                     iconSize = iconSize,
                     buttonId = buttonId,
                     onClick = {

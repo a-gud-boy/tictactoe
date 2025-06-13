@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.a_gud_boy.tictactoe.GameType // Import GameType
 import java.util.Date // Import for Timestamp
 
 enum class MatchWinner {
@@ -23,6 +24,7 @@ data class MatchEntity(
     val matchWinnerName: String, // e.g., "You Won 2-1", "AI Won 3-0"
     val winner: MatchWinner, // New field for the actual winner
     val isAgainstAi: Boolean = false, // New field
+    val gameType: GameType, // Changed to GameType enum
     val timestamp: Long = System.currentTimeMillis() // Store as Long
 )
 

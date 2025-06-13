@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.a_gud_boy.tictactoe.GameType // Import GameType
+import org.json.JSONArray // Import JSONArray
 
 // AIDifficulty is now in its own file: AIDifficulty.kt
 // Player enum is now in Player.kt
@@ -155,14 +157,20 @@ class InfiniteTicTacToeViewModel(
     fun resetRound() { // End of a round in Infinite mode
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
-            val roundWinner = _winnerInfo.value?.winner // winner is non-null in InfiniteWinnerInfo
+            val currentWinnerInfo = _winnerInfo.value // Capture current winner info for this round
+            val roundWinner = currentWinnerInfo?.winner
             val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
+            // Convert winning combination to JSON string
+            val winningComboJson = currentWinnerInfo?.orderedWin?.let { orderedWinList ->
+                if (orderedWinList.isNotEmpty()) JSONArray(orderedWinList).toString() else null
+            }
 
             val tempRoundEntity = RoundEntity(
-                roundId = 0, ownerMatchId = 0,
+                roundId = 0, ownerMatchId = 0, // ownerMatchId is a placeholder, set when match is saved
                 roundNumber = roundNumber,
                 winner = roundWinner?.name,
-                roundWinnerName = roundWinnerName
+                roundWinnerName = roundWinnerName,
+                winningCombinationJson = winningComboJson // Set the new field
             )
             val completedRoundWithMoves = RoundWithMoves(
                 round = tempRoundEntity,
@@ -182,22 +190,33 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
+            // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
             if (_currentRoundMoves.value.isNotEmpty()) {
-                val roundNumber = _currentMatchRounds.value.size + 1
-                val roundWinner = _winnerInfo.value?.winner
-                val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
-                val tempRoundEntity = RoundEntity(
-                    roundId = 0,
-                    ownerMatchId = 0,
+                // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
+                val roundNumber = _currentMatchRounds.value.size + 1 // Potential next round number
+                val finalRoundWinnerInfo = _winnerInfo.value // Info for the round that was ongoing
+                val finalRoundWinner = finalRoundWinnerInfo?.winner
+                val finalRoundWinnerName = determineRoundWinnerNameInfinite(finalRoundWinner)
+                val finalRoundWinningComboJson = finalRoundWinnerInfo?.orderedWin?.let { orderedWinList ->
+                    if (orderedWinList.isNotEmpty()) JSONArray(orderedWinList).toString() else null
+                }
+
+                val finalTempRoundEntity = RoundEntity(
+                    roundId = 0, // Placeholder
+                    ownerMatchId = 0, // Placeholder
                     roundNumber = roundNumber,
-                    winner = roundWinner?.name,
-                    roundWinnerName = roundWinnerName
+                    winner = finalRoundWinner?.name,
+                    roundWinnerName = finalRoundWinnerName,
+                    winningCombinationJson = finalRoundWinningComboJson
                 )
-                val lastRoundWithMoves =
-                    RoundWithMoves(round = tempRoundEntity, moves = _currentRoundMoves.value)
+                val lastRoundWithMoves = RoundWithMoves(
+                    round = finalTempRoundEntity,
+                    moves = _currentRoundMoves.value // Moves from the ongoing round
+                )
                 _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
             }
 
+            // Now, proceed to save the match and all rounds in _currentMatchRounds
             val p1FinalScore = _player1Wins.value
             val p2FinalScore = _player2Wins.value
             val matchWinnerName = when {
@@ -219,25 +238,43 @@ class InfiniteTicTacToeViewModel(
                 player2Score = p2FinalScore,
                 matchWinnerName = matchWinnerName,
                 winner = winner, // Pass the determined winner
-                isAgainstAi = _isAIMode.value, // <<< THIS LINE IS ADDED/MODIFIED
+                isAgainstAi = _isAIMode.value,
+                gameType = GameType.INFINITE, // Use GameType.INFINITE
                 timestamp = System.currentTimeMillis()
             )
             val matchId = matchDao.insertMatch(matchEntity)
 
+            // Save all accumulated rounds. Their winningCombinationJson should be set
+            // either by previous calls to resetRound() or by the logic at the start of this function.
             _currentMatchRounds.value.forEach { roundWithMoves ->
                 val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
-                val roundId = roundDao.insertRound(actualRoundEntity)
+                // roundDao.insertRound(actualRoundEntity) // roundWithMoves.round already has winningCombinationJson
+                // val roundId = actualRoundEntity.roundId // Assuming insertRound returns the ID or it's auto-generated and part of actualRoundEntity
+
+                // If roundId is not directly available, this part might need adjustment
+                // For now, assume roundId is obtainable for linking moves.
+                // A more robust way would be to get the returned roundId from insertRound.
+                // However, RoundEntity's PK is autoGenerate=true. The DAO insert should return the generated ID.
+                // For simplicity, we'll assume the roundId from actualRoundEntity is sufficient if it's auto-updated post-insert,
+                // or that the DAO structure handles this. The critical part is that actualRoundEntity has the JSON string.
+                // The subtask should ensure that the `roundId` used for `move.copy(ownerRoundId = roundId)` is correct.
+                // The current structure seems to imply `roundDao.insertRound` returns the ID.
+                // Let's assume `val actualRoundId = roundDao.insertRound(actualRoundEntity)` is how it works.
+                val actualRoundId = roundDao.insertRound(actualRoundEntity)
+
+
                 roundWithMoves.moves.forEach { move ->
-                    moveDao.insertMove(move.copy(ownerRoundId = roundId))
+                    moveDao.insertMove(move.copy(ownerRoundId = actualRoundId))
                 }
             }
 
+            // Clear all match-specific states for a new game
             _player1Wins.value = 0
             _player2Wins.value = 0
-            _currentMatchRounds.value = emptyList()
-            _currentRoundMoves.value = emptyList()
+            _currentMatchRounds.value = emptyList() // Clear the list of rounds
 
-            resetRound()
+            // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
+            resetRound() // Prepare for a brand new round
         }
     }
 

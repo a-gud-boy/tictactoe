@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import com.a_gud_boy.tictactoe.GameType // Import GameType
+import android.util.Log // Import Log
+import org.json.JSONArray // Import JSONArray
+import org.json.JSONException // Import JSONException
 
 class RoundReplayViewModel(
     private val matchDao: MatchDao,
@@ -23,6 +27,13 @@ class RoundReplayViewModel(
     )
     val roundId: Long = savedStateHandle.get<Long>("roundId")
         ?: throw IllegalStateException("roundId not found in SavedStateHandle")
+
+    private val gameTypeString: String? = savedStateHandle.get<String>("gameType")
+    val gameType: GameType = try {
+        gameTypeString?.let { GameType.valueOf(it.uppercase()) } ?: GameType.NORMAL
+    } catch (e: IllegalArgumentException) {
+        GameType.NORMAL // Fallback if string is not a valid GameType
+    }
 
     private val _moves = MutableStateFlow<List<MoveEntity>>(emptyList())
     val moves: StateFlow<List<MoveEntity>> = _moves.asStateFlow()
@@ -85,9 +96,35 @@ class RoundReplayViewModel(
                         val winner = Player.fromString(foundRound.round.winner)
                         _winningPlayer.value = winner
                         if (winner != null) {
-                            _orderedWinningCells.value =
-                                findWinningCombination(foundRound.moves, winner)
-                        } else {
+                            val storedComboJson = foundRound.round.winningCombinationJson
+                            if (!storedComboJson.isNullOrEmpty()) {
+                                try {
+                                    val jsonArray = JSONArray(storedComboJson)
+                                    val cellsList = mutableListOf<String>()
+                                    for (i in 0 until jsonArray.length()) {
+                                        cellsList.add(jsonArray.getString(i))
+                                    }
+                                    if (cellsList.isNotEmpty()) { // Ensure the parsed list is not empty
+                                        _orderedWinningCells.value = cellsList
+                                        Log.d("RoundReplayVM", "Using stored winning combination: $cellsList")
+                                    } else {
+                                        // JSON array was empty "[]", or content was otherwise not yielding cells.
+                                        // This case might imply a draw was stored with "[]" or bad data.
+                                        // Fallback or set empty if appropriate.
+                                        Log.w("RoundReplayVM", "Stored winning combination JSON was empty or invalid: $storedComboJson. Falling back.")
+                                        _orderedWinningCells.value = findWinningCombination(foundRound.moves, winner)
+                                    }
+                                } catch (e: JSONException) {
+                                    Log.e("RoundReplayVM", "Error parsing stored winning combination JSON: $storedComboJson", e)
+                                    // Fallback to old method if JSON parsing fails
+                                    _orderedWinningCells.value = findWinningCombination(foundRound.moves, winner)
+                                }
+                            } else {
+                                // Stored combo is null or empty string, use fallback for older data or if not set.
+                                Log.d("RoundReplayVM", "No stored winning combination found. Using findWinningCombination fallback.")
+                                _orderedWinningCells.value = findWinningCombination(foundRound.moves, winner)
+                            }
+                        } else { // No winner
                             _orderedWinningCells.value = emptyList()
                         }
                         println("RoundReplayViewModel: Loaded ${_moves.value.size} moves. Winner: ${foundRound.round.winner}. Winning cells: ${_orderedWinningCells.value}")
@@ -124,14 +161,36 @@ class RoundReplayViewModel(
         viewModelScope.launch {
             combine(_moves, _currentMoveIndex) { movesList, index ->
                 val newGridState = mutableMapOf<String, Player?>()
-                if (index >= 0 && movesList.isNotEmpty()) {
-                    for (i in 0..index.coerceAtMost(movesList.size - 1)) {
-                        val move = movesList[i]
-                        newGridState[move.cellId] =
-                            Player.fromString(move.player) // Assuming Player.fromString exists
+                // Ensure movesList is not empty and index is valid before subList
+                if (movesList.isNotEmpty() && index >= 0) {
+                    val currentMovesInSequence = movesList.subList(0, (index + 1).coerceAtMost(movesList.size))
+
+                    if (gameType == GameType.INFINITE) { // Use the enum here
+                        // Separate moves by player
+                        val playerXMoves = currentMovesInSequence.filter { Player.fromString(it.player) == Player.X }
+                        val playerOMoves = currentMovesInSequence.filter { Player.fromString(it.player) == Player.O }
+
+                        // Get only the cellIds for taking the last 3
+                        val playerXCellIds = playerXMoves.map { it.cellId }
+                        val playerOCellIds = playerOMoves.map { it.cellId }
+
+                        val visiblePlayerXCellIds = playerXCellIds.takeLast(3) // MAX_VISIBLE_MOVES_PER_PLAYER is 3
+                        val visiblePlayerOCellIds = playerOCellIds.takeLast(3) // MAX_VISIBLE_MOVES_PER_PLAYER is 3
+
+                        // Populate grid state for visible moves
+                        visiblePlayerXCellIds.forEach { cellId -> newGridState[cellId] = Player.X }
+                        visiblePlayerOCellIds.forEach { cellId -> newGridState[cellId] = Player.O }
+
+                    } else { // NORMAL game type
+                        currentMovesInSequence.forEach { move ->
+                            newGridState[move.cellId] = Player.fromString(move.player)
+                        }
                     }
+                } else if (index == -1) {
+                    // Grid is empty, newGridState remains empty (or explicitly clear if needed)
+                    // newGridState.clear() // Depending on desired behavior for index -1
                 }
-                newGridState
+                newGridState // Return the calculated state
             }.collect { gridState ->
                 _currentGridState.value = gridState
             }
