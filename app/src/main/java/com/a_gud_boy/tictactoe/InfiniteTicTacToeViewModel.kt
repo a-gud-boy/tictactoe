@@ -155,7 +155,7 @@ class InfiniteTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round in Infinite mode
-        if (_currentRoundMoves.value.isNotEmpty() || _winnerInfo.value != null) {
+        if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val roundWinner = _winnerInfo.value?.winner // winner is non-null in InfiniteWinnerInfo
             val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
@@ -184,7 +184,7 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
-            if (_isGameConcluded.value && _currentRoundMoves.value.isNotEmpty()) {
+            if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
                 val roundWinner = _winnerInfo.value?.winner
                 val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
