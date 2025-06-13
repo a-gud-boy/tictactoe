@@ -1,6 +1,9 @@
 package com.a_gud_boy.tictactoe
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,27 +13,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.key.Key
@@ -48,7 +48,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.a_gud_boy.tictactoe.LocalViewModelFactory
 
 @Composable
 fun RoundReplayScreen(
@@ -85,31 +84,58 @@ fun RoundReplayScreen(
         val margin = 0.dp
 
         constrain(button1) {
-            top.linkTo(parent.top, margin = margin); start.linkTo(parent.start, margin = margin); end.linkTo(button2.start, margin = margin); bottom.linkTo(button4.top, margin = margin)
+            top.linkTo(parent.top, margin = margin); start.linkTo(
+            parent.start,
+            margin = margin
+        ); end.linkTo(button2.start, margin = margin); bottom.linkTo(button4.top, margin = margin)
         }
         constrain(button2) {
-            top.linkTo(parent.top, margin = margin); start.linkTo(button1.end, margin = margin); end.linkTo(button3.start, margin = margin); bottom.linkTo(button5.top, margin = margin)
+            top.linkTo(parent.top, margin = margin); start.linkTo(
+            button1.end,
+            margin = margin
+        ); end.linkTo(button3.start, margin = margin); bottom.linkTo(button5.top, margin = margin)
         }
         constrain(button3) {
-            top.linkTo(parent.top, margin = margin); start.linkTo(button2.end, margin = margin); end.linkTo(parent.end, margin = margin); bottom.linkTo(button6.top, margin = margin)
+            top.linkTo(parent.top, margin = margin); start.linkTo(
+            button2.end,
+            margin = margin
+        ); end.linkTo(parent.end, margin = margin); bottom.linkTo(button6.top, margin = margin)
         }
         constrain(button4) {
-            top.linkTo(button1.bottom, margin = margin); start.linkTo(parent.start, margin = margin); end.linkTo(button5.start, margin = margin); bottom.linkTo(button7.top, margin = margin)
+            top.linkTo(button1.bottom, margin = margin); start.linkTo(
+            parent.start,
+            margin = margin
+        ); end.linkTo(button5.start, margin = margin); bottom.linkTo(button7.top, margin = margin)
         }
         constrain(button5) {
-            top.linkTo(button2.bottom, margin = margin); start.linkTo(button4.end, margin = margin); end.linkTo(button6.start, margin = margin); bottom.linkTo(button8.top, margin = margin)
+            top.linkTo(button2.bottom, margin = margin); start.linkTo(
+            button4.end,
+            margin = margin
+        ); end.linkTo(button6.start, margin = margin); bottom.linkTo(button8.top, margin = margin)
         }
         constrain(button6) {
-            top.linkTo(button3.bottom, margin = margin); start.linkTo(button5.end, margin = margin); end.linkTo(parent.end, margin = margin); bottom.linkTo(button9.top, margin = margin)
+            top.linkTo(button3.bottom, margin = margin); start.linkTo(
+            button5.end,
+            margin = margin
+        ); end.linkTo(parent.end, margin = margin); bottom.linkTo(button9.top, margin = margin)
         }
         constrain(button7) {
-            top.linkTo(button4.bottom, margin = margin); start.linkTo(parent.start, margin = margin); end.linkTo(button8.start, margin = margin); bottom.linkTo(parent.bottom, margin = margin)
+            top.linkTo(button4.bottom, margin = margin); start.linkTo(
+            parent.start,
+            margin = margin
+        ); end.linkTo(button8.start, margin = margin); bottom.linkTo(parent.bottom, margin = margin)
         }
         constrain(button8) {
-            top.linkTo(button5.bottom, margin = margin); start.linkTo(button7.end, margin = margin); end.linkTo(button9.start, margin = margin); bottom.linkTo(parent.bottom, margin = margin)
+            top.linkTo(button5.bottom, margin = margin); start.linkTo(
+            button7.end,
+            margin = margin
+        ); end.linkTo(button9.start, margin = margin); bottom.linkTo(parent.bottom, margin = margin)
         }
         constrain(button9) {
-            top.linkTo(button6.bottom, margin = margin); start.linkTo(button8.end, margin = margin); end.linkTo(parent.end, margin = margin); bottom.linkTo(parent.bottom, margin = margin)
+            top.linkTo(button6.bottom, margin = margin); start.linkTo(
+            button8.end,
+            margin = margin
+        ); end.linkTo(parent.end, margin = margin); bottom.linkTo(parent.bottom, margin = margin)
         }
     }
 
@@ -129,6 +155,7 @@ fun RoundReplayScreen(
                             roundReplayViewModel.previousMove()
                             return@onKeyEvent true
                         }
+
                         Key.DirectionRight -> {
                             roundReplayViewModel.nextMove()
                             return@onKeyEvent true
@@ -147,7 +174,10 @@ fun RoundReplayScreen(
         LaunchedEffect(currentMoveIndex, winningPlayer, orderedWinningCells, moves.size) {
             if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && winningPlayer != null && orderedWinningCells.isNotEmpty()) {
                 replayLineAnimationProgress.snapTo(0f)
-                replayLineAnimationProgress.animateTo(1f, animationSpec = tween(durationMillis = 600))
+                replayLineAnimationProgress.animateTo(
+                    1f,
+                    animationSpec = tween(durationMillis = 600)
+                )
             } else {
                 replayLineAnimationProgress.snapTo(0f)
             }
@@ -171,7 +201,8 @@ fun RoundReplayScreen(
                 .drawWithContent {
                     drawContent()
                     if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && winningPlayer != null && orderedWinningCells.isNotEmpty() && replayLineAnimationProgress.value > 0f) {
-                        val startCellId = orderedWinningCells.first() // Draw from first to last or last to first as preferred
+                        val startCellId =
+                            orderedWinningCells.first() // Draw from first to last or last to first as preferred
                         val endCellId = orderedWinningCells.last()
 
                         val startCoordinates = replayCellCoordinates[startCellId]
@@ -191,18 +222,26 @@ fun RoundReplayScreen(
                             )
 
                             // Lerp for animation
-                            val animatedEndCellCenter = lerp(startCellCenter, endCellCenter, replayLineAnimationProgress.value)
+                            val animatedEndCellCenter = lerp(
+                                startCellCenter,
+                                endCellCenter,
+                                replayLineAnimationProgress.value
+                            )
 
                             // Extend the line
                             val lineExtensionPx = 30.dp.toPx() // Adjust as needed
                             val direction = (animatedEndCellCenter - startCellCenter)
-                            val normalizedDirection = if (direction.getDistanceSquared() > 0) direction / direction.getDistance() else Offset.Zero
+                            val normalizedDirection =
+                                if (direction.getDistanceSquared() > 0) direction / direction.getDistance() else Offset.Zero
 
-                            val extendedStart = startCellCenter - normalizedDirection * lineExtensionPx
-                            val extendedEnd = animatedEndCellCenter + normalizedDirection * lineExtensionPx
+                            val extendedStart =
+                                startCellCenter - normalizedDirection * lineExtensionPx
+                            val extendedEnd =
+                                animatedEndCellCenter + normalizedDirection * lineExtensionPx
 
 
-                            val lineColor = if (winningPlayer == Player.X) playerXColor else playerOColor
+                            val lineColor =
+                                if (winningPlayer == Player.X) playerXColor else playerOColor
                             val lineStrokeWidth = 5.dp.toPx()
 
                             drawLine(
@@ -222,7 +261,9 @@ fun RoundReplayScreen(
                     modifier = Modifier
                         .layoutId(buttonId)
                         .background(Color.White, RoundedCornerShape(10.dp))
-                        .onGloballyPositioned { coordinates -> replayCellCoordinates[buttonId] = coordinates }
+                        .onGloballyPositioned { coordinates ->
+                            replayCellCoordinates[buttonId] = coordinates
+                        }
                         // For now, using the ConstraintLayout background.
                         .width(80.dp) // Adjust size as needed, considering padding
                         .height(80.dp),// Adjust size as needed, considering padding

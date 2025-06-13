@@ -1,6 +1,9 @@
 package com.a_gud_boy.tictactoe
 
+import android.text.format.DateUtils
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,17 +18,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton // For FAB
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,14 +41,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color // Import Color
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.LayoutDirection
-import android.text.format.DateUtils // Import for relative time
-import androidx.compose.foundation.BorderStroke // Required for border
-import androidx.compose.foundation.border // Required for border
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -285,7 +284,8 @@ fun RoundHistoryItem(roundWithMoves: RoundWithMoves) {
         if (roundWithMoves.moves.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp)) // Add more space before move list
             roundWithMoves.moves.forEachIndexed { index, move ->
-                val playerName = if (move.player == "X") "You" else "AI" // Assuming X is You, O is AI
+                val playerName =
+                    if (move.player == "X") "You" else "AI" // Assuming X is You, O is AI
 
                 val cellNumber = move.cellId.replace("button", "")
                 val descriptiveCellName = when (cellNumber) {
@@ -347,7 +347,12 @@ fun GameBoard(moves: List<MoveEntity>, playerXSymbol: String = "X", playerOSymbo
                     Box(
                         modifier = Modifier
                             .size(48.dp) // Cell size
-                            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)))
+                            .border(
+                                BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                )
+                            )
                             .padding(4.dp), // Padding inside the cell
                         contentAlignment = Alignment.Center
                     ) {

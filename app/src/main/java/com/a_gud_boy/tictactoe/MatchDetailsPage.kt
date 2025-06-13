@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
@@ -137,10 +136,12 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
                     resultColor = MaterialTheme.colorScheme.primary // Greenish color from theme
                     resultIcon = Icons.Filled.Check
                 }
+
                 "AI Won" -> {
                     resultColor = MaterialTheme.colorScheme.error // Reddish color from theme
                     resultIcon = Icons.Filled.Clear
                 }
+
                 else -> { // Draw or other states
                     resultColor = MaterialTheme.colorScheme.onSurface // Neutral color
                     resultIcon = null // No icon for draw

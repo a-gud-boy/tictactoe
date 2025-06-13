@@ -18,8 +18,11 @@ class RoundReplayViewModel(
 ) : ViewModel() {
 
     // matchId from SavedStateHandle is now used for fetching via matchDao
-    val matchIdFromNav: Long = savedStateHandle.get<Long>("matchId") ?: throw IllegalStateException("matchId not found in SavedStateHandle")
-    val roundId: Long = savedStateHandle.get<Long>("roundId") ?: throw IllegalStateException("roundId not found in SavedStateHandle")
+    val matchIdFromNav: Long = savedStateHandle.get<Long>("matchId") ?: throw IllegalStateException(
+        "matchId not found in SavedStateHandle"
+    )
+    val roundId: Long = savedStateHandle.get<Long>("roundId")
+        ?: throw IllegalStateException("roundId not found in SavedStateHandle")
 
     private val _moves = MutableStateFlow<List<MoveEntity>>(emptyList())
     val moves: StateFlow<List<MoveEntity>> = _moves.asStateFlow()
@@ -74,14 +77,16 @@ class RoundReplayViewModel(
                 println("RoundReplayViewModel: matchDetails is null: ${matchDetails == null}")
                 if (matchDetails != null) {
                     println("RoundReplayViewModel: matchDetails.match.matchId: ${matchDetails.match.matchId}, roundsWithMoves count: ${matchDetails.roundsWithMoves.size}")
-                    val foundRound = matchDetails.roundsWithMoves.find { it.round.roundId == roundId }
+                    val foundRound =
+                        matchDetails.roundsWithMoves.find { it.round.roundId == roundId }
                     if (foundRound != null) {
                         println("RoundReplayViewModel: Round with id $roundId found.")
                         _moves.value = foundRound.moves
                         val winner = Player.fromString(foundRound.round.winner)
                         _winningPlayer.value = winner
                         if (winner != null) {
-                            _orderedWinningCells.value = findWinningCombination(foundRound.moves, winner)
+                            _orderedWinningCells.value =
+                                findWinningCombination(foundRound.moves, winner)
                         } else {
                             _orderedWinningCells.value = emptyList()
                         }
@@ -105,7 +110,8 @@ class RoundReplayViewModel(
     }
 
     private fun findWinningCombination(moves: List<MoveEntity>, winner: Player): List<String> {
-        val winnerMoves = moves.filter { Player.fromString(it.player) == winner }.map { it.cellId }.toSet()
+        val winnerMoves =
+            moves.filter { Player.fromString(it.player) == winner }.map { it.cellId }.toSet()
         for (combination in winningCombinations) {
             if (winnerMoves.containsAll(combination)) {
                 return combination
@@ -121,7 +127,8 @@ class RoundReplayViewModel(
                 if (index >= 0 && movesList.isNotEmpty()) {
                     for (i in 0..index.coerceAtMost(movesList.size - 1)) {
                         val move = movesList[i]
-                        newGridState[move.cellId] = Player.fromString(move.player) // Assuming Player.fromString exists
+                        newGridState[move.cellId] =
+                            Player.fromString(move.player) // Assuming Player.fromString exists
                     }
                 }
                 newGridState
@@ -130,6 +137,7 @@ class RoundReplayViewModel(
             }
         }
     }
+
     fun previousMove() {
         if (_currentMoveIndex.value > -1) {
             _currentMoveIndex.value--

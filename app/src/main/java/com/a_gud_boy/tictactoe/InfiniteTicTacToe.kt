@@ -107,10 +107,8 @@ fun InfiniteTicTacToePage(
     val winnerInfo by viewModel.winnerInfo.collectAsStateWithLifecycle()
     val player1Turn by viewModel.player1Turn.collectAsStateWithLifecycle()
     val turnDenotingText by viewModel.turnDenotingText.collectAsStateWithLifecycle()
-    val gameStarted by viewModel.gameStarted.collectAsStateWithLifecycle()
     val resetButtonText by viewModel.resetButtonText.collectAsStateWithLifecycle()
     val isAIMode by viewModel.isAIMode.collectAsStateWithLifecycle()
-    val currentAIDifficulty by viewModel.aiDifficulty.collectAsStateWithLifecycle()
     // isGameConcluded is implicitly handled by winnerInfo (being non-null) and gameStarted states in ViewModel.
 
     val iconSize = 70.dp
@@ -308,7 +306,7 @@ fun InfiniteTicTacToePage(
 
                                 // Interpolate the visual end point of the line based on animation progress.
                                 // The line "grows" from actualLineStartPoint towards actualLineEndPoint.
-                                val animatedVisualLineEnd = lerp(
+                                lerp(
                                     actualLineStartPoint, // Start of the segment for lerp
                                     actualLineEndPoint,   // End of the segment for lerp
                                     lineAnimationProgress.value // Current animation fraction (0f to 1f)
