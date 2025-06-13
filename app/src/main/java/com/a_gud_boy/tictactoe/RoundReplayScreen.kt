@@ -208,17 +208,22 @@ fun RoundReplayScreen(
         // This logic remains active to set the color, which will be applied to the Text,
         // even if the text is currently empty.
         val resultTextColor = when {
-            roundWinnerName == null || roundWinnerName.isBlank() -> defaultReplayTextColor
-            roundWinnerName.contains("Won", ignoreCase = true) && (roundWinnerName.contains("You", ignoreCase = true) || roundWinnerName.contains("Player 1", ignoreCase = true)) -> replayWinColor
-            roundWinnerName.contains("Won", ignoreCase = true) && (roundWinnerName.contains("AI", ignoreCase = true) || roundWinnerName.contains("Player 2", ignoreCase = true)) -> replayLossColor
-            roundWinnerName.contains("Draw", ignoreCase = true) -> replayDrawColor
+            // Check the value of the state object
+            roundWinnerName.value == null || (roundWinnerName.value?.isBlank() ?: true) -> defaultReplayTextColor
+            roundWinnerName.value?.contains("Won", ignoreCase = true) == true &&
+                    (roundWinnerName.value?.contains("You", ignoreCase = true) == true ||
+                            roundWinnerName.value?.contains("Player 1", ignoreCase = true) == true) -> replayWinColor
+            roundWinnerName.value?.contains("Won", ignoreCase = true) == true &&
+                    (roundWinnerName.value?.contains("AI", ignoreCase = true) == true ||
+                            roundWinnerName.value?.contains("Player 2", ignoreCase = true) == true) -> replayLossColor
+            roundWinnerName.value?.contains("Draw", ignoreCase = true) == true -> replayDrawColor
             else -> defaultReplayTextColor
         }
 
         // Text composable for round result - always present, text content conditional
         Text(
-            text = if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && roundWinnerName != null && roundWinnerName!!.isNotEmpty()) {
-                roundWinnerName!! // Show the actual result string
+            text = if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && roundWinnerName.value != null && roundWinnerName.value!!.isNotEmpty()) {
+                roundWinnerName.value!! // Show the actual result string from the state's value
             } else {
                 "" // Show empty string when not the last move or no result
             },
