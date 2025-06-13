@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.a_gud_boy.tictactoe.GameType // Import GameType
+import org.json.JSONArray // Import JSONArray
 
 // Player enum is now in its own file: Player.kt
 // AIDifficulty is now in its own file: AIDifficulty.kt
@@ -152,14 +153,22 @@ class NormalTicTacToeViewModel(
     fun resetRound() { // End of a round
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
-            val roundWinner = _winnerInfo.value?.winner
+            val currentWinnerInfo = _winnerInfo.value // Capture current winner info
+            val roundWinner = currentWinnerInfo?.winner
             val roundWinnerName = determineRoundWinnerName(roundWinner)
+
+            // Convert winning combination to JSON string
+            // For normal mode, winnerInfo.orderedWinningMoves holds the combination
+            val winningComboJson = currentWinnerInfo?.orderedWinningMoves?.let { orderedMovesList ->
+                if (orderedMovesList.isNotEmpty()) JSONArray(orderedMovesList).toString() else null
+            }
 
             val tempRoundEntity = RoundEntity(
                 roundId = 0, ownerMatchId = 0,
                 roundNumber = roundNumber,
                 winner = roundWinner?.name,
-                roundWinnerName = roundWinnerName
+                roundWinnerName = roundWinnerName,
+                winningCombinationJson = winningComboJson // Set the new field
             )
             val completedRoundWithMoves = RoundWithMoves(
                 round = tempRoundEntity,
@@ -179,19 +188,26 @@ class NormalTicTacToeViewModel(
 
     fun resetScores() { // End of a match
         viewModelScope.launch {
+            // Handle the currently ongoing round's data
             if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
-                val roundWinner = _winnerInfo.value?.winner
-                val roundWinnerName = determineRoundWinnerName(roundWinner)
-                val tempRoundEntity = RoundEntity(
+                val finalRoundWinnerInfo = _winnerInfo.value
+                val finalRoundWinner = finalRoundWinnerInfo?.winner
+                val finalRoundWinnerName = determineRoundWinnerName(finalRoundWinner)
+                val finalRoundWinningComboJson = finalRoundWinnerInfo?.orderedWinningMoves?.let { orderedMovesList ->
+                    if (orderedMovesList.isNotEmpty()) JSONArray(orderedMovesList).toString() else null
+                }
+
+                val finalTempRoundEntity = RoundEntity(
                     roundId = 0,
                     ownerMatchId = 0,
                     roundNumber = roundNumber,
-                    winner = roundWinner?.name,
-                    roundWinnerName = roundWinnerName
+                    winner = finalRoundWinner?.name,
+                    roundWinnerName = finalRoundWinnerName,
+                    winningCombinationJson = finalRoundWinningComboJson
                 )
                 val lastRoundWithMoves =
-                    RoundWithMoves(round = tempRoundEntity, moves = _currentRoundMoves.value)
+                    RoundWithMoves(round = finalTempRoundEntity, moves = _currentRoundMoves.value)
                 _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
             }
 
@@ -225,17 +241,19 @@ class NormalTicTacToeViewModel(
 
             _currentMatchRounds.value.forEach { roundWithMoves ->
                 val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
-                val roundId = roundDao.insertRound(actualRoundEntity)
+                // The roundWithMoves.round should already have winningCombinationJson populated
+                val actualRoundId = roundDao.insertRound(actualRoundEntity) // Get the actual ID
                 roundWithMoves.moves.forEach { move ->
-                    moveDao.insertMove(move.copy(ownerRoundId = roundId))
+                    moveDao.insertMove(move.copy(ownerRoundId = actualRoundId)) // Use actual ID
                 }
             }
 
+            // Clear all match-specific states
             _player1Wins.value = 0
             _player2Wins.value = 0
             _currentMatchRounds.value = emptyList()
-            _currentRoundMoves.value = emptyList()
 
+            // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound()
         }
     }

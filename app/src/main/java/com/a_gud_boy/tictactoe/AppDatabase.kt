@@ -12,13 +12,18 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // For now, we are using Long for timestamp, so it's not immediately needed unless other Date fields are added.
 
 import com.a_gud_boy.tictactoe.GameTypeConverter // Import new converter
+import com.a_gud_boy.tictactoe.StringListConverter // Added import
 
 @Database(
     entities = [MatchEntity::class, RoundEntity::class, MoveEntity::class],
-    version = 4, // Incremented version
+    version = 5, // Incremented to 5
     exportSchema = false // Recommended to set to true for production apps for schema history
 )
-@TypeConverters(MatchWinnerTypeConverter::class, GameTypeConverter::class) // Added GameTypeConverter
+@TypeConverters(
+    MatchWinnerTypeConverter::class,
+    GameTypeConverter::class,
+    StringListConverter::class // Added StringListConverter
+)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun matchDao(): MatchDao
@@ -37,7 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "tictactoe_history_database" // Database file name
                 )
                     // Removed fallbackToDestructiveMigration to use explicit migration
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) // Add the new migration
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5) // Added MIGRATION_4_5
                     .build()
                 INSTANCE = instance
                 instance
@@ -72,6 +77,15 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE matches ADD COLUMN gameType TEXT NOT NULL DEFAULT '${GameType.NORMAL.name}'")
+            }
+        }
+
+        // New Migration from version 4 to 5
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add the 'winningCombinationJson' column to the 'rounds' table.
+                // It's nullable, so no default value is strictly needed beyond what SQLite provides for NULL.
+                database.execSQL("ALTER TABLE rounds ADD COLUMN winningCombinationJson TEXT NULL")
             }
         }
     }

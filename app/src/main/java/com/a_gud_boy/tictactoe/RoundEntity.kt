@@ -22,7 +22,8 @@ data class RoundEntity(
     val ownerMatchId: Long, // Foreign key to MatchEntity
     val roundNumber: Int,
     val winner: String?, // "X", "O", or null for draw
-    val roundWinnerName: String // e.g., "Player 1 Won", "AI Won", "Draw"
+    val roundWinnerName: String, // e.g., "Player 1 Won", "AI Won", "Draw"
+    val winningCombinationJson: String? // New nullable field
 )
 
 data class RoundWithMoves(
