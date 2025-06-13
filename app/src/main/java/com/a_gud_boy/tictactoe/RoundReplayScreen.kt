@@ -44,7 +44,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import android.util.Log // Import Log
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.colorResource
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.a_gud_boy.tictactoe.GameType // Import GameType
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
@@ -67,6 +69,7 @@ fun RoundReplayScreen(
     val moves by roundReplayViewModel.moves.collectAsState()
     val winningPlayer by roundReplayViewModel.winningPlayer.collectAsState() // Using collectAsState for simplicity
     val orderedWinningCells by roundReplayViewModel.orderedWinningCells.collectAsState() // Using collectAsState for simplicity
+    val roundWinnerName by roundReplayViewModel.roundWinnerNameDisplay.collectAsState()
 
     val replayCellCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
     val replayLineAnimationProgress = remember { Animatable(0f) }
@@ -193,6 +196,17 @@ fun RoundReplayScreen(
             text = if (totalMoves > 0) "Move: $displayMoveIndex / $totalMoves" else "No moves in this round",
             modifier = Modifier.padding(bottom = 20.dp)
         )
+
+        roundWinnerName?.let { winnerName ->
+            if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && winningPlayer != null) {
+                Text(
+                    text = winnerName,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+        }
 
         ConstraintLayout(
             constraintSet = constraints,

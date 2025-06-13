@@ -55,6 +55,9 @@ class RoundReplayViewModel(
     private val _orderedWinningCells = MutableStateFlow<List<String>>(emptyList())
     val orderedWinningCells: StateFlow<List<String>> = _orderedWinningCells.asStateFlow()
 
+    private val _roundWinnerNameDisplay = MutableStateFlow<String?>(null)
+    val roundWinnerNameDisplay: StateFlow<String?> = _roundWinnerNameDisplay.asStateFlow()
+
     companion object {
         private val winningCombinations = listOf(
             // Rows
@@ -95,6 +98,7 @@ class RoundReplayViewModel(
                         _moves.value = foundRound.moves
                         val winner = Player.fromString(foundRound.round.winner)
                         _winningPlayer.value = winner
+                        _roundWinnerNameDisplay.value = foundRound.round.roundWinnerName // Add this line
                         if (winner != null) {
                             val storedComboJson = foundRound.round.winningCombinationJson
                             if (!storedComboJson.isNullOrEmpty()) {
@@ -132,6 +136,7 @@ class RoundReplayViewModel(
                         _moves.value = emptyList()
                         _winningPlayer.value = null
                         _orderedWinningCells.value = emptyList()
+                        _roundWinnerNameDisplay.value = null // Add this line
                         // Log or handle case where specific roundId is not found in the match
                         println("RoundReplayViewModel: Round with id $roundId not found in match ${matchDetails.match.matchId}. Moves not loaded.")
                     }
@@ -139,6 +144,7 @@ class RoundReplayViewModel(
                     _moves.value = emptyList()
                     _winningPlayer.value = null
                     _orderedWinningCells.value = emptyList()
+                    _roundWinnerNameDisplay.value = null // Add this line
                     // Log or handle case where matchId is not found
                     println("RoundReplayViewModel: Match with id $matchIdFromNav not found. Moves not loaded.")
                 }
