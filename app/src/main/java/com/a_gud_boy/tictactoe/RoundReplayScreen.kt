@@ -1,5 +1,6 @@
 package com.a_gud_boy.tictactoe
 
+import androidx.compose.ui.graphics.Color // Ensure this is imported
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -52,6 +53,12 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+
+// Color definitions for round result text
+private val replayWinColor = Color(0xFF4CAF50) // Green
+private val replayLossColor = Color(0xFFF44336) // Red
+private val replayDrawColor = Color(0xFF9E9E9E) // Gray
+private val defaultReplayTextColor = Color.Black // Default/fallback color
 
 @Composable
 fun RoundReplayScreen(
@@ -197,14 +204,26 @@ fun RoundReplayScreen(
             modifier = Modifier.padding(bottom = 20.dp)
         )
 
-        roundWinnerName?.let { winnerName ->
-            if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty() && winningPlayer != null) {
-                Text(
-                    text = winnerName,
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+        // Display Round Result (Win/Loss/Draw)
+        if (currentMoveIndex == moves.size - 1 && moves.isNotEmpty()) {
+            roundWinnerName?.let { winnerName ->
+                // Determine text color based on winnerName content
+                val resultTextColor = when {
+                    winnerName.isBlank() -> defaultReplayTextColor // Use isBlank to catch null, empty or whitespace only
+                    winnerName.contains("Won", ignoreCase = true) && (winnerName.contains("You", ignoreCase = true) || winnerName.contains("Player 1", ignoreCase = true)) -> replayWinColor
+                    winnerName.contains("Won", ignoreCase = true) && (winnerName.contains("AI", ignoreCase = true) || winnerName.contains("Player 2", ignoreCase = true)) -> replayLossColor
+                    winnerName.contains("Draw", ignoreCase = true) -> replayDrawColor
+                    else -> defaultReplayTextColor // Fallback for any other text
+                }
+
+                if (winnerName.isNotEmpty()) { // Still ensure it's not empty before trying to display
+                    Text(
+                        text = winnerName,
+                        fontSize = 20.sp,
+                        color = resultTextColor, // Apply dynamic color
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
             }
         }
 
