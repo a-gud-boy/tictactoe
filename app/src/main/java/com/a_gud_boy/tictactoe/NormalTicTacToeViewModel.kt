@@ -150,7 +150,7 @@ class NormalTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round
-        if (_currentRoundMoves.value.isNotEmpty() || _winnerInfo.value != null) {
+        if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val roundWinner = _winnerInfo.value?.winner
             val roundWinnerName = determineRoundWinnerName(roundWinner)
@@ -179,7 +179,7 @@ class NormalTicTacToeViewModel(
 
     fun resetScores() { // End of a match
         viewModelScope.launch {
-            if (_isGameConcluded.value && _currentRoundMoves.value.isNotEmpty()) {
+            if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
                 val roundWinner = _winnerInfo.value?.winner
                 val roundWinnerName = determineRoundWinnerName(roundWinner)
