@@ -115,16 +115,6 @@ fun InfiniteTicTacToePage(
     // Stores the layout coordinates of each cell button. Used for drawing the winning line.
     val buttonCoordinates = remember { mutableStateMapOf<String, LayoutCoordinates>() }
 
-    val context = LocalContext.current
-    // SoundManager instance for playing game sounds.
-    val soundManager = remember { SoundManager(context) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            soundManager.release()
-        }
-    }
-
     val view = LocalView.current
     // Animatable progress for drawing the winning line (0f to 1f).
     val lineAnimationProgress = remember { Animatable(0f) }
@@ -139,12 +129,6 @@ fun InfiniteTicTacToePage(
         if (winnerInfo != null) {
             // Provide haptic feedback for game conclusion.
             HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.CONFIRM)
-            // Play win or draw sound based on whether there's a specific winner or it's a draw.
-            if (winnerInfo?.winner != null) {
-                soundManager.playWinSound(volume)
-            } else { // Draw condition
-                soundManager.playDrawSound(volume)
-            }
             // Store the sequence of button IDs that form the winning line.
             orderedWinningCombination.value = winnerInfo!!.orderedWin
 

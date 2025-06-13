@@ -108,29 +108,14 @@ fun NormalTicTacToePage(
     // Holds the button IDs of the winning combination in order, to correctly draw/animate the line.
     val orderedWinningCombination = remember { mutableStateOf<List<String>>(emptyList()) }
 
-    val context = LocalContext.current
-    val soundManager = remember { SoundManager(context) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            soundManager.release()
-        }
-    }
-
     val view = LocalView.current
     // This LaunchedEffect observes changes in winnerInfo.
-    // When a game concludes (win or draw), it triggers haptic feedback, plays a sound,
+    // When a game concludes (win or draw), it triggers haptic feedback,
     // sets up the winning line coordinates, and starts the line drawing animation.
     LaunchedEffect(winnerInfo) {
         if (winnerInfo != null) {
             // Provide haptic feedback for game conclusion.
             HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.CONFIRM)
-            // Play win or draw sound.
-            if (winnerInfo?.winner != null) {
-                soundManager.playWinSound(volume)
-            } else { // Draw condition
-                soundManager.playDrawSound(volume)
-            }
             // Store the winning move combination to draw the line.
             orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
 
