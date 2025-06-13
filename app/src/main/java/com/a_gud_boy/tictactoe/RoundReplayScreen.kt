@@ -44,6 +44,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.a_gud_boy.tictactoe.GameType // Import GameType
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,6 +58,8 @@ fun RoundReplayScreen(
     roundReplayViewModel: RoundReplayViewModel = viewModel(factory = LocalViewModelFactory.current)
 ) {
     val focusRequester = remember { FocusRequester() }
+
+    val gameType = roundReplayViewModel.gameType // Access gameType from ViewModel
 
     val currentGridState by roundReplayViewModel.currentGridState.collectAsState()
     val currentMoveIndex by roundReplayViewModel.currentMoveIndex.collectAsState()
@@ -257,6 +260,46 @@ fun RoundReplayScreen(
         ) {
             val buttonIds = List(9) { i -> "button${i + 1}" }
             buttonIds.forEach { buttonId ->
+                val playerOnCell = currentGridState[buttonId] // Player occupying this cell from ViewModel's perspective
+                var isOldMoveValue = false
+
+                if (playerOnCell != null && currentMoveIndex >= 0 && moves.value.isNotEmpty()) {
+                    if (gameType == GameType.INFINITE) {
+                        // Infinite Mode: Dim only the oldest of 3 visible moves for the player who just moved.
+                        if (currentMoveIndex < moves.value.size) { // Make sure currentMoveIndex is valid
+                            val lastMoveMade = moves.value[currentMoveIndex]
+                            val lastPlayer = Player.fromString(lastMoveMade.player)
+
+                            if (playerOnCell == lastPlayer) { // Cell belongs to the player who just made a move
+                                val allMovesOfLastPlayerUpToCurrent = moves.value
+                                    .subList(0, currentMoveIndex + 1)
+                                    .filter { Player.fromString(it.player) == lastPlayer }
+                                    .map { it.cellId }
+
+                                if (allMovesOfLastPlayerUpToCurrent.size == 3) { // Player has exactly 3 visible moves
+                                    val oldestVisibleMoveCellId = allMovesOfLastPlayerUpToCurrent.first()
+                                    if (buttonId == oldestVisibleMoveCellId) {
+                                        isOldMoveValue = true
+                                    }
+                                }
+                                // If not 3 moves, or not the oldest, isOldMoveValue remains false.
+                            }
+                            // If cell does not belong to lastPlayer, isOldMoveValue remains false.
+                        }
+                    } else { // GameType.NORMAL (or any other type)
+                        // Normal Mode: Dim any move that is not the current move.
+                        val moveInstance = moves.value.findLast { mv ->
+                            mv.cellId == buttonId && Player.fromString(mv.player) == playerOnCell
+                        }
+                        if (moveInstance != null) {
+                            val indexOfThisMoveInFullList = moves.value.indexOf(moveInstance)
+                            if (indexOfThisMoveInFullList < currentMoveIndex) {
+                                isOldMoveValue = true
+                            }
+                        }
+                    }
+                }
+
                 TicTacToeCell(
                     modifier = Modifier
                         .layoutId(buttonId)
@@ -267,8 +310,8 @@ fun RoundReplayScreen(
                         // For now, using the ConstraintLayout background.
                         .width(80.dp) // Adjust size as needed, considering padding
                         .height(80.dp),// Adjust size as needed, considering padding
-                    player = currentGridState[buttonId],
-                    isOldMove = false, // This could be enhanced later if needed
+                    player = playerOnCell,
+                    isOldMove = isOldMoveValue, // Use the new logic
                     iconSize = iconSize,
                     buttonId = buttonId,
                     onClick = {
