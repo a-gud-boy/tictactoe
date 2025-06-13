@@ -100,8 +100,10 @@ fun InfiniteTicTacToePage(
     val player1Moves by viewModel.player1Moves.collectAsStateWithLifecycle()
     val player2Moves by viewModel.player2Moves.collectAsStateWithLifecycle()
     // Add these lines:
-    val p1VisibleMoves = player1Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
-    val p2VisibleMoves = player2Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
+    val p1VisibleMoves =
+        player1Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
+    val p2VisibleMoves =
+        player2Moves.takeLast(InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER)
     val winnerInfo by viewModel.winnerInfo.collectAsStateWithLifecycle()
     val player1Turn by viewModel.player1Turn.collectAsStateWithLifecycle()
     val turnDenotingText by viewModel.turnDenotingText.collectAsStateWithLifecycle()
@@ -146,7 +148,7 @@ fun InfiniteTicTacToePage(
                 soundManager.playDrawSound(volume)
             }
             // Store the sequence of button IDs that form the winning line.
-            orderedWinningCombination.value = winnerInfo!!.orderedWinningMoves
+            orderedWinningCombination.value = winnerInfo!!.orderedWin
 
             // Reset animation progress to 0 and then animate to 1 to draw the line.
             lineAnimationProgress.snapTo(0f) // Reset before starting animation.
@@ -283,10 +285,13 @@ fun InfiniteTicTacToePage(
                             // Get the button IDs for the start and end of the winning line from the ViewModel's ordered list.
                             // The ViewModel determines the actual cells that form the win.
                             // The line will animate visually from the 'lineAppearStartButtonId' towards 'lineAppearEndButtonId'.
-                            val lineAppearStartButtonId = orderedWinningCombination.value.first() // Line visually starts here.
-                            val lineAppearEndButtonId = orderedWinningCombination.value.last()   // Line visually ends here.
+                            val lineAppearStartButtonId =
+                                orderedWinningCombination.value.first() // Line visually starts here.
+                            val lineAppearEndButtonId =
+                                orderedWinningCombination.value.last()   // Line visually ends here.
 
-                            val lineStartCellCoordinates = buttonCoordinates[lineAppearStartButtonId]
+                            val lineStartCellCoordinates =
+                                buttonCoordinates[lineAppearStartButtonId]
                             val lineEndCellCoordinates = buttonCoordinates[lineAppearEndButtonId]
 
                             if (lineStartCellCoordinates != null && lineEndCellCoordinates != null) {
@@ -316,25 +321,37 @@ fun InfiniteTicTacToePage(
 
                                 // Calculate the direction vector from the true start to the true end of the line.
                                 // This is used to extend the line slightly beyond the cell centers for better visuals.
-                                val overallDirectionVector = actualLineEndPoint - actualLineStartPoint
-                                val normalizedOverallDirection = if (overallDirectionVector.getDistance() > 0) {
-                                    overallDirectionVector / overallDirectionVector.getDistance()
-                                } else {
-                                    Offset(0f, 0f) // Avoid division by zero if start and end are same.
-                                }
+                                val overallDirectionVector =
+                                    actualLineEndPoint - actualLineStartPoint
+                                val normalizedOverallDirection =
+                                    if (overallDirectionVector.getDistance() > 0) {
+                                        overallDirectionVector / overallDirectionVector.getDistance()
+                                    } else {
+                                        Offset(
+                                            0f,
+                                            0f
+                                        ) // Avoid division by zero if start and end are same.
+                                    }
 
-                                val lineExtensionPx = 30.dp.toPx() // How much to extend the line on each side.
+                                val lineExtensionPx =
+                                    30.dp.toPx() // How much to extend the line on each side.
 
                                 // Extend the line outwards from the true start and true end points.
                                 // The animated line will then be drawn between these extended points, but its length
                                 // will be controlled by `animatedVisualLineEnd` through lerp.
-                                val extendedVisualLineStart = actualLineStartPoint - (normalizedOverallDirection * lineExtensionPx)
-                                val extendedVisualLineEndTarget = actualLineEndPoint + (normalizedOverallDirection * lineExtensionPx)
+                                val extendedVisualLineStart =
+                                    actualLineStartPoint - (normalizedOverallDirection * lineExtensionPx)
+                                val extendedVisualLineEndTarget =
+                                    actualLineEndPoint + (normalizedOverallDirection * lineExtensionPx)
 
                                 // The line's visual appearance grows from the extended start towards the extended end,
                                 // effectively making the animated part (`lineAnimationProgress.value`) cover the segment
                                 // from `extendedVisualLineStart` to `extendedVisualLineEndTarget`.
-                                val finalAnimatedEnd = lerp(extendedVisualLineStart, extendedVisualLineEndTarget, lineAnimationProgress.value)
+                                val finalAnimatedEnd = lerp(
+                                    extendedVisualLineStart,
+                                    extendedVisualLineEndTarget,
+                                    lineAnimationProgress.value
+                                )
 
 
                                 // Draw the line.
@@ -352,8 +369,8 @@ fun InfiniteTicTacToePage(
                 val buttonIds = List(9) { i -> "button${i + 1}" }
                 buttonIds.forEach { buttonId ->
                     val cellPlayer: Player? = if (p2VisibleMoves.contains(buttonId)) Player.O
-                                             else if (p1VisibleMoves.contains(buttonId)) Player.X
-                                             else null
+                    else if (p1VisibleMoves.contains(buttonId)) Player.X
+                    else null
 
                     // Determine if the current cell represents an "old move" that should be dimmed.
                     // This is specific to Infinite Tic Tac Toe mode.
@@ -383,7 +400,10 @@ fun InfiniteTicTacToePage(
                         iconSize = iconSize,
                         buttonId = buttonId, // Pass buttonId for accessibility, e.g., "button1", "button2", etc.
                         onClick = {
-                            HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.VIRTUAL_KEY) // Haptic feedback on cell tap.
+                            HapticFeedbackManager.performHapticFeedback(
+                                view,
+                                HapticFeedbackConstants.VIRTUAL_KEY
+                            ) // Haptic feedback on cell tap.
                             // Sound for move is typically handled by ViewModel after validation.
                             // soundManager.playMoveSound()
                             viewModel.onButtonClick(buttonId)

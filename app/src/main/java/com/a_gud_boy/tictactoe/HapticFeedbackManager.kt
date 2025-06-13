@@ -24,7 +24,8 @@ object HapticFeedbackManager {
 
     fun init(context: Context) {
         if (sharedPreferences == null) {
-            sharedPreferences = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sharedPreferences =
+                context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             loadSettings()
         }
     }

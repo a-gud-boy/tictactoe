@@ -14,14 +14,19 @@ import android.util.Log // For logging errors
 class SoundManager(private val context: Context) {
     // The SoundPool instance used to play short audio clips. Nullified on release.
     private var soundPool: SoundPool? = null
+
     // Sound ID for the player's move sound.
     private var moveSoundId: Int = 0
+
     // Sound ID for the game win sound.
     private var winSoundId: Int = 0
+
     // Sound ID for the game draw sound.
     private var drawSoundId: Int = 0
+
     // Sound ID for the game lose sound (optional, e.g., when AI wins).
     private var loseSoundId: Int? = 0
+
     // Sound ID for the AI opponent's move sound.
     private var computerMoveSoundId: Int? = 0
 
@@ -57,7 +62,10 @@ class SoundManager(private val context: Context) {
                         soundPool?.play(moveSoundId, 0f, 0f, 0, 0, 1.0f) // Play with 0 volume.
                     }
                 } else {
-                    Log.e("SoundManager", "Error loading sound $sampleId, status: $status. Marking as not loaded.")
+                    Log.e(
+                        "SoundManager",
+                        "Error loading sound $sampleId, status: $status. Marking as not loaded."
+                    )
                     soundsLoadedSuccessfully[sampleId] = false // Mark as not loaded on error.
                 }
             }
@@ -66,7 +74,10 @@ class SoundManager(private val context: Context) {
             // A result of 0 from load() indicates an error.
             Log.d("SoundManagerDebug", "Loading move sound (R.raw.move)...")
             moveSoundId = soundPool?.load(context, R.raw.move, 1) ?: 0
-            if (moveSoundId == 0) Log.e("SoundManager", "Error loading move sound: moveSoundId is 0")
+            if (moveSoundId == 0) Log.e(
+                "SoundManager",
+                "Error loading move sound: moveSoundId is 0"
+            )
 
             Log.d("SoundManagerDebug", "Loading win sound (R.raw.win)...")
             winSoundId = soundPool?.load(context, R.raw.win, 1) ?: 0
@@ -74,15 +85,24 @@ class SoundManager(private val context: Context) {
 
             Log.d("SoundManagerDebug", "Loading draw sound (R.raw.draw)...")
             drawSoundId = soundPool?.load(context, R.raw.draw, 1) ?: 0
-            if (drawSoundId == 0) Log.e("SoundManager", "Error loading draw sound: drawSoundId is 0")
+            if (drawSoundId == 0) Log.e(
+                "SoundManager",
+                "Error loading draw sound: drawSoundId is 0"
+            )
 
             Log.d("SoundManagerDebug", "Loading lose sound (R.raw.lose)...")
             loseSoundId = soundPool?.load(context, R.raw.lose, 1) ?: 0
-            if (loseSoundId == 0) Log.e("SoundManager", "Error loading lose sound: loseSoundId is 0")
+            if (loseSoundId == 0) Log.e(
+                "SoundManager",
+                "Error loading lose sound: loseSoundId is 0"
+            )
 
             Log.d("SoundManagerDebug", "Loading computer move sound (R.raw.click)...")
             computerMoveSoundId = soundPool?.load(context, R.raw.click, 1) ?: 0
-            if (computerMoveSoundId == 0) Log.e("SoundManager", "Error loading computer move sound: computerMoveSoundId is 0")
+            if (computerMoveSoundId == 0) Log.e(
+                "SoundManager",
+                "Error loading computer move sound: computerMoveSoundId is 0"
+            )
 
         } catch (e: Exception) {
             // Catch any other exceptions during SoundPool initialization.
@@ -103,7 +123,10 @@ class SoundManager(private val context: Context) {
     private fun isSoundReady(soundId: Int): Boolean {
         val isReady = soundPool != null && soundId != 0 && soundsLoadedSuccessfully[soundId] == true
         // Verbose logging for debugging sound readiness.
-        Log.v("SoundManager", "isSoundReady for ID $soundId: poolNotNull=${soundPool != null}, idNotZero=${soundId != 0}, loadedSuccessfully=${soundsLoadedSuccessfully[soundId] == true}, result=$isReady")
+        Log.v(
+            "SoundManager",
+            "isSoundReady for ID $soundId: poolNotNull=${soundPool != null}, idNotZero=${soundId != 0}, loadedSuccessfully=${soundsLoadedSuccessfully[soundId] == true}, result=$isReady"
+        )
         return isReady
     }
 

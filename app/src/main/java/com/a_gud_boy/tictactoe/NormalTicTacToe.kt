@@ -252,10 +252,13 @@ fun NormalTicTacToePage(
 
                             // The line animates from the most recent move in the winning combo to the oldest.
                             // This order (last to first) makes the animation feel more natural as if drawing from the last move.
-                            val animationDrawStartButtonId = orderedWinningCombination.value.last() // Line draws from this cell's center.
-                            val animationDrawEndButtonId = orderedWinningCombination.value.first()   // Line draws towards this cell's center.
+                            val animationDrawStartButtonId =
+                                orderedWinningCombination.value.last() // Line draws from this cell's center.
+                            val animationDrawEndButtonId =
+                                orderedWinningCombination.value.first()   // Line draws towards this cell's center.
 
-                            val animStartCellCoordinates = buttonCoordinates[animationDrawStartButtonId]
+                            val animStartCellCoordinates =
+                                buttonCoordinates[animationDrawStartButtonId]
                             val animEndCellCoordinates = buttonCoordinates[animationDrawEndButtonId]
 
                             if (animStartCellCoordinates != null && animEndCellCoordinates != null) {
@@ -281,7 +284,8 @@ fun NormalTicTacToePage(
                                 // Extend the line slightly beyond the centers of the start and end cells for better visual appearance.
                                 val lineExtensionPx = 30.dp.toPx()
                                 // Vector from the fixed start point to the currently animated end point.
-                                val currentDirectionVector = animatedLineVisualEndPoint - actualLineStartPoint
+                                val currentDirectionVector =
+                                    animatedLineVisualEndPoint - actualLineStartPoint
 
                                 val lineColor = when (currentWinner) {
                                     Player.X -> playerXColor
@@ -303,11 +307,14 @@ fun NormalTicTacToePage(
                                         )
                                     }
                                 } else { // Normal case: there is a direction, so calculate extensions.
-                                    val normalizedDirection = currentDirectionVector / currentDirectionVector.getDistance()
+                                    val normalizedDirection =
+                                        currentDirectionVector / currentDirectionVector.getDistance()
 
                                     // Extend the line outwards from the true start and animated end points.
-                                    val extendedVisualLineStart = actualLineStartPoint - (normalizedDirection * lineExtensionPx)
-                                    val extendedVisualLineEnd = animatedLineVisualEndPoint + (normalizedDirection * lineExtensionPx)
+                                    val extendedVisualLineStart =
+                                        actualLineStartPoint - (normalizedDirection * lineExtensionPx)
+                                    val extendedVisualLineEnd =
+                                        animatedLineVisualEndPoint + (normalizedDirection * lineExtensionPx)
 
                                     drawLine(
                                         color = lineColor.copy(alpha = 0.6f),
@@ -342,7 +349,10 @@ fun NormalTicTacToePage(
                         iconSize = iconSize,
                         buttonId = buttonId, // Pass buttonId for accessibility, e.g., "button1", "button2", etc.
                         onClick = {
-                            HapticFeedbackManager.performHapticFeedback(view, HapticFeedbackConstants.VIRTUAL_KEY) // Haptic feedback on cell tap.
+                            HapticFeedbackManager.performHapticFeedback(
+                                view,
+                                HapticFeedbackConstants.VIRTUAL_KEY
+                            ) // Haptic feedback on cell tap.
                             // TODO: Consider moving sound playing logic into ViewModel after move validation,
                             // or play sound optimistically and handle invalid move UI separately.
                             // For now, play sound before ViewModel action.

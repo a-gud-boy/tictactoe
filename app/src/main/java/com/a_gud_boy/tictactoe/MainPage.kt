@@ -2,41 +2,38 @@ package com.a_gud_boy.tictactoe
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete // Ensure Delete is imported
 import androidx.compose.material.icons.filled.Menu
-// import androidx.compose.material.icons.filled.MoreVert // No longer used
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
-// import androidx.compose.material3.DropdownMenu // No longer used
-// import androidx.compose.material3.DropdownMenuItem // No longer used
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import android.util.Log
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +54,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+// NavType and navArgument are already imported or covered by the above
+// Ensure RoundReplayScreen is imported if not in the same package,
+// but it should be in com.a_gud_boy.tictactoe
 import kotlinx.coroutines.launch
 
 /**
@@ -74,13 +81,15 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
+fun MainPage() { // Removed viewModelFactory parameter
     // var showMenu by rememberSaveable { mutableStateOf(false) } // No longer needed for MoreVert
     // var showInfiniteMenu by rememberSaveable { mutableStateOf(false) } // No longer needed for MoreVert
 
     var showInfoDialog by rememberSaveable { mutableStateOf(false) }
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
+    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) } // Added state for clear history dialog
+
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -89,7 +98,11 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
-    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "Settings", "Help")
+    // Add "History" to the list of items for the drawer
+    // Order: Normal, Infinite, History, Settings, Help
+    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "History", "Settings", "Help")
+
+    val navController = rememberNavController() // NavController for History section
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -104,14 +117,26 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    selectedItemIndex = index
-                                    // Potentially navigate to a new screen here
-                                    // And close the drawer
-                                    scope.launch {
-                                        drawerState.close()
+                                    if (index == 2) { // History item
+                                        if (selectedItemIndex == 2) { // Already on History section
+                                            // If on match_details, pop back to history_list
+                                            if (navController.currentBackStackEntry?.destination?.route != "history_list") {
+                                                navController.navigate("history_list") {
+                                                    popUpTo(navController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                }
+                                            }
+                                            // If already on history_list, do nothing extra, just close drawer.
+                                        } else {
+                                            selectedItemIndex = index // Switch to History section
+                                            // NavHost will show "history_list" by default when selectedItemIndex becomes 2
+                                        }
+                                    } else {
+                                        selectedItemIndex = index
                                     }
+                                    scope.launch { drawerState.close() }
                                 },
-                                // icon = { Icon( /* ... */ ) } // Optional icon
                                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                                 colors = NavigationDrawerItemDefaults.colors(
                                     // For unselected items
@@ -139,13 +164,19 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                                             contentDescription = "Navigation Icon for Infinite Tic Tac Toe",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 2) {
+                                    } else if (index == 2) { // History
+                                        Icon(
+                                            Icons.Filled.Build,
+                                            contentDescription = "Navigation Icon for History",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    } else if (index == 3) { // Settings
                                         Icon(
                                             Icons.Filled.Settings,
                                             contentDescription = "Navigation Icon for Settings",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 3) {
+                                    } else if (index == 4) { // Help
                                         Icon(
                                             Icons.Outlined.Info,
                                             contentDescription = "Navigation Icon for Help",
@@ -166,16 +197,30 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
     ) {
         Scaffold(
             topBar = {
+                // TopAppBar is now always visible, title and actions adapt based on selectedItemIndex
                 TopAppBar(
                     title = {
+                        val titleText = when (selectedItemIndex) {
+                            0 -> "Tic Tac Toe"
+                            1 -> "Infinite TicTacToe"
+                            2 -> {
+                                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                val currentRoute = navBackStackEntry?.destination?.route
+                                if (currentRoute?.startsWith("roundReplay/") == true) {
+                                    "Match Replay"
+                                } else if (currentRoute?.startsWith("match_details/") == true) {
+                                    "Match Details"
+                                } else {
+                                    "History"
+                                }
+                            }
+
+                            3 -> "Settings"
+                            4 -> "Help"
+                            else -> "Lorem Ipsum"
+                        }
                         Text(
-                            when (selectedItemIndex){
-                                0 -> "Tic Tac Toe"
-                                1 -> "Infinite Tic Tac Toe"
-                                2 -> "Settings"
-                                3 -> "Help"
-                                else -> "Lorem Ipsum"
-                            },
+                            text = titleText,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.labelMedium,
@@ -184,45 +229,75 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.open()
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        if (selectedItemIndex == 2 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith("roundReplay/") == true)) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
                             }
-                        }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                        } else {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
+                            }
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
-                            // Determine title and message based on selectedItemIndex
-                            when (selectedItemIndex) {
-                                0 -> { // Normal TicTacToe
-                                    infoDialogTitle = "Normal Tic Tac Toe"
-                                    infoDialogMessage = "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        if (selectedItemIndex == 2) {
+                            if (currentRoute == "history_list") {
+                                IconButton(onClick = { showClearHistoryDialog = true }) {
+                                    Icon(Icons.Filled.Delete, contentDescription = "Clear History")
                                 }
-                                1 -> { // Infinite TicTacToe
-                                    infoDialogTitle = "Infinite Tic Tac Toe"
-                                    infoDialogMessage = "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                IconButton(onClick = {
+                                    infoDialogTitle = "Match History"
+                                    infoDialogMessage =
+                                        "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
+                                    showInfoDialog = true
+                                }) {
+                                    Icon(Icons.Outlined.Info, contentDescription = "Information")
                                 }
-                                2 -> { // Settings
-                                    infoDialogTitle = "Settings"
-                                    infoDialogMessage = "Here you can configure various application settings:\n" +
-                                            "- Sound: Toggle game sounds on or off.\n" +
-                                            "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
-                                            "- AI Mode: Enable or disable playing against the AI.\n" +
-                                            "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                            } // Else (on match_details), no actions
+                        } else { // Actions for other pages (selectedItemIndex != 2)
+                            IconButton(onClick = {
+                                when (selectedItemIndex) {
+                                    0 -> { // Normal TicTacToe
+                                        infoDialogTitle = "Normal Tic Tac Toe"
+                                        infoDialogMessage =
+                                            "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                                    }
+
+                                    1 -> { // Infinite TicTacToe
+                                        infoDialogTitle = "Infinite Tic Tac Toe"
+                                        infoDialogMessage =
+                                            "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                    }
+
+                                    3 -> { // Settings
+                                        infoDialogTitle = "Settings"
+                                        infoDialogMessage =
+                                            "Here you can configure various application settings:\n" +
+                                                    "- Sound: Toggle game sounds on or off.\n" +
+                                                    "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
+                                                    "- AI Mode: Enable or disable playing against the AI.\n" +
+                                                    "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                                    }
+
+                                    4 -> { // Help
+                                        infoDialogTitle = "Help"
+                                        infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
+                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
+                                                "- Game Play: Follow on-screen instructions for each game mode.\n" +
+                                                "- Settings: Customize your experience in the Settings page."
+                                    }
                                 }
-                                3 -> { // Help
-                                    infoDialogTitle = "Help"
-                                    infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
-                                            "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
-                                            "- Game Play: Follow on-screen instructions for each game mode.\n" +
-                                            "- Settings: Customize your experience in the Settings page."
-                                }
+                                showInfoDialog = true
+                            }) {
+                                Icon(Icons.Outlined.Info, contentDescription = "Information")
                             }
-                            showInfoDialog = true
-                        }) {
-                            Icon(Icons.Outlined.Info, contentDescription = "Information")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -234,7 +309,10 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                 )
             }) { innerPadding ->
 
-            if (showInfoDialog) {
+            // Removed Log.d call for PaddingDebug and associated topPaddingValue variable
+
+            // Manage general info dialog (previously, this was not conditional for selectedItemIndex == 2)
+            if (showInfoDialog && selectedItemIndex != 2) { // Ensure this dialog doesn't conflict with history-specific info if any
                 AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
                     title = { Text(text = infoDialogTitle) },
@@ -245,11 +323,27 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
                         }
                     }
                 )
+            } else if (showInfoDialog && selectedItemIndex == 2) {
+                // This is for the History Page's own info dialog, triggered by its TopAppBar action
+                // The state `showInfoDialog` is shared, which is fine.
+                AlertDialog(
+                    onDismissRequest = { showInfoDialog = false },
+                    title = { Text(text = infoDialogTitle) }, // This title should be set by History's action
+                    text = { Text(text = infoDialogMessage) }, // This message should be set by History's action
+                    confirmButton = {
+                        Button(onClick = { showInfoDialog = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
+
 
             when (selectedItemIndex) {
                 0 -> {
-                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = viewModelFactory)
+                    // Use LocalViewModelFactory.current, defined in MainActivity.kt
+                    val viewModel: NormalTicTacToeViewModel =
+                        viewModel(factory = LocalViewModelFactory.current)
                     NormalTicTacToePage(
                         innerPadding = innerPadding,
                         viewModel = viewModel
@@ -258,13 +352,63 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
 
                 1 -> {
                     val infiniteViewModel: InfiniteTicTacToeViewModel =
-                        viewModel(factory = viewModelFactory) // ensure viewmodel is available for the page
+                        viewModel(factory = LocalViewModelFactory.current) // Use LocalViewModelFactory
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
-                2 -> {
+
+                2 -> { // History Page uses NavHost now
+                    // Modifier.padding(innerPadding) is applied to the NavHost
+                    // so that the NavHost itself is placed correctly within MainPage's Scaffold content area.
+                    // When selectedItemIndex == 2, MainPage's TopAppBar is hidden, so innerPadding.top should be 0.
+                    // HistoryPage and MatchDetailsPage use their own Scaffolds and will handle their own internal padding.
+                    NavHost(
+                        navController = navController,
+                        startDestination = "history_list",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("history_list") {
+                            HistoryPage(
+                                innerPadding = innerPadding, // PASS MainPage's Scaffold innerPadding
+                                showClearConfirmDialog = showClearHistoryDialog,
+                                onShowClearConfirmDialogChange = { showClearHistoryDialog = it },
+                                navController = navController
+                                // onShowInfoDialog lambda is removed as Info button is now in MainPage's TopAppBar
+                            )
+                        }
+                        composable(
+                            route = "match_details/{matchId}",
+                            arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+                        ) { backStackEntry -> // Explicitly name backStackEntry for clarity
+                            MatchDetailsPage(
+                                innerPadding = innerPadding, // Pass innerPadding
+                                navController = navController
+                                // viewModel is created using LocalViewModelFactory by default
+                            )
+                        }
+                        composable(
+                            route = "roundReplay/{matchId}/{roundId}",
+                            arguments = listOf(
+                                navArgument("matchId") { type = NavType.LongType },
+                                navArgument("roundId") { type = NavType.LongType }
+                            )
+                        ) { backStackEntry ->
+                            val matchId = backStackEntry.arguments?.getLong("matchId") ?: 0L
+                            val roundId = backStackEntry.arguments?.getLong("roundId") ?: 0L
+                            RoundReplayScreen(
+                                navController = navController,
+                                matchId = matchId,
+                                roundId = roundId
+                                // ViewModel will be created using LocalViewModelFactory by default
+                            )
+                        }
+                    }
+                }
+
+                3 -> { // Settings
                     SettingsPage(innerPadding = innerPadding)
                 }
-                3 -> {
+
+                4 -> { // Help
                     HelpPage(innerPadding = innerPadding)
                 }
             }
@@ -283,7 +427,18 @@ fun MainPage(viewModelFactory: TicTacToeViewModelFactory) {
 @Preview
 @Composable
 fun MainPagePreview() {
-    MainPage(viewModelFactory = TicTacToeViewModelFactory(SoundManager(LocalContext.current)))
+    // For preview, provide a dummy factory or a real one if simple enough
+    val context = LocalContext.current
+    val soundManager = SoundManager(context)
+    // Dummy AppDatabase for preview - this might be complex if DAOs are called immediately.
+    // For a simple preview, this might be okay if DAOs are not strictly needed for initial composition.
+    // Consider a more robust test/preview setup if this becomes an issue.
+    val dummyAppDatabase = AppDatabase.getDatabase(context.applicationContext) // Or a fake/mock
+    val previewViewModelFactory = TicTacToeViewModelFactory(soundManager, dummyAppDatabase)
+
+    CompositionLocalProvider(LocalViewModelFactory provides previewViewModelFactory) {
+        MainPage()
+    }
 }
 
 /**

@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.ksp)
+    //id("com.google.devtools.ksp") version "2.1.21-2.0.1" // Check for the latest version of KSP
 }
 
 android {
@@ -49,7 +51,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.11.0") // Added Mockito
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1") // Added Mockito-Kotlin
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0") // Added coroutines-test
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -59,4 +65,15 @@ dependencies {
 
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    val room_version = "2.7.1" // Use the latest stable version
+
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    // To use Kotlin Symbol Processing (KSP)
+    ksp("androidx.room:room-compiler:$room_version")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$room_version")
 }

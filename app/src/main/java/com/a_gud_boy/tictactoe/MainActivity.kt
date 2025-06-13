@@ -6,45 +6,103 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import com.a_gud_boy.tictactoe.AISettingsManager
-import com.a_gud_boy.tictactoe.HapticFeedbackManager
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
 
+// ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
+
+// Define LocalViewModelFactory, can be in MainActivity.kt or a separate file
+val LocalViewModelFactory = staticCompositionLocalOf<ViewModelProvider.Factory> {
+    error("ViewModelFactory not provided")
+}
+
 /**
- * A [ViewModelProvider.Factory] responsible for creating instances of [NormalTicTacToeViewModel]
- * and [InfiniteTicTacToeViewModel].
+ * A [ViewModelProvider.Factory] responsible for creating instances of [NormalTicTacToeViewModel],
+ * [InfiniteTicTacToeViewModel], and [HistoryViewModel].
  *
- * This factory allows the ViewModels to be instantiated with a [SoundManager] dependency,
- * which is used for providing audio feedback during gameplay.
+ * This factory allows the ViewModels to be instantiated with dependencies like [SoundManager]
+ * and [AppDatabase] (via its DAOs), which are used for audio feedback and data persistence.
  *
- * @param soundManager The [SoundManager] instance to be used by the created ViewModels.
+ * @param soundManager The [SoundManager] instance.
+ * @param appDatabase The [AppDatabase] instance for accessing DAOs.
  */
-class TicTacToeViewModelFactory(private val soundManager: SoundManager) :
-    ViewModelProvider.Factory {
-    /**
-     * Creates a new instance of the given `Class`.
-     *
-     * This method checks the requested `modelClass` and returns an instance of either
-     * [NormalTicTacToeViewModel] or [InfiniteTicTacToeViewModel] if they are assignable
-     * from the given class. If the `modelClass` is not recognized, it throws an
-     * [IllegalArgumentException].
-     *
-     * @param modelClass A `Class` whose instance is requested.
-     * @return A newly created ViewModel.
-     * @throws IllegalArgumentException if `modelClass` is not a recognized ViewModel class.
-     */
+class TicTacToeViewModelFactory(
+    private val soundManager: SoundManager,
+    private val appDatabase: AppDatabase // Added AppDatabase
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        // This version of create is kept for compatibility if still called directly by older framework versions
+        // or if CreationExtras are not available. It cannot create MatchDetailsViewModel.
         if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return NormalTicTacToeViewModel(soundManager) as T
+            return NormalTicTacToeViewModel(
+                soundManager,
+                appDatabase.matchDao(),
+                appDatabase.roundDao(),
+                appDatabase.moveDao()
+            ) as T
         }
         if (modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return InfiniteTicTacToeViewModel(soundManager) as T
+            return InfiniteTicTacToeViewModel(
+                soundManager,
+                appDatabase.matchDao(),
+                appDatabase.roundDao(),
+                appDatabase.moveDao()
+            ) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) { // Added HistoryViewModel
+            @Suppress("UNCHECKED_CAST")
+            return HistoryViewModel(appDatabase.matchDao()) as T
+        }
+        if (modelClass.isAssignableFrom(MatchDetailsViewModel::class.java)) {
+            throw IllegalArgumentException("MatchDetailsViewModel requires SavedStateHandle. Use create(modelClass, extras) instead.")
+        }
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+    }
+
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+        val savedStateHandle = extras.createSavedStateHandle()
+
+        return when {
+            modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java) ->
+                NormalTicTacToeViewModel(
+                    soundManager,
+                    appDatabase.matchDao(),
+                    appDatabase.roundDao(),
+                    appDatabase.moveDao()
+                ) as T
+
+            modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java) ->
+                InfiniteTicTacToeViewModel(
+                    soundManager,
+                    appDatabase.matchDao(),
+                    appDatabase.roundDao(),
+                    appDatabase.moveDao()
+                ) as T
+
+            modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
+                HistoryViewModel(appDatabase.matchDao()) as T
+
+            modelClass.isAssignableFrom(MatchDetailsViewModel::class.java) ->
+                MatchDetailsViewModel(
+                    appDatabase.matchDao(),
+                    savedStateHandle
+                ) as T // Pass the created SavedStateHandle
+            modelClass.isAssignableFrom(RoundReplayViewModel::class.java) ->
+                RoundReplayViewModel(
+                    appDatabase.matchDao(),
+                    appDatabase.roundDao(), // Removed as per subtask
+                    // appDatabase.moveDao(),  // Removed as per subtask (and ViewModel update)
+                    savedStateHandle
+                ) as T
+            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        }
     }
 }
 
@@ -77,8 +135,11 @@ class MainActivity : ComponentActivity() {
         // Create SoundManager instance
         val soundManager = SoundManager(this)
 
+        // Create AppDatabase instance
+        val appDatabase = AppDatabase.getDatabase(applicationContext)
+
         // Create the custom factory
-        val viewModelFactory = TicTacToeViewModelFactory(soundManager)
+        val viewModelFactory = TicTacToeViewModelFactory(soundManager, appDatabase)
 
         // Set content. MainPage will need to be able to use this factory
         // if it or its children directly call viewModel().
@@ -95,9 +156,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TictactoeTheme {
-                // MainPage() // Original
-                // Updated MainPage call if it needs the factory:
-                MainPage(viewModelFactory = viewModelFactory)
+                CompositionLocalProvider(LocalViewModelFactory provides viewModelFactory) { // Provide factory
+                    MainPage() // MainPage will now have access via LocalViewModelFactory.current
+                    // Assuming MainPage is updated to not expect viewModelFactory as a parameter
+                    // or can still accept it for other purposes but new ViewModels use the Local.
+                }
             }
         }
     }
