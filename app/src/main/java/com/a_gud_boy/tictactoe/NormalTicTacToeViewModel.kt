@@ -29,6 +29,8 @@ class NormalTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
+    private val gameTimer = GameTimer()
+
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
             setOf("button1", "button2", "button3"),
@@ -105,6 +107,8 @@ class NormalTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
+        gameTimer.startRoundTimer()
+
         val currentP1FullMoves = _player1Moves.value
         val currentP2FullMoves = _player2Moves.value
 
@@ -151,6 +155,8 @@ class NormalTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round
+        gameTimer.pauseRoundTimer()
+
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val currentWinnerInfo = _winnerInfo.value // Capture current winner info
@@ -188,6 +194,7 @@ class NormalTicTacToeViewModel(
 
     fun resetScores() { // End of a match
         viewModelScope.launch {
+            // gameTimer.getFinalMatchDuration() will handle pausing if active.
             // Handle the currently ongoing round's data
             if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
@@ -234,7 +241,8 @@ class NormalTicTacToeViewModel(
                 winner = winner, // Pass the determined winner
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.NORMAL, // Use GameType.NORMAL
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                duration = gameTimer.getFinalMatchDuration()
             )
 
             val matchId = matchDao.insertMatch(matchEntity)
@@ -255,6 +263,7 @@ class NormalTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound()
+            gameTimer.reset()
         }
     }
 
@@ -280,6 +289,7 @@ class NormalTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playWinSound(volume)
+                gameTimer.pauseRoundTimer()
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
@@ -289,6 +299,7 @@ class NormalTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playLoseSound(volume)
+                gameTimer.pauseRoundTimer()
                 return
             }
         }
@@ -298,6 +309,7 @@ class NormalTicTacToeViewModel(
             _isGameConcluded.value = true
             _gameStarted.value = false
             soundManager.playDrawSound(volume)
+            gameTimer.pauseRoundTimer()
         }
     }
 

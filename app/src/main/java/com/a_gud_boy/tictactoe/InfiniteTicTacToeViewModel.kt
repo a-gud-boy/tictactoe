@@ -29,6 +29,8 @@ class InfiniteTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
+    private val gameTimer = GameTimer()
+
     companion object {
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
@@ -106,6 +108,8 @@ class InfiniteTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
+        gameTimer.startRoundTimer()
+
         val currentP1FullMoves = _player1Moves.value
         val currentP2FullMoves = _player2Moves.value
 
@@ -155,6 +159,8 @@ class InfiniteTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round in Infinite mode
+        gameTimer.pauseRoundTimer()
+
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val currentWinnerInfo = _winnerInfo.value // Capture current winner info for this round
@@ -190,6 +196,7 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
+            // gameTimer.getFinalMatchDuration() will handle pausing if active.
             // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
             if (_currentRoundMoves.value.isNotEmpty()) {
                 // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
@@ -240,7 +247,8 @@ class InfiniteTicTacToeViewModel(
                 winner = winner, // Pass the determined winner
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.INFINITE, // Use GameType.INFINITE
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                duration = gameTimer.getFinalMatchDuration()
             )
             val matchId = matchDao.insertMatch(matchEntity)
 
@@ -275,6 +283,7 @@ class InfiniteTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound() // Prepare for a brand new round
+            gameTimer.reset()
         }
     }
 
@@ -301,6 +310,7 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playWinSound(volume)
+                gameTimer.pauseRoundTimer()
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -310,6 +320,7 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playLoseSound(volume)
+                gameTimer.pauseRoundTimer()
                 return
             }
         }
