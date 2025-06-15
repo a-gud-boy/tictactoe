@@ -134,20 +134,16 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
             BarData("Drawn", drawnPercentage, Color(0xFFEAB308), "Drawn (${(drawnPercentage * 100).toPrettyPercentage()}%)", stats.draws)
         )
 
-        // Parent Row for Y-axis and Bars
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp) // Adjust height as needed
-        ) {
-            // Y-axis Column
+        // ChartAndYAxisRow: Contains Y-Axis and the (Bars + X-Axis Labels)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // YAxisColumn
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .width(40.dp) // Fixed width for Y-axis labels
+                    .height(200.dp) // Fixed height for Y-axis labels to align with BarsRow
+                    .width(40.dp)
                     .padding(end = 8.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End // Align text to the right for Y-axis
+                horizontalAlignment = Alignment.End
             ) {
                 Text("100%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
                 Text("75%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
@@ -156,27 +152,49 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 Text("0%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
             }
 
-            // Bars Row
-            Row(
-                modifier = Modifier
-                    .weight(1f) // Takes remaining horizontal space
-                    .fillMaxHeight(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                barData.forEach { data ->
-                    Bar(data = data, count = data.count)
+            // BarsAndXAxisLabelsColumn: Contains BarsRow, X-axis Divider, and LabelsRow
+            Column(modifier = Modifier.weight(1f)) {
+                // BarsRow
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp), // Fixed height for bars
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    barData.forEach { data ->
+                        Bar(data = data, count = data.count)
+                    }
+                }
+
+                // X-axis Divider
+                Divider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 1.dp), // Adjusted padding
+                    color = borderPrimary,
+                    thickness = 1.dp
+                )
+
+                // LabelsRow
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    barData.forEach { data ->
+                        Text(
+                            text = data.labelBottom, // This is "Won (53.6%)" etc.
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 12.sp,
+                            color = textSecondary,
+                            maxLines = 2
+                        )
+                    }
                 }
             }
         }
-        // X-axis baseline
-        Divider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp), // Space between bar labels and the line
-            thickness = 1.dp,
-            color = borderPrimary
-        )
     }
 }
 
@@ -198,8 +216,7 @@ fun RowScope.Bar(data: BarData, count: Int) {
             .fillMaxHeight()
             .padding(horizontal = 4.dp) // Add some spacing between bars
             .semantics(mergeDescendants = true) {
-                // For screen readers, announce the count and label
-                contentDescription = "${data.label}: $count games, ${data.labelBottom}"
+                contentDescription = "${data.label}: $count games, representing ${String.format("%.1f", data.value * 100)}%"
             },
         horizontalAlignment = Alignment.CenterHorizontally
         // verticalArrangement = Arrangement.Bottom // Not strictly needed here due to weighted Box
@@ -221,14 +238,7 @@ fun RowScope.Bar(data: BarData, count: Int) {
                     .background(data.color)
             )
         }
-        Spacer(modifier = Modifier.height(4.dp)) // Reduced spacer for tighter layout
-        Text(
-            text = data.labelBottom,
-            fontSize = 12.sp,
-            color = textSecondary,
-            textAlign = TextAlign.Center,
-            maxLines = 2 // Allow wrapping for longer labels if necessary
-        )
+        // Spacer and Text for data.labelBottom are removed from here
     }
 }
 
