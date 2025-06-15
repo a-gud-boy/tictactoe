@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.List // New import for Statistics
+// import androidx.compose.material.icons.filled.Analytics // Commented out/Removed
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
@@ -97,9 +99,9 @@ fun MainPage() { // Removed viewModelFactory parameter
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
-    // Add "History" to the list of items for the drawer
-    // Order: Normal, Infinite, History, Settings, Help
-    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "History", "Settings", "Help")
+    // Add "Statistics" to the list of items for the drawer
+    // New Order: Normal, Infinite, Statistics, History, Settings, Help
+    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "Statistics", "History", "Settings", "Help")
 
     val navController = rememberNavController() // NavController for History section
 
@@ -116,23 +118,31 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    if (index == 2) { // History item
-                                        if (selectedItemIndex == 2) { // Already on History section
-                                            // If on match_details, pop back to history_list
+                                    // Indices updated for new item order:
+                                    // 0: Normal, 1: Infinite, 2: Statistics, 3: History, 4: Settings, 5: Help
+                                    if (index == 3) { // History item is now at index 3
+                                        if (selectedItemIndex == 3) { // Already on History section
+                                            // If on match_details or roundReplay, pop back to history_list
                                             if (navController.currentBackStackEntry?.destination?.route != "history_list") {
                                                 navController.navigate("history_list") {
                                                     popUpTo(navController.graph.startDestinationId) {
-                                                        inclusive = true
+                                                        saveState = true // Preserve state of history_list
                                                     }
+                                                    launchSingleTop = true // Avoid multiple copies of history_list
+                                                    restoreState = true // Restore state if returning
                                                 }
                                             }
                                             // If already on history_list, do nothing extra, just close drawer.
                                         } else {
                                             selectedItemIndex = index // Switch to History section
-                                            // NavHost will show "history_list" by default when selectedItemIndex becomes 2
+                                            // NavHost will show "history_list" by default when selectedItemIndex becomes 3
                                         }
                                     } else {
+                                        // For other items (Normal, Infinite, Statistics, Settings, Help)
+                                        // or when switching *to* History from another section
                                         selectedItemIndex = index
+                                        // If navigating *away* from History, ensure NavController is reset or handled if needed
+                                        // For this setup, direct selection of other items handles it.
                                     }
                                     scope.launch { drawerState.close() }
                                 },
@@ -163,19 +173,25 @@ fun MainPage() { // Removed viewModelFactory parameter
                                             contentDescription = "Navigation Icon for Infinite Tic Tac Toe",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 2) { // History
+                                    } else if (index == 2) { // Statistics - NEW
                                         Icon(
-                                            Icons.Filled.Build,
+                                            Icons.AutoMirrored.Outlined.List, // Updated Icon for Statistics
+                                            contentDescription = "Navigation Icon for Statistics",
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    } else if (index == 3) { // History - was 2, now 3
+                                        Icon(
+                                            Icons.Filled.Build, // Kept Build icon for History
                                             contentDescription = "Navigation Icon for History",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 3) { // Settings
+                                    } else if (index == 4) { // Settings - was 3, now 4
                                         Icon(
                                             Icons.Filled.Settings,
                                             contentDescription = "Navigation Icon for Settings",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 4) { // Help
+                                    } else if (index == 5) { // Help - was 4, now 5
                                         Icon(
                                             Icons.Outlined.Info,
                                             contentDescription = "Navigation Icon for Help",
@@ -202,7 +218,8 @@ fun MainPage() { // Removed viewModelFactory parameter
                         val titleText = when (selectedItemIndex) {
                             0 -> "Tic Tac Toe"
                             1 -> "Infinite TicTacToe"
-                            2 -> {
+                            2 -> "Statistics" // New Title for Statistics
+                            3 -> { // History is now index 3
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentRoute = navBackStackEntry?.destination?.route
                                 if (currentRoute?.startsWith("roundReplay/") == true) {
@@ -213,10 +230,9 @@ fun MainPage() { // Removed viewModelFactory parameter
                                     "History"
                                 }
                             }
-
-                            3 -> "Settings"
-                            4 -> "Help"
-                            else -> "Lorem Ipsum"
+                            4 -> "Settings" // Was 3
+                            5 -> "Help" // Was 4
+                            else -> "Lorem Ipsum" // Default
                         }
                         Text(
                             text = titleText,
@@ -230,7 +246,8 @@ fun MainPage() { // Removed viewModelFactory parameter
                     navigationIcon = {
                         val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
-                        if (selectedItemIndex == 2 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith(
+                        // Back arrow for History (index 3) sub-pages
+                        if (selectedItemIndex == 3 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith(
                                 "roundReplay/"
                             ) == true)
                         ) {
@@ -249,7 +266,9 @@ fun MainPage() { // Removed viewModelFactory parameter
                     actions = {
                         val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
-                        if (selectedItemIndex == 2) {
+                        // TopAppBar actions:
+                        // History (index 3) specific actions
+                        if (selectedItemIndex == 3) {
                             if (currentRoute == "history_list") {
                                 IconButton(onClick = { showClearHistoryDialog = true }) {
                                     Icon(Icons.Filled.Delete, contentDescription = "Clear History")
@@ -262,8 +281,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 }) {
                                     Icon(Icons.Outlined.Info, contentDescription = "Information")
                                 }
-                            } // Else (on match_details), no actions
-                        } else { // Actions for other pages (selectedItemIndex != 2)
+                            } // Else (on match_details or roundReplay for History), no specific actions for these sub-pages
+                        }
+                        // Info buttons for Normal (0), Infinite (1), Statistics (2), Settings (4), Help (5)
+                        // Exclude History (3) here as its info button is handled above for 'history_list' route only.
+                        else if (selectedItemIndex != 3) { // Not History page
                             IconButton(onClick = {
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
@@ -271,14 +293,16 @@ fun MainPage() { // Removed viewModelFactory parameter
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
-
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
-
-                                    3 -> { // Settings
+                                    2 -> { // Statistics
+                                        infoDialogTitle = "Statistics"
+                                        infoDialogMessage = "View your overall game statistics, including total matches played, wins, losses (vs AI/Player 2), and draws."
+                                    }
+                                    4 -> { // Settings (was 3, now 4)
                                         infoDialogTitle = "Settings"
                                         infoDialogMessage =
                                             "Here you can configure various application settings:\n" +
@@ -287,11 +311,10 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                     "- AI Mode: Enable or disable playing against the AI.\n" +
                                                     "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
-
-                                    4 -> { // Help
+                                    5 -> { // Help (was 4, now 5)
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
-                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between Normal Tic Tac Toe, Infinite Tic Tac Toe, Settings, and this Help page.\n" +
+                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between game modes, view Statistics, History, Settings, and this Help page.\n" +
                                                 "- Game Play: Follow on-screen instructions for each game mode.\n" +
                                                 "- Settings: Customize your experience in the Settings page."
                                     }
@@ -313,25 +336,12 @@ fun MainPage() { // Removed viewModelFactory parameter
 
             // Removed Log.d call for PaddingDebug and associated topPaddingValue variable
 
-            // Manage general info dialog (previously, this was not conditional for selectedItemIndex == 2)
-            if (showInfoDialog && selectedItemIndex != 2) { // Ensure this dialog doesn't conflict with history-specific info if any
+            // General Info Dialog - This is triggered by the Info icon in TopAppBar for various pages
+            if (showInfoDialog) {
                 AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
                     title = { Text(text = infoDialogTitle) },
                     text = { Text(text = infoDialogMessage) },
-                    confirmButton = {
-                        Button(onClick = { showInfoDialog = false }) {
-                            Text("OK")
-                        }
-                    }
-                )
-            } else if (showInfoDialog && selectedItemIndex == 2) {
-                // This is for the History Page's own info dialog, triggered by its TopAppBar action
-                // The state `showInfoDialog` is shared, which is fine.
-                AlertDialog(
-                    onDismissRequest = { showInfoDialog = false },
-                    title = { Text(text = infoDialogTitle) }, // This title should be set by History's action
-                    text = { Text(text = infoDialogMessage) }, // This message should be set by History's action
                     confirmButton = {
                         Button(onClick = { showInfoDialog = false }) {
                             Text("OK")
@@ -351,18 +361,16 @@ fun MainPage() { // Removed viewModelFactory parameter
                         viewModel = viewModel
                     )
                 }
-
-                1 -> {
+                1 -> { // Infinite TicTacToe
                     val infiniteViewModel: InfiniteTicTacToeViewModel =
-                        viewModel(factory = LocalViewModelFactory.current) // Use LocalViewModelFactory
+                        viewModel(factory = LocalViewModelFactory.current)
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
-
-                2 -> { // History Page uses NavHost now
-                    // Modifier.padding(innerPadding) is applied to the NavHost
-                    // so that the NavHost itself is placed correctly within MainPage's Scaffold content area.
-                    // When selectedItemIndex == 2, MainPage's TopAppBar is hidden, so innerPadding.top should be 0.
-                    // HistoryPage and MatchDetailsPage use their own Scaffolds and will handle their own internal padding.
+                2 -> { // Statistics Page - NEW
+                    // HistoryViewModel is obtained within StatisticsPage using LocalViewModelFactory.current
+                    StatisticsPage(innerPadding = innerPadding)
+                }
+                3 -> { // History Page uses NavHost now (was index 2)
                     NavHost(
                         navController = navController,
                         startDestination = "history_list",
@@ -370,34 +378,31 @@ fun MainPage() { // Removed viewModelFactory parameter
                     ) {
                         composable("history_list") {
                             HistoryPage(
-                                innerPadding = innerPadding, // PASS MainPage's Scaffold innerPadding
+                                innerPadding = innerPadding,
                                 showClearConfirmDialog = showClearHistoryDialog,
                                 onShowClearConfirmDialogChange = { showClearHistoryDialog = it },
                                 navController = navController
-                                // onShowInfoDialog lambda is removed as Info button is now in MainPage's TopAppBar
                             )
                         }
                         composable(
                             route = "match_details/{matchId}",
                             arguments = listOf(navArgument("matchId") { type = NavType.LongType })
-                        ) { backStackEntry -> // Explicitly name backStackEntry for clarity
+                        ) {
                             MatchDetailsPage(
-                                innerPadding = innerPadding, // Pass innerPadding
+                                innerPadding = innerPadding,
                                 navController = navController
-                                // viewModel is created using LocalViewModelFactory by default
                             )
                         }
                         composable(
-                            route = "roundReplay/{matchId}/{roundId}/{gameType}", // Added {gameType}
+                            route = "roundReplay/{matchId}/{roundId}/{gameType}",
                             arguments = listOf(
                                 navArgument("matchId") { type = NavType.LongType },
                                 navArgument("roundId") { type = NavType.LongType },
-                                navArgument("gameType") { type = NavType.StringType } // Added gameType argument as String
+                                navArgument("gameType") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
                             val matchId = backStackEntry.arguments?.getLong("matchId") ?: 0L
                             val roundId = backStackEntry.arguments?.getLong("roundId") ?: 0L
-                            // val gameTypeString = backStackEntry.arguments?.getString("gameType") // ViewModel handles this
                             RoundReplayScreen(
                                 navController = navController,
                                 matchId = matchId,
@@ -406,12 +411,10 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     }
                 }
-
-                3 -> { // Settings
+                4 -> { // Settings (was index 3)
                     SettingsPage(innerPadding = innerPadding)
                 }
-
-                4 -> { // Help
+                5 -> { // Help (was index 4)
                     HelpPage(innerPadding = innerPadding)
                 }
             }
