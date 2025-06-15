@@ -24,16 +24,18 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.a_gud_boy.tictactoe.ui.theme.LocalViewModelFactory
 
 @Composable
-fun StatisticsPage(innerPadding: PaddingValues, historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current)) {
+fun StatisticsPage(
+    innerPadding: PaddingValues,
+    historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current)
+) {
     val matchStatistics by historyViewModel.matchStatistics.collectAsState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.grey_bg_color))
+            .background(colorResource(id = R.color.background))
             .padding(innerPadding)
     ) {
         Column(
