@@ -1,27 +1,60 @@
 package com.a_gud_boy.tictactoe
 
+// import androidx.navigation.NavController // Uncomment when NavController is available
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-// import androidx.navigation.NavController // Uncomment when NavController is available
-import com.a_gud_boy.tictactoe.ui.theme.*
+import com.a_gud_boy.tictactoe.ui.theme.borderPrimary
+import com.a_gud_boy.tictactoe.ui.theme.primaryColor
+import com.a_gud_boy.tictactoe.ui.theme.surfacePrimary
+import com.a_gud_boy.tictactoe.ui.theme.surfaceSecondary
+import com.a_gud_boy.tictactoe.ui.theme.textPrimary
+import com.a_gud_boy.tictactoe.ui.theme.textSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +88,7 @@ fun StatisticsPage(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppHeader(title: String, onBackClicked: () -> Unit) {
     TopAppBar(
@@ -62,7 +96,7 @@ fun AppHeader(title: String, onBackClicked: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = onBackClicked) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
                     tint = textPrimary
                 )
@@ -84,7 +118,11 @@ fun OverallStatsSection(stats: MatchStatistics) {
             StatisticCard(title = "Total Games Played", value = stats.totalMatches.toString())
         }
         item {
-            StatisticCard(title = "Win Rate", value = String.format("%.1f%%", stats.winRate), valueColor = primaryColor)
+            StatisticCard(
+                title = "Win Rate",
+                value = String.format("%.1f%%", stats.winRate),
+                valueColor = primaryColor
+            )
         }
         item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
             StatisticCard(title = "Average Game Duration", value = stats.averageGameDuration)
@@ -101,13 +139,25 @@ fun GameOutcomesSection(stats: MatchStatistics) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            StatisticCard(title = "Games Won", value = stats.playerWins.toString(), valueColor = primaryColor)
+            StatisticCard(
+                title = "Wins",
+                value = stats.playerWins.toString(),
+                valueColor = primaryColor
+            )
         }
         item {
-            StatisticCard(title = "Games Lost", value = stats.aiWins.toString(), valueColor = Color(0xFFEF4444))
+            StatisticCard(
+                title = "Loses",
+                value = stats.aiWins.toString(),
+                valueColor = Color(0xFFEF4444)
+            )
         }
         item {
-            StatisticCard(title = "Games Drawn", value = stats.draws.toString(), valueColor = Color(0xFFEAB308))
+            StatisticCard(
+                title = "Draws",
+                value = stats.draws.toString(),
+                valueColor = Color(0xFFEAB308)
+            )
         }
     }
 }
@@ -129,9 +179,27 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
         val drawnPercentage = if (totalGames == 0f) 0f else (stats.draws / totalGames)
 
         val barData = listOf(
-            BarData("Won", wonPercentage, primaryColor, "Won (${(wonPercentage * 100).toPrettyPercentage()}%)", stats.playerWins),
-            BarData("Lost", lostPercentage, Color(0xFFEF4444), "Lost (${(lostPercentage * 100).toPrettyPercentage()}%)", stats.aiWins),
-            BarData("Drawn", drawnPercentage, Color(0xFFEAB308), "Drawn (${(drawnPercentage * 100).toPrettyPercentage()}%)", stats.draws)
+            BarData(
+                "Won",
+                wonPercentage,
+                primaryColor,
+                "Won (${(wonPercentage * 100).toPrettyPercentage()}%)",
+                stats.playerWins
+            ),
+            BarData(
+                "Lost",
+                lostPercentage,
+                Color(0xFFEF4444),
+                "Lost (${(lostPercentage * 100).toPrettyPercentage()}%)",
+                stats.aiWins
+            ),
+            BarData(
+                "Drawn",
+                drawnPercentage,
+                Color(0xFFEAB308),
+                "Drawn (${(drawnPercentage * 100).toPrettyPercentage()}%)",
+                stats.draws
+            )
         )
 
         // ChartAndYAxisRow: Contains Y-Axis and the (Bars + X-Axis Labels)
@@ -168,12 +236,12 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 }
 
                 // X-axis Divider
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 1.dp), // Adjusted padding
-                    color = borderPrimary,
-                    thickness = 1.dp
+                    thickness = 1.dp,
+                    color = borderPrimary
                 )
 
                 // LabelsRow
@@ -216,7 +284,12 @@ fun RowScope.Bar(data: BarData, count: Int) {
             .fillMaxHeight()
             .padding(horizontal = 4.dp) // Add some spacing between bars
             .semantics(mergeDescendants = true) {
-                contentDescription = "${data.label}: $count games, representing ${String.format("%.1f", data.value * 100)}%"
+                contentDescription = "${data.label}: $count games, representing ${
+                    String.format(
+                        "%.1f",
+                        data.value * 100
+                    )
+                }%"
             },
         horizontalAlignment = Alignment.CenterHorizontally
         // verticalArrangement = Arrangement.Bottom // Not strictly needed here due to weighted Box
