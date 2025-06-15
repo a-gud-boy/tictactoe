@@ -29,7 +29,8 @@ class NormalTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
-    private var matchStartTime: Long? = null
+    private var currentRoundStartTime: Long? = null
+    private var accumulatedMatchDuration: Long = 0L
 
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
@@ -107,8 +108,8 @@ class NormalTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
-        if (matchStartTime == null) {
-            matchStartTime = System.currentTimeMillis()
+        if (currentRoundStartTime == null) {
+            currentRoundStartTime = System.currentTimeMillis()
         }
 
         val currentP1FullMoves = _player1Moves.value
@@ -157,6 +158,12 @@ class NormalTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round
+        if (currentRoundStartTime != null) {
+            val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
+            accumulatedMatchDuration += roundDuration
+            currentRoundStartTime = null // Pause timer
+        }
+
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val currentWinnerInfo = _winnerInfo.value // Capture current winner info
@@ -194,7 +201,11 @@ class NormalTicTacToeViewModel(
 
     fun resetScores() { // End of a match
         viewModelScope.launch {
-            val matchDuration = if (matchStartTime != null) System.currentTimeMillis() - matchStartTime!! else 0L
+            if (currentRoundStartTime != null) { // If match is reset/ended mid-round
+                val lastRoundDuration = System.currentTimeMillis() - currentRoundStartTime!!
+                accumulatedMatchDuration += lastRoundDuration
+                currentRoundStartTime = null
+            }
             // Handle the currently ongoing round's data
             if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
@@ -242,7 +253,7 @@ class NormalTicTacToeViewModel(
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.NORMAL, // Use GameType.NORMAL
                 timestamp = System.currentTimeMillis(),
-                duration = matchDuration
+                duration = accumulatedMatchDuration
             )
 
             val matchId = matchDao.insertMatch(matchEntity)
@@ -263,7 +274,8 @@ class NormalTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound()
-            matchStartTime = null
+            accumulatedMatchDuration = 0L
+            currentRoundStartTime = null
         }
     }
 

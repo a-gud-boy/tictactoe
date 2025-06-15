@@ -29,7 +29,8 @@ class InfiniteTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
-    private var matchStartTime: Long? = null
+    private var currentRoundStartTime: Long? = null
+    private var accumulatedMatchDuration: Long = 0L
 
     companion object {
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
@@ -108,8 +109,8 @@ class InfiniteTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
-        if (matchStartTime == null) {
-            matchStartTime = System.currentTimeMillis()
+        if (currentRoundStartTime == null) {
+            currentRoundStartTime = System.currentTimeMillis()
         }
 
         val currentP1FullMoves = _player1Moves.value
@@ -161,6 +162,12 @@ class InfiniteTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round in Infinite mode
+        if (currentRoundStartTime != null) {
+            val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
+            accumulatedMatchDuration += roundDuration
+            currentRoundStartTime = null // Pause timer
+        }
+
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val currentWinnerInfo = _winnerInfo.value // Capture current winner info for this round
@@ -196,7 +203,11 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
-            val matchDuration = if (matchStartTime != null) System.currentTimeMillis() - matchStartTime!! else 0L
+            if (currentRoundStartTime != null) { // If match is reset/ended mid-round
+                val lastRoundDuration = System.currentTimeMillis() - currentRoundStartTime!!
+                accumulatedMatchDuration += lastRoundDuration
+                currentRoundStartTime = null
+            }
             // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
             if (_currentRoundMoves.value.isNotEmpty()) {
                 // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
@@ -248,7 +259,7 @@ class InfiniteTicTacToeViewModel(
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.INFINITE, // Use GameType.INFINITE
                 timestamp = System.currentTimeMillis(),
-                duration = matchDuration
+                duration = accumulatedMatchDuration
             )
             val matchId = matchDao.insertMatch(matchEntity)
 
@@ -283,7 +294,8 @@ class InfiniteTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound() // Prepare for a brand new round
-            matchStartTime = null
+            accumulatedMatchDuration = 0L
+            currentRoundStartTime = null
         }
     }
 
