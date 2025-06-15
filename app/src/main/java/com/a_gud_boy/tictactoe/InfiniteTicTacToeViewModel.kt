@@ -322,6 +322,11 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playWinSound(volume)
+                if (currentRoundStartTime != null) {
+                    val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
+                    accumulatedMatchDuration += roundDuration
+                    currentRoundStartTime = null
+                }
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -331,6 +336,11 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playLoseSound(volume)
+                if (currentRoundStartTime != null) {
+                    val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
+                    accumulatedMatchDuration += roundDuration
+                    currentRoundStartTime = null
+                }
                 return
             }
         }
