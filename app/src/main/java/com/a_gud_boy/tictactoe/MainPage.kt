@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -215,24 +216,28 @@ fun MainPage() { // Removed viewModelFactory parameter
                 // TopAppBar is now always visible, title and actions adapt based on selectedItemIndex
                 TopAppBar(
                     title = {
-                        val titleText = when (selectedItemIndex) {
-                            0 -> "Tic Tac Toe"
-                            1 -> "Infinite TicTacToe"
-                            2 -> "Statistics" // New Title for Statistics
-                            3 -> { // History is now index 3
-                                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                                val currentRoute = navBackStackEntry?.destination?.route
-                                if (currentRoute?.startsWith("roundReplay/") == true) {
-                                    "Match Replay"
-                                } else if (currentRoute?.startsWith("match_details/") == true) {
-                                    "Match Details"
-                                } else {
-                                    "History"
+                        val titleText by remember { // Outer remember for the derivedStateOf instance
+                            derivedStateOf {
+                                when (selectedItemIndex) {
+                                    0 -> "Tic Tac Toe"
+                                    1 -> "Infinite TicTacToe"
+                                    2 -> "Statistics" // New Title for Statistics
+                                    3 -> { // History is now index 3
+                                        // Reading navBackStackEntry.value here inside derivedStateOf
+                                        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                                        if (currentRoute?.startsWith("roundReplay/") == true) {
+                                            "Match Replay"
+                                        } else if (currentRoute?.startsWith("match_details/") == true) {
+                                            "Match Details"
+                                        } else {
+                                            "History"
+                                        }
+                                    }
+                                    4 -> "Settings" // Was 3
+                                    5 -> "Help" // Was 4
+                                    else -> "Lorem Ipsum" // Default
                                 }
                             }
-                            4 -> "Settings" // Was 3
-                            5 -> "Help" // Was 4
-                            else -> "Lorem Ipsum" // Default
                         }
                         Text(
                             text = titleText,

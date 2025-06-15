@@ -39,8 +39,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Canvas
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
@@ -245,130 +245,45 @@ fun InfiniteTicTacToePage(
 //                    style = MaterialTheme.typography.labelMedium,
 //                    fontSize = 25.sp
 //                )
-            ConstraintLayout(
-                constraintSet = constraints,
+            Box(
                 modifier = Modifier
-                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                    .padding(20.dp, 10.dp, 20.dp, 20.dp) // Outer padding, width, height for the game area
                     .width(300.dp)
                     .height(300.dp)
-                    .shadow(4.dp, shape = RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(colorResource(R.color.constraint_background))
-                    // Custom drawing logic for the winning line.
-                    .drawWithContent {
-                        drawContent() // Draw the ConstraintLayout children (the cells) first.
-
-                        // Condition to draw the line: there must be a valid winning combination (at least 2 cells)
-                        // and the animation must be in progress (progress > 0f).
-                        if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
-                            val currentWinner = winnerInfo?.winner
-                                ?: return@drawWithContent // Exit if no winner (should not happen if combination is present).
-
-                            // Get the button IDs for the start and end of the winning line from the ViewModel's ordered list.
-                            // The ViewModel determines the actual cells that form the win.
-                            // The line will animate visually from the 'lineAppearStartButtonId' towards 'lineAppearEndButtonId'.
-                            val lineAppearStartButtonId =
-                                orderedWinningCombination.value.first() // Line visually starts here.
-                            val lineAppearEndButtonId =
-                                orderedWinningCombination.value.last()   // Line visually ends here.
-
-                            val lineStartCellCoordinates =
-                                buttonCoordinates[lineAppearStartButtonId]
-                            val lineEndCellCoordinates = buttonCoordinates[lineAppearEndButtonId]
-
-                            if (lineStartCellCoordinates != null && lineEndCellCoordinates != null) {
-                                // Calculate the center of the starting cell for the line.
-                                val actualLineStartPoint = Offset(
-                                    lineStartCellCoordinates.size.width / 2f + lineStartCellCoordinates.positionInParent().x,
-                                    lineStartCellCoordinates.size.height / 2f + lineStartCellCoordinates.positionInParent().y
-                                )
-                                // Calculate the center of the ending cell for the line.
-                                val actualLineEndPoint = Offset(
-                                    lineEndCellCoordinates.size.width / 2f + lineEndCellCoordinates.positionInParent().x,
-                                    lineEndCellCoordinates.size.height / 2f + lineEndCellCoordinates.positionInParent().y
-                                )
-
-                                // Interpolate the visual end point of the line based on animation progress.
-                                // The line "grows" from actualLineStartPoint towards actualLineEndPoint.
-                                lerp(
-                                    actualLineStartPoint, // Start of the segment for lerp
-                                    actualLineEndPoint,   // End of the segment for lerp
-                                    lineAnimationProgress.value // Current animation fraction (0f to 1f)
-                                )
-
-                                val lineColor = when (currentWinner) {
-                                    Player.X -> playerXColor
-                                    Player.O -> playerOColor
-                                }
-
-                                // Calculate the direction vector from the true start to the true end of the line.
-                                // This is used to extend the line slightly beyond the cell centers for better visuals.
-                                val overallDirectionVector =
-                                    actualLineEndPoint - actualLineStartPoint
-                                val normalizedOverallDirection =
-                                    if (overallDirectionVector.getDistance() > 0) {
-                                        overallDirectionVector / overallDirectionVector.getDistance()
-                                    } else {
-                                        Offset(
-                                            0f,
-                                            0f
-                                        ) // Avoid division by zero if start and end are same.
-                                    }
-
-                                val lineExtensionPx =
-                                    30.dp.toPx() // How much to extend the line on each side.
-
-                                // Extend the line outwards from the true start and true end points.
-                                // The animated line will then be drawn between these extended points, but its length
-                                // will be controlled by `animatedVisualLineEnd` through lerp.
-                                val extendedVisualLineStart =
-                                    actualLineStartPoint - (normalizedOverallDirection * lineExtensionPx)
-                                val extendedVisualLineEndTarget =
-                                    actualLineEndPoint + (normalizedOverallDirection * lineExtensionPx)
-
-                                // The line's visual appearance grows from the extended start towards the extended end,
-                                // effectively making the animated part (`lineAnimationProgress.value`) cover the segment
-                                // from `extendedVisualLineStart` to `extendedVisualLineEndTarget`.
-                                val finalAnimatedEnd = lerp(
-                                    extendedVisualLineStart,
-                                    extendedVisualLineEndTarget,
-                                    lineAnimationProgress.value
-                                )
-
-
-                                // Draw the line.
-                                drawLine(
-                                    color = lineColor.copy(alpha = 0.6f),
-                                    start = extendedVisualLineStart, // Fixed extended start
-                                    end = finalAnimatedEnd, // Animated extended end
-                                    strokeWidth = 5.dp.toPx(),
-                                    cap = StrokeCap.Round
-                                )
-                            }
-                        }
-                    }
             ) {
-                val buttonIds = List(9) { i -> "button${i + 1}" }
-                buttonIds.forEach { buttonId ->
-                    val cellPlayer: Player? = if (p2VisibleMoves.contains(buttonId)) Player.O
-                    else if (p1VisibleMoves.contains(buttonId)) Player.X
-                    else null
+                ConstraintLayout(
+                    constraintSet = constraints,
+                    modifier = Modifier
+                        .fillMaxSize() // Fill the Box
+                        .shadow(4.dp, shape = RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(colorResource(R.color.constraint_background))
+                ) {
+                    val buttonIds = List(9) { i -> "button${i + 1}" }
+                    buttonIds.forEach { buttonId ->
+                        val cellPlayer: Player? = remember(p1VisibleMoves, p2VisibleMoves, buttonId) {
+                            if (p2VisibleMoves.contains(buttonId)) Player.O
+                            else if (p1VisibleMoves.contains(buttonId)) Player.X
+                            else null
+                        }
 
-                    // Determine if the current cell represents an "old move" that should be dimmed.
-                    // This is specific to Infinite Tic Tac Toe mode.
-                    // A move is considered "old" if:
-                    // 1. The cell is occupied by a player (cellPlayer != null).
-                    // 2. It's the current player's turn.
-                    // 3. The current player is Player X, has made MAX_VISIBLE_MOVES_PER_PLAYER,
-                    //    and the current cell (buttonId) is the first (oldest) in their list of moves.
-                    // OR
-                    // 4. The current player is Player O (not player1Turn), has made MAX_VISIBLE_MOVES_PER_PLAYER,
-                    //    and the current cell (buttonId) is the first (oldest) in their list of moves.
-                    val isOldMove = cellPlayer != null &&
-                            ((player1Turn && cellPlayer == Player.X && p1VisibleMoves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && p1VisibleMoves.firstOrNull() == buttonId) ||
-                                    (!player1Turn && cellPlayer == Player.O && p2VisibleMoves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && p2VisibleMoves.firstOrNull() == buttonId))
+                        // Determine if the current cell represents an "old move" that should be dimmed.
+                        // This is specific to Infinite Tic Tac Toe mode.
+                        // A move is considered "old" if:
+                        // 1. The cell is occupied by a player (cellPlayer != null).
+                        // 2. It's the current player's turn.
+                        // 3. The current player is Player X, has made MAX_VISIBLE_MOVES_PER_PLAYER,
+                        //    and the current cell (buttonId) is the first (oldest) in their list of moves.
+                        // OR
+                        // 4. The current player is Player O (not player1Turn), has made MAX_VISIBLE_MOVES_PER_PLAYER,
+                        //    and the current cell (buttonId) is the first (oldest) in their list of moves.
+                        val isOldMove = remember(cellPlayer, player1Turn, p1VisibleMoves, p2VisibleMoves, buttonId) {
+                            cellPlayer != null &&
+                                ((player1Turn && cellPlayer == Player.X && p1VisibleMoves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && p1VisibleMoves.firstOrNull() == buttonId) ||
+                                        (!player1Turn && cellPlayer == Player.O && p2VisibleMoves.size == InfiniteTicTacToeViewModel.MAX_VISIBLE_MOVES_PER_PLAYER && p2VisibleMoves.firstOrNull() == buttonId))
+                        }
 
-                    TicTacToeCell(
+                        TicTacToeCell(
                         modifier = Modifier
                             .background(color = Color.White, shape = RoundedCornerShape(10.dp))
                             .width(80.dp)
@@ -381,18 +296,97 @@ fun InfiniteTicTacToePage(
                         isOldMove = isOldMove, // If true, the cell's content will be dimmed.
                         iconSize = iconSize,
                         buttonId = buttonId, // Pass buttonId for accessibility, e.g., "button1", "button2", etc.
-                        onClick = {
-                            HapticFeedbackManager.performHapticFeedback(
-                                view,
-                                HapticFeedbackConstants.VIRTUAL_KEY
-                            ) // Haptic feedback on cell tap.
-                            // Sound for move is typically handled by ViewModel after validation.
-                            // soundManager.playMoveSound()
-                            viewModel.onButtonClick(buttonId)
+                        onClick = remember(buttonId, viewModel, view) {
+                            {
+                                HapticFeedbackManager.performHapticFeedback(
+                                    view,
+                                    HapticFeedbackConstants.VIRTUAL_KEY
+                                ) // Haptic feedback on cell tap.
+                                // Sound for move is typically handled by ViewModel after validation.
+                                // soundManager.playMoveSound()
+                                viewModel.onButtonClick(buttonId)
+                            }
                         }
                     )
-                }
-            }
+                    }
+                } // End of ConstraintLayout
+
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Condition to draw the line: there must be a valid winning combination (at least 2 cells)
+                    // and the animation must be in progress (progress > 0f).
+                    if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
+                        val currentWinner = winnerInfo?.winner
+                            ?: return@Canvas // Exit if no winner (should not happen if combination is present).
+
+                        // Get the button IDs for the start and end of the winning line from the ViewModel's ordered list.
+                        val lineAppearStartButtonId =
+                            orderedWinningCombination.value.first() // Line visually starts here.
+                        val lineAppearEndButtonId =
+                            orderedWinningCombination.value.last()   // Line visually ends here.
+
+                        val lineStartCellLayoutCoordinates =
+                            buttonCoordinates[lineAppearStartButtonId]
+                        val lineEndCellLayoutCoordinates = buttonCoordinates[lineAppearEndButtonId]
+
+                        if (lineStartCellLayoutCoordinates != null && lineEndCellLayoutCoordinates != null) {
+                            // Calculate the center of the starting cell for the line.
+                            // positionInParent() is relative to the ConstraintLayout. Since Canvas and ConstraintLayout
+                            // are siblings filling the same parent Box, these coordinates are transferable.
+                            val actualLineStartPoint = Offset(
+                                lineStartCellLayoutCoordinates.size.width / 2f + lineStartCellLayoutCoordinates.positionInParent().x,
+                                lineStartCellLayoutCoordinates.size.height / 2f + lineStartCellLayoutCoordinates.positionInParent().y
+                            )
+                            // Calculate the center of the ending cell for the line.
+                            val actualLineEndPoint = Offset(
+                                lineEndCellLayoutCoordinates.size.width / 2f + lineEndCellLayoutCoordinates.positionInParent().x,
+                                lineEndCellLayoutCoordinates.size.height / 2f + lineEndCellLayoutCoordinates.positionInParent().y
+                            )
+
+                            val lineColor = when (currentWinner) {
+                                Player.X -> playerXColor
+                                Player.O -> playerOColor
+                            }
+
+                            // Calculate the direction vector from the true start to the true end of the line.
+                            val overallDirectionVector =
+                                actualLineEndPoint - actualLineStartPoint
+                            val normalizedOverallDirection =
+                                if (overallDirectionVector.getDistance() > 0) {
+                                    overallDirectionVector / overallDirectionVector.getDistance()
+                                } else {
+                                    Offset(
+                                        0f,
+                                        0f
+                                    ) // Avoid division by zero if start and end are same.
+                                }
+
+                            val lineExtensionPx =
+                                30.dp.toPx() // How much to extend the line on each side.
+
+                            val extendedVisualLineStart =
+                                actualLineStartPoint - (normalizedOverallDirection * lineExtensionPx)
+                            val extendedVisualLineEndTarget =
+                                actualLineEndPoint + (normalizedOverallDirection * lineExtensionPx)
+
+                            // The line's visual appearance grows from the extended start towards the extended end.
+                            val finalAnimatedEnd = lerp(
+                                extendedVisualLineStart,
+                                extendedVisualLineEndTarget,
+                                lineAnimationProgress.value
+                            )
+
+                            // Draw the line.
+                            drawLine(
+                                color = lineColor.copy(alpha = 0.6f),
+                                start = extendedVisualLineStart, // Fixed extended start
+                                end = finalAnimatedEnd, // Animated extended end
+                                strokeWidth = 5.dp.toPx(),
+                                cap = StrokeCap.Round
+                            )
+                        }
+                    }
+                } // End of Canvas
+            } // End of Box for ConstraintLayout and Canvas
 
             // Card displaying game scores and current turn information.
             Card(
