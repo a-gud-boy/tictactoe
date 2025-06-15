@@ -29,8 +29,7 @@ class InfiniteTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
-    private var currentRoundStartTime: Long? = null
-    private var accumulatedMatchDuration: Long = 0L
+    private val gameTimer = GameTimer()
 
     companion object {
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
@@ -109,9 +108,7 @@ class InfiniteTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
-        if (currentRoundStartTime == null) {
-            currentRoundStartTime = System.currentTimeMillis()
-        }
+        gameTimer.startRoundTimer()
 
         val currentP1FullMoves = _player1Moves.value
         val currentP2FullMoves = _player2Moves.value
@@ -162,11 +159,7 @@ class InfiniteTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round in Infinite mode
-        if (currentRoundStartTime != null) {
-            val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-            accumulatedMatchDuration += roundDuration
-            currentRoundStartTime = null // Pause timer
-        }
+        gameTimer.pauseRoundTimer()
 
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
@@ -203,11 +196,7 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
-            if (currentRoundStartTime != null) { // If match is reset/ended mid-round
-                val lastRoundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                accumulatedMatchDuration += lastRoundDuration
-                currentRoundStartTime = null
-            }
+            // gameTimer.getFinalMatchDuration() will handle pausing if active.
             // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
             if (_currentRoundMoves.value.isNotEmpty()) {
                 // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
@@ -259,7 +248,7 @@ class InfiniteTicTacToeViewModel(
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.INFINITE, // Use GameType.INFINITE
                 timestamp = System.currentTimeMillis(),
-                duration = accumulatedMatchDuration
+                duration = gameTimer.getFinalMatchDuration()
             )
             val matchId = matchDao.insertMatch(matchEntity)
 
@@ -294,8 +283,7 @@ class InfiniteTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound() // Prepare for a brand new round
-            accumulatedMatchDuration = 0L
-            currentRoundStartTime = null
+            gameTimer.reset()
         }
     }
 
@@ -322,11 +310,7 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playWinSound(volume)
-                if (currentRoundStartTime != null) {
-                    val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                    accumulatedMatchDuration += roundDuration
-                    currentRoundStartTime = null
-                }
+                gameTimer.pauseRoundTimer()
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -336,11 +320,7 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playLoseSound(volume)
-                if (currentRoundStartTime != null) {
-                    val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                    accumulatedMatchDuration += roundDuration
-                    currentRoundStartTime = null
-                }
+                gameTimer.pauseRoundTimer()
                 return
             }
         }

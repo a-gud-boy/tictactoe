@@ -29,8 +29,7 @@ class NormalTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
-    private var currentRoundStartTime: Long? = null
-    private var accumulatedMatchDuration: Long = 0L
+    private val gameTimer = GameTimer()
 
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
@@ -108,9 +107,7 @@ class NormalTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
-        if (currentRoundStartTime == null) {
-            currentRoundStartTime = System.currentTimeMillis()
-        }
+        gameTimer.startRoundTimer()
 
         val currentP1FullMoves = _player1Moves.value
         val currentP2FullMoves = _player2Moves.value
@@ -158,11 +155,7 @@ class NormalTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round
-        if (currentRoundStartTime != null) {
-            val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-            accumulatedMatchDuration += roundDuration
-            currentRoundStartTime = null // Pause timer
-        }
+        gameTimer.pauseRoundTimer()
 
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
@@ -201,11 +194,7 @@ class NormalTicTacToeViewModel(
 
     fun resetScores() { // End of a match
         viewModelScope.launch {
-            if (currentRoundStartTime != null) { // If match is reset/ended mid-round
-                val lastRoundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                accumulatedMatchDuration += lastRoundDuration
-                currentRoundStartTime = null
-            }
+            // gameTimer.getFinalMatchDuration() will handle pausing if active.
             // Handle the currently ongoing round's data
             if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
@@ -253,7 +242,7 @@ class NormalTicTacToeViewModel(
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.NORMAL, // Use GameType.NORMAL
                 timestamp = System.currentTimeMillis(),
-                duration = accumulatedMatchDuration
+                duration = gameTimer.getFinalMatchDuration()
             )
 
             val matchId = matchDao.insertMatch(matchEntity)
@@ -274,8 +263,7 @@ class NormalTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound()
-            accumulatedMatchDuration = 0L
-            currentRoundStartTime = null
+            gameTimer.reset()
         }
     }
 
@@ -301,11 +289,7 @@ class NormalTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playWinSound(volume)
-                if (currentRoundStartTime != null) {
-                    val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                    accumulatedMatchDuration += roundDuration
-                    currentRoundStartTime = null
-                }
+                gameTimer.pauseRoundTimer()
                 return
             }
             if (p2MovesSet.containsAll(combination)) {
@@ -315,11 +299,7 @@ class NormalTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playLoseSound(volume)
-                if (currentRoundStartTime != null) {
-                    val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                    accumulatedMatchDuration += roundDuration
-                    currentRoundStartTime = null
-                }
+                gameTimer.pauseRoundTimer()
                 return
             }
         }
@@ -329,11 +309,7 @@ class NormalTicTacToeViewModel(
             _isGameConcluded.value = true
             _gameStarted.value = false
             soundManager.playDrawSound(volume)
-            if (currentRoundStartTime != null) {
-                val roundDuration = System.currentTimeMillis() - currentRoundStartTime!!
-                accumulatedMatchDuration += roundDuration
-                currentRoundStartTime = null
-            }
+            gameTimer.pauseRoundTimer()
         }
     }
 
