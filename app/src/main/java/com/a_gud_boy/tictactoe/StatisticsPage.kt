@@ -318,7 +318,9 @@ fun RowScope.Bar(data: BarData, count: Int) {
 @Composable
 fun StatisticCard(title: String, value: String, valueColor: Color = textPrimary) {
     Card(
-        modifier = Modifier.fillMaxWidth(), // Each card takes full width of its grid cell
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 2.dp), // Each card takes full width of its grid cell
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = surfacePrimary),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Subtle shadow
