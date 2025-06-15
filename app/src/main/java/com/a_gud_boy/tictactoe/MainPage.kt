@@ -213,18 +213,21 @@ fun MainPage() { // Removed viewModelFactory parameter
     ) {
         Scaffold(
             topBar = {
+                // Hoist navBackStackEntry here to be used by title, navigationIcon, and actions
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+
                 // TopAppBar is now always visible, title and actions adapt based on selectedItemIndex
                 TopAppBar(
                     title = {
                         val titleText by remember { // Outer remember for the derivedStateOf instance
                             derivedStateOf {
+                                // Access the hoisted navBackStackEntry's value here
+                                val currentRoute = navBackStackEntry?.destination?.route // Correct: uses hoisted state
                                 when (selectedItemIndex) {
                                     0 -> "Tic Tac Toe"
                                     1 -> "Infinite TicTacToe"
                                     2 -> "Statistics" // New Title for Statistics
                                     3 -> { // History is now index 3
-                                        // Reading navBackStackEntry.value here inside derivedStateOf
-                                        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                                         if (currentRoute?.startsWith("roundReplay/") == true) {
                                             "Match Replay"
                                         } else if (currentRoute?.startsWith("match_details/") == true) {
@@ -249,7 +252,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                         )
                     },
                     navigationIcon = {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        // val navBackStackEntry by navController.currentBackStackEntryAsState() // Already hoisted
                         val currentRoute = navBackStackEntry?.destination?.route
                         // Back arrow for History (index 3) sub-pages
                         if (selectedItemIndex == 3 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith(
@@ -269,7 +272,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     },
                     actions = {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        // val navBackStackEntry by navController.currentBackStackEntryAsState() // Already hoisted
                         val currentRoute = navBackStackEntry?.destination?.route
                         // TopAppBar actions:
                         // History (index 3) specific actions
