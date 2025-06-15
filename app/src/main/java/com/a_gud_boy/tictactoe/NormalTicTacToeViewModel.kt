@@ -29,6 +29,8 @@ class NormalTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
+    private var matchStartTime: Long = System.currentTimeMillis()
+
     companion object {
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
             setOf("button1", "button2", "button3"),
@@ -188,6 +190,7 @@ class NormalTicTacToeViewModel(
 
     fun resetScores() { // End of a match
         viewModelScope.launch {
+            val matchDuration = System.currentTimeMillis() - matchStartTime
             // Handle the currently ongoing round's data
             if (_currentRoundMoves.value.isNotEmpty()) {
                 val roundNumber = _currentMatchRounds.value.size + 1
@@ -234,7 +237,8 @@ class NormalTicTacToeViewModel(
                 winner = winner, // Pass the determined winner
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.NORMAL, // Use GameType.NORMAL
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                duration = matchDuration
             )
 
             val matchId = matchDao.insertMatch(matchEntity)
@@ -255,6 +259,7 @@ class NormalTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound()
+            matchStartTime = System.currentTimeMillis()
         }
     }
 

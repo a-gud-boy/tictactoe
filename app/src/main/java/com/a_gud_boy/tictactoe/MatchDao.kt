@@ -29,4 +29,7 @@ interface MatchDao {
 
     @Query("DELETE FROM matches WHERE matchId = :matchId")
     suspend fun deleteMatchById(matchId: Long)
+
+    @Query("SELECT AVG(duration) FROM matches")
+    fun getAverageMatchDuration(): Flow<Double?>
 }

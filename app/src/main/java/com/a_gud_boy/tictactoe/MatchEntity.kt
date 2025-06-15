@@ -25,7 +25,8 @@ data class MatchEntity(
     val winner: MatchWinner, // New field for the actual winner
     val isAgainstAi: Boolean = false, // New field
     val gameType: GameType, // Changed to GameType enum
-    val timestamp: Long = System.currentTimeMillis() // Store as Long
+    val timestamp: Long = System.currentTimeMillis(), // Store as Long
+    val duration: Long = 0L // Duration of the match in milliseconds
 )
 
 data class MatchWithRoundsAndMoves(

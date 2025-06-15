@@ -29,6 +29,8 @@ class InfiniteTicTacToeViewModel(
     private val moveDao: MoveDao
 ) : ViewModel() {
 
+    private var matchStartTime: Long = System.currentTimeMillis()
+
     companion object {
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
         val WINNING_COMBINATIONS: List<Set<String>> = listOf(
@@ -190,6 +192,7 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
+            val matchDuration = System.currentTimeMillis() - matchStartTime
             // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
             if (_currentRoundMoves.value.isNotEmpty()) {
                 // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
@@ -240,7 +243,8 @@ class InfiniteTicTacToeViewModel(
                 winner = winner, // Pass the determined winner
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.INFINITE, // Use GameType.INFINITE
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                duration = matchDuration
             )
             val matchId = matchDao.insertMatch(matchEntity)
 
@@ -275,6 +279,7 @@ class InfiniteTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound() // Prepare for a brand new round
+            matchStartTime = System.currentTimeMillis()
         }
     }
 
