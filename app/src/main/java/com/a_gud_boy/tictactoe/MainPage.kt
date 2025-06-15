@@ -368,7 +368,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                 }
                 2 -> { // Statistics Page - NEW
                     // HistoryViewModel is obtained within StatisticsPage using LocalViewModelFactory.current
-                    StatisticsPage(innerPadding = innerPadding)
+                    StatisticsPage()
                 }
                 3 -> { // History Page uses NavHost now (was index 2)
                     NavHost(

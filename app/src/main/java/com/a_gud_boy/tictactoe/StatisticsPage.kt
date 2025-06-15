@@ -134,17 +134,49 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
             BarData("Drawn", drawnPercentage, Color(0xFFEAB308), "Drawn (${(drawnPercentage * 100).toPrettyPercentage()}%)", stats.draws)
         )
 
+        // Parent Row for Y-axis and Bars
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp), // Adjust height as needed
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
+                .height(200.dp) // Adjust height as needed
         ) {
-            barData.forEach { data ->
-                Bar(data = data, count = data.count)
+            // Y-axis Column
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(40.dp) // Fixed width for Y-axis labels
+                    .padding(end = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.End // Align text to the right for Y-axis
+            ) {
+                Text("100%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
+                Text("75%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
+                Text("50%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
+                Text("25%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
+                Text("0%", fontSize = 10.sp, color = textSecondary, textAlign = TextAlign.End)
+            }
+
+            // Bars Row
+            Row(
+                modifier = Modifier
+                    .weight(1f) // Takes remaining horizontal space
+                    .fillMaxHeight(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                barData.forEach { data ->
+                    Bar(data = data, count = data.count)
+                }
             }
         }
+        // X-axis baseline
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp), // Space between bar labels and the line
+            thickness = 1.dp,
+            color = borderPrimary
+        )
     }
 }
 
@@ -169,17 +201,27 @@ fun RowScope.Bar(data: BarData, count: Int) {
                 // For screen readers, announce the count and label
                 contentDescription = "${data.label}: $count games, ${data.labelBottom}"
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom
+        horizontalAlignment = Alignment.CenterHorizontally
+        // verticalArrangement = Arrangement.Bottom // Not strictly needed here due to weighted Box
     ) {
+        // This Box takes up the available space for the bar to grow into
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.8f) // Adjusted for better visual balance
-                .fillMaxHeight(barHeightPercentage)
-                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)) // Slightly more rounded
-                .background(data.color)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+                .weight(1f) // Takes available vertical space
+                .fillMaxWidth(0.8f) // Bar width
+                .padding(bottom = 0.dp), // Ensure no padding eats into the bar space from bottom
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            // This is the actual colored bar that animates
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth() // Fills the width of its parent Box (0.8f of the column)
+                    .fillMaxHeight(barHeightPercentage) // Animated height
+                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                    .background(data.color)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp)) // Reduced spacer for tighter layout
         Text(
             text = data.labelBottom,
             fontSize = 12.sp,
