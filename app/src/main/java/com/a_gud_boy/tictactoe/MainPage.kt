@@ -43,6 +43,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -102,7 +103,14 @@ fun MainPage() { // Removed viewModelFactory parameter
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
     // Add "Statistics" to the list of items for the drawer
     // New Order: Normal, Infinite, Statistics, History, Settings, Help
-    val items = listOf("Normal TicTacToe", "Infinite TicTacToe", "Statistics", "History", "Settings", "Help")
+    val items = listOf(
+        "Normal TicTacToe",
+        "Infinite TicTacToe",
+        "Statistics",
+        "History",
+        "Settings",
+        "Help"
+    )
 
     val navController = rememberNavController() // NavController for History section
 
@@ -127,10 +135,13 @@ fun MainPage() { // Removed viewModelFactory parameter
                                             if (navController.currentBackStackEntry?.destination?.route != "history_list") {
                                                 navController.navigate("history_list") {
                                                     popUpTo(navController.graph.startDestinationId) {
-                                                        saveState = true // Preserve state of history_list
+                                                        saveState =
+                                                            true // Preserve state of history_list
                                                     }
-                                                    launchSingleTop = true // Avoid multiple copies of history_list
-                                                    restoreState = true // Restore state if returning
+                                                    launchSingleTop =
+                                                        true // Avoid multiple copies of history_list
+                                                    restoreState =
+                                                        true // Restore state if returning
                                                 }
                                             }
                                             // If already on history_list, do nothing extra, just close drawer.
@@ -222,7 +233,8 @@ fun MainPage() { // Removed viewModelFactory parameter
                         val titleText by remember { // Outer remember for the derivedStateOf instance
                             derivedStateOf {
                                 // Access the hoisted navBackStackEntry's value here
-                                val currentRoute = navBackStackEntry?.destination?.route // Correct: uses hoisted state
+                                val currentRoute =
+                                    navBackStackEntry?.destination?.route // Correct: uses hoisted state
                                 when (selectedItemIndex) {
                                     0 -> "Tic Tac Toe"
                                     1 -> "Infinite TicTacToe"
@@ -236,6 +248,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                                             "History"
                                         }
                                     }
+
                                     4 -> "Settings" // Was 3
                                     5 -> "Help" // Was 4
                                     else -> "Lorem Ipsum" // Default
@@ -293,7 +306,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                         // Info buttons for Normal (0), Infinite (1), Statistics (2), Settings (4), Help (5)
                         // Exclude History (3) here as its info button is handled above for 'history_list' route only.
-                        else if (selectedItemIndex != 3) { // Not History page
+                        else { // Not History page
                             IconButton(onClick = {
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
@@ -301,15 +314,19 @@ fun MainPage() { // Removed viewModelFactory parameter
                                         infoDialogMessage =
                                             "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
+
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
                                         infoDialogMessage =
                                             "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
+
                                     2 -> { // Statistics
                                         infoDialogTitle = "Statistics"
-                                        infoDialogMessage = "View your overall game statistics, including total matches played, wins, losses (vs AI/Player 2), and draws."
+                                        infoDialogMessage =
+                                            "View your overall game statistics, including total matches played, wins, losses (vs AI/Player 2), and draws."
                                     }
+
                                     4 -> { // Settings (was 3, now 4)
                                         infoDialogTitle = "Settings"
                                         infoDialogMessage =
@@ -319,6 +336,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                                                     "- AI Mode: Enable or disable playing against the AI.\n" +
                                                     "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
+
                                     5 -> { // Help (was 4, now 5)
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
@@ -369,15 +387,18 @@ fun MainPage() { // Removed viewModelFactory parameter
                         viewModel = viewModel
                     )
                 }
+
                 1 -> { // Infinite TicTacToe
                     val infiniteViewModel: InfiniteTicTacToeViewModel =
                         viewModel(factory = LocalViewModelFactory.current)
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
+
                 2 -> { // Statistics Page - NEW
                     // HistoryViewModel is obtained within StatisticsPage using LocalViewModelFactory.current
                     StatisticsPage()
                 }
+
                 3 -> { // History Page uses NavHost now (was index 2)
                     NavHost(
                         navController = navController,
@@ -419,9 +440,11 @@ fun MainPage() { // Removed viewModelFactory parameter
                         }
                     }
                 }
+
                 4 -> { // Settings (was index 3)
                     SettingsPage(innerPadding = innerPadding)
                 }
+
                 5 -> { // Help (was index 4)
                     HelpPage(innerPadding = innerPadding)
                 }
