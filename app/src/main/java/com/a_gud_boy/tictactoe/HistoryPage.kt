@@ -61,26 +61,30 @@ fun MatchHistoryItem(
     val iconColor: Color
     val iconBackgroundColor: Color
 
-    when {
-        match.winnerName == match.player1Name -> {
+    // Updated logic based on match.winner (MatchWinner enum)
+    when (match.winner) {
+        MatchWinner.PLAYER1 -> {
             outcomeText = "Win"
-            outcomeIcon = Icons.Filled.Check
-            iconColor = designAccentGreen
+            iconToShow = Icons.Filled.Check
+            outcomeColor = designAccentGreen
             iconBackgroundColor = designIconBgGreen
         }
-        match.winnerName == "Draw" -> {
-            outcomeText = "Draw"
-            outcomeIcon = Icons.Filled.Remove
-            iconColor = designAccentYellow
-            iconBackgroundColor = designIconBgYellow
-        }
-        else -> {
+        MatchWinner.PLAYER2 -> { // Assuming PLAYER1 is "You", so PLAYER2 win is a "Loss" for "You"
             outcomeText = "Loss"
-            outcomeIcon = Icons.Filled.Close
-            iconColor = designAccentRed
+            iconToShow = Icons.Filled.Close
+            outcomeColor = designAccentRed
             iconBackgroundColor = designIconBgRed
         }
+        MatchWinner.DRAW -> {
+            outcomeText = "Draw"
+            iconToShow = Icons.Filled.Remove
+            outcomeColor = designAccentYellow
+            iconBackgroundColor = designIconBgYellow
+        }
     }
+
+    // Icon to show is determined above, tint for Icon is outcomeColor
+    // Background for the icon Box is iconBackgroundColor
 
     Card(
         modifier = Modifier
@@ -101,9 +105,9 @@ fun MatchHistoryItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = outcomeIcon,
+                    imageVector = iconToShow, // Use iconToShow
                     contentDescription = outcomeText,
-                    tint = iconColor,
+                    tint = outcomeColor, // Use outcomeColor for Icon tint
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -117,27 +121,31 @@ fun MatchHistoryItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = outcomeText,
+                        text = outcomeText, // This is "Win", "Loss", or "Draw"
                         fontWeight = FontWeight.SemiBold,
-                        color = designNeutralText, // Use design color
+                        color = outcomeColor, // Apply outcomeColor to this Text
                         fontSize = 16.sp
                     )
                     Text(
                         text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(match.timestamp),
-                        color = designSubtleText, // Use design color
+                        color = designSubtleText,
                         fontSize = 12.sp
                     )
                 }
                 Spacer(modifier = Modifier.height(2.dp))
 
-                val opponentDetails = when {
-                    match.isAgainstAi -> "vs. Computer (${match.aiDifficulty ?: "Standard"})"
-                    match.player2Name != null && match.player2Name!!.isNotBlank() -> "vs. ${match.player2Name}"
-                    else -> "vs. Player 2"
+                val opponentDisplayName = if (match.isAgainstAi) "Computer" else (match.player2Name?.takeIf { it.isNotBlank() } ?: "Player 2")
+                val fullOpponentText = "vs. $opponentDisplayName"
+                // If AI, include difficulty
+                val finalOpponentText = if (match.isAgainstAi) {
+                    "$fullOpponentText (${match.aiDifficulty ?: "Standard"})"
+                } else {
+                    fullOpponentText
                 }
+
                 Text(
-                    text = opponentDetails,
-                    color = designSubtleText, // Use design color
+                    text = finalOpponentText, // Use the refined opponent text
+                    color = designSubtleText,
                     fontSize = 14.sp
                 )
             }
