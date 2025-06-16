@@ -75,8 +75,9 @@ fun OverallStatsSection(stats: MatchStatistics) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatisticCard("Total Matches", stats.totalMatches.toString(), Modifier.weight(1f), contentColor = designNeutralText) // Default content color
-            StatisticCard("Total Rounds", stats.totalRounds.toString(), Modifier.weight(1f), contentColor = designNeutralText) // Default content color
+            StatisticCard("Total Matches", stats.totalMatches.toString(), Modifier.weight(1f), contentColor = designNeutralText)
+            // Assuming winRate is a Float like 50.0 for 50%.
+            StatisticCard("Win Rate", "${String.format("%.1f", stats.winRate)}%", Modifier.weight(1f), contentColor = designNeutralText)
         }
     }
 }
@@ -91,9 +92,9 @@ fun GameOutcomesSection(stats: MatchStatistics) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatisticCard("Wins", stats.totalWins.toString(), Modifier.weight(1f), contentColor = designAccentGreen)
-            StatisticCard("Losses", stats.totalLosses.toString(), Modifier.weight(1f), contentColor = designAccentRed)
-            StatisticCard("Draws", stats.totalDraws.toString(), Modifier.weight(1f), contentColor = designAccentYellow)
+            StatisticCard("Wins", stats.playerWins.toString(), Modifier.weight(1f), contentColor = designAccentGreen)
+            StatisticCard("Losses", stats.aiWins.toString(), Modifier.weight(1f), contentColor = designAccentRed) // Player's losses are AI wins
+            StatisticCard("Draws", stats.draws.toString(), Modifier.weight(1f), contentColor = designAccentYellow)
         }
     }
 }
@@ -109,10 +110,9 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
         Spacer(modifier = Modifier.height(16.dp))
 
         val barDataList = listOfNotNull(
-            BarData("Player Wins", stats.playerWins.toFloat(), designAccentGreen),
-            BarData("AI Wins", stats.aiWins.toFloat(), designAccentRed),
-            BarData("Player 2 Wins", stats.player2Wins.toFloat(), Color(0xFF2196F3)), // Keeping one distinct color for P2
-            BarData("Draws", stats.totalDraws.toFloat(), designAccentYellow)
+            BarData("Won", stats.playerWins.toFloat(), designAccentGreen),
+            BarData("Lost", stats.aiWins.toFloat(), designAccentRed), // Player's losses
+            BarData("Drawn", stats.draws.toFloat(), designAccentYellow)
         ).filter { it.value > 0 } // Only show bars with value > 0
 
         if (barDataList.isNotEmpty()) {
