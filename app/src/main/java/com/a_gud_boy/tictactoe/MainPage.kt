@@ -1,8 +1,5 @@
 package com.a_gud_boy.tictactoe
 
-// NavType and navArgument are already imported or covered by the above
-// Ensure RoundReplayScreen is imported if not in the same package,
-// but it should be in com.a_gud_boy.tictactoe
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
@@ -14,13 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.List // Will be unused if Statistics item removed, keep for now
-import androidx.compose.material.icons.filled.Build // Icon for Game History
-import androidx.compose.material.icons.filled.Delete // To be removed from TopAppBar actions here
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete // Added import
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
-// import androidx.compose.material.icons.filled.Analytics // No longer needed for BottomNav
-// import androidx.compose.material.icons.filled.List as FilledList // No longer needed for BottomNav
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -36,13 +30,10 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-// import androidx.compose.material.BottomNavigation // Removed
-// import androidx.compose.material.BottomNavigationItem // Removed
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-// import androidx.compose.runtime.LaunchedEffect // For history_list redirect, if kept. Not needed with current fix.
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -76,6 +67,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage() {
+    val historyViewModel: HistoryViewModel = viewModel(factory = LocalViewModelFactory.current) // ViewModel instance
+
     var showInfoDialog by rememberSaveable { mutableStateOf(false) }
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
@@ -92,7 +85,7 @@ fun MainPage() {
         "Settings",
         "Help"
     )
-    val gameHistoryItemIndex = 2 // Explicitly define for clarity
+    val gameHistoryItemIndex = 2
 
     val navController = rememberNavController()
 
@@ -107,27 +100,17 @@ fun MainPage() {
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    if (index == gameHistoryItemIndex) { // "Game History" item
+                                    if (index == gameHistoryItemIndex) {
                                         val startRouteForGameHistoryNavHost = "game_history_screen/history"
-
                                         if (selectedItemIndex == gameHistoryItemIndex) {
-                                            // Already in the Game History section.
-                                            // Reset to the "History" tab and clear deeper screens like MatchDetails.
                                             navController.navigate(startRouteForGameHistoryNavHost) {
-                                                popUpTo(startRouteForGameHistoryNavHost) {
-                                                    inclusive = true
-                                                }
+                                                popUpTo(startRouteForGameHistoryNavHost) { inclusive = true }
                                                 launchSingleTop = true
                                             }
                                         } else {
-                                            // Switching to the Game History section from another section.
-                                            // Only update selectedItemIndex. The NavHost for Game History,
-                                            // when composed, will automatically show its startDestination.
                                             selectedItemIndex = gameHistoryItemIndex
-                                            // DO NOT call navController.navigate here for the initial switch.
                                         }
                                     } else {
-                                        // For other items (Normal, Infinite, Settings, Help)
                                         selectedItemIndex = index
                                     }
                                     scope.launch { drawerState.close() }
@@ -136,20 +119,14 @@ fun MainPage() {
                                 colors = NavigationDrawerItemDefaults.colors(
                                     unselectedContainerColor = Color.Transparent,
                                     selectedContainerColor = if (index == selectedItemIndex) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else Color.Transparent,
-                                    selectedTextColor = Color.Black // Ensure this is intended, or use design system colors
+                                    selectedTextColor = Color.Black
                                 ),
                                 icon = {
-                                    if (index == 0) {
-                                        Icon(painterResource(R.drawable.normal_tic_tac_toe), "Normal Tic Tac Toe", modifier = Modifier.size(30.dp))
-                                    } else if (index == 1) {
-                                        Icon(painterResource(R.drawable.infinite_tic_tac_toe), "Infinite Tic Tac Toe", modifier = Modifier.size(30.dp))
-                                    } else if (index == gameHistoryItemIndex) { // Game History
-                                        Icon(Icons.Filled.Build, "Game History", modifier = Modifier.size(30.dp))
-                                    } else if (index == 3) { // Settings (items list index)
-                                        Icon(Icons.Filled.Settings, "Settings", modifier = Modifier.size(30.dp))
-                                    } else if (index == 4) { // Help (items list index)
-                                        Icon(Icons.Outlined.Info, "Help", modifier = Modifier.size(30.dp))
-                                    }
+                                    if (index == 0) Icon(painterResource(R.drawable.normal_tic_tac_toe), "Normal Tic Tac Toe", modifier = Modifier.size(30.dp))
+                                    else if (index == 1) Icon(painterResource(R.drawable.infinite_tic_tac_toe), "Infinite Tic Tac Toe", modifier = Modifier.size(30.dp))
+                                    else if (index == gameHistoryItemIndex) Icon(Icons.Filled.Build, "Game History", modifier = Modifier.size(30.dp))
+                                    else if (index == 3) Icon(Icons.Filled.Settings, "Settings", modifier = Modifier.size(30.dp))
+                                    else if (index == 4) Icon(Icons.Outlined.Info, "Help", modifier = Modifier.size(30.dp))
                                 }
                             )
                         }
@@ -168,11 +145,17 @@ fun MainPage() {
                     title = {
                         val titleText by remember {
                             derivedStateOf {
-                                // val currentRoute = navBackStackEntry?.destination?.route // Not needed for title based on selectedItemIndex
+                                val currentRoute = navBackStackEntry?.destination?.route
                                 when (selectedItemIndex) {
                                     0 -> "Tic Tac Toe"
                                     1 -> "Infinite TicTacToe"
-                                    gameHistoryItemIndex -> "Game History" // Title for Game History section
+                                    gameHistoryItemIndex -> { // Game History section
+                                        when {
+                                            currentRoute?.startsWith("match_details/") == true -> "Match Details"
+                                            currentRoute?.startsWith("roundReplay/") == true -> "Match Replay"
+                                            else -> "Game History" // Default for game_history_screen/*
+                                        }
+                                    }
                                     3 -> "Settings"
                                     4 -> "Help"
                                     else -> "Lorem Ipsum"
@@ -194,7 +177,16 @@ fun MainPage() {
                         }
                     },
                     actions = {
-                        if (selectedItemIndex != gameHistoryItemIndex) { // Not Game History page
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        if (selectedItemIndex == gameHistoryItemIndex) {
+                            // Actions for Game History section
+                            if (currentRoute == "game_history_screen/history") { // Only on the history tab
+                                IconButton(onClick = { showClearHistoryDialog = true }) {
+                                    Icon(Icons.Filled.Delete, contentDescription = "Clear All History")
+                                }
+                            }
+                        } else {
+                            // Existing info buttons for other sections
                             IconButton(onClick = {
                                 when (selectedItemIndex) {
                                     0 -> { infoDialogTitle = "Normal Tic Tac Toe"; infoDialogMessage = "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first." }
@@ -217,6 +209,25 @@ fun MainPage() {
                 )
             }
         ) { innerPadding ->
+            // Clear History Dialog
+            if (showClearHistoryDialog) {
+                AlertDialog(
+                    onDismissRequest = { showClearHistoryDialog = false },
+                    title = { Text("Clear All History") },
+                    text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
+                    confirmButton = {
+                        Button(onClick = {
+                            historyViewModel.clearAllHistory() // Call ViewModel method
+                            showClearHistoryDialog = false
+                        }) { Text("Clear All") }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showClearHistoryDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
+
+            // General Info Dialog
             if (showInfoDialog) {
                 AlertDialog(
                     onDismissRequest = { showInfoDialog = false },
