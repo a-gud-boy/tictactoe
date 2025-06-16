@@ -69,7 +69,6 @@ fun HistoryPage(
     // onShowInfoDialog: (title: String, message: String) -> Unit // REMOVED
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
-    val statistics by historyViewModel.matchStatistics.collectAsState() // Collect statistics
     var showDeleteMatchConfirmDialog by remember { mutableStateOf<MatchWithRoundsAndMoves?>(null) }
 
     Box(
@@ -106,7 +105,7 @@ fun HistoryPage(
                         )
                     }
                 }
-                OverallStatsSection(stats = statistics) // Display stats below the list
+                // OverallStatsSection(stats = statistics) // Display stats below the list - REMOVED
             }
         }
 
@@ -148,34 +147,7 @@ fun HistoryPage(
     } // End of Root Box
 }
 
-@Composable
-fun OverallStatsSection(stats: MatchStatistics) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(colorResource(R.color.constraint_background))
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                "Overall Statistics",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Total Matches: ${stats.totalMatches}")
-            Text("You Won: ${stats.playerWins}")
-            Text("AI Won: ${stats.aiWins}")
-            Text("Draws: ${stats.draws}")
-        }
-    }
-}
+// OverallStatsSection composable REMOVED from here
 
 @Composable
 fun MatchHistoryItem(

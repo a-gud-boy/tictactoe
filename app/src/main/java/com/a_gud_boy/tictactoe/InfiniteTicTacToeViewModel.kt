@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.a_gud_boy.tictactoe.GameType // Import GameType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray // Import JSONArray
 
 // AIDifficulty is now in its own file: AIDifficulty.kt
@@ -28,6 +30,8 @@ class InfiniteTicTacToeViewModel(
     private val roundDao: RoundDao,
     private val moveDao: MoveDao
 ) : ViewModel() {
+
+    private val gameTimer = GameTimer()
 
     companion object {
         const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
@@ -106,6 +110,8 @@ class InfiniteTicTacToeViewModel(
     fun onButtonClick(buttonId: String) {
         if (!_gameStarted.value || _isGameConcluded.value) return
 
+        gameTimer.startRoundTimer()
+
         val currentP1FullMoves = _player1Moves.value
         val currentP2FullMoves = _player2Moves.value
 
@@ -155,6 +161,8 @@ class InfiniteTicTacToeViewModel(
     }
 
     fun resetRound() { // End of a round in Infinite mode
+        gameTimer.pauseRoundTimer()
+
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
             val currentWinnerInfo = _winnerInfo.value // Capture current winner info for this round
@@ -190,6 +198,7 @@ class InfiniteTicTacToeViewModel(
 
     fun resetScores() { // End of a match in Infinite mode
         viewModelScope.launch {
+            // gameTimer.getFinalMatchDuration() will handle pausing if active.
             // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
             if (_currentRoundMoves.value.isNotEmpty()) {
                 // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
@@ -240,7 +249,8 @@ class InfiniteTicTacToeViewModel(
                 winner = winner, // Pass the determined winner
                 isAgainstAi = _isAIMode.value,
                 gameType = GameType.INFINITE, // Use GameType.INFINITE
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                duration = gameTimer.getFinalMatchDuration()
             )
             val matchId = matchDao.insertMatch(matchEntity)
 
@@ -275,6 +285,7 @@ class InfiniteTicTacToeViewModel(
 
             // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound() // Prepare for a brand new round
+            gameTimer.reset()
         }
     }
 
@@ -301,6 +312,7 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playWinSound(volume)
+                gameTimer.pauseRoundTimer()
                 return
             }
             if (p2CurrentVisibleMovesSet.containsAll(combination)) {
@@ -310,6 +322,7 @@ class InfiniteTicTacToeViewModel(
                 _isGameConcluded.value = true
                 _gameStarted.value = false
                 soundManager.playLoseSound(volume)
+                gameTimer.pauseRoundTimer()
                 return
             }
         }
@@ -317,14 +330,21 @@ class InfiniteTicTacToeViewModel(
 
     fun makeAIMove() {
         if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value || !_isAIMode.value) return
-        viewModelScope.launch {
-            delay(100)
-            soundManager.playComputerMoveSound(volume)
-            val move = when (_aiDifficulty.value) {
-                AIDifficulty.EASY -> getRandomMove()
-                AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove()
-                AIDifficulty.HARD -> getBestMove()
+        viewModelScope.launch { // Outer launch remains on Main for initial checks and final UI update via onButtonClick
+            // Delay and sound play can remain on Main or be moved, but are short.
+            delay(100) // Small delay, likely fine on Main.
+            soundManager.playComputerMoveSound(volume) // Sound operations should be quick.
+
+            val move = withContext(Dispatchers.Default) { // Switch to background thread for CPU-intensive work
+                when (_aiDifficulty.value) {
+                    AIDifficulty.EASY -> getRandomMove()
+                    AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove() // getBestMove includes minimax
+                    AIDifficulty.HARD -> getBestMove() // getBestMove includes minimax
+                }
             }
+            // By this point, `move` is calculated. `onButtonClick` will update StateFlows,
+            // which should happen on the main thread. Since `onButtonClick` itself doesn't
+            // specify a dispatcher and StateFlow updates are main-safe, this is okay.
             move?.let { onButtonClick(it) }
         }
     }
