@@ -14,12 +14,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme // Keep if Card shape relies on it
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember // For SimpleDateFormat
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,9 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.a_gud_boy.tictactoe.database.MatchEntity // Ensure MatchEntity is imported if not already
 import com.a_gud_boy.tictactoe.database.MatchWithRoundsAndMoves
 import java.text.SimpleDateFormat
-import java.util.Date // For Date object from timestamp
+import java.util.Date
 import java.util.Locale
 
 // Color Definitions
@@ -43,10 +44,9 @@ val designBorderColor = Color(0xFFE5E7EB)
 val designNeutralBg = Color(0xFFF8F8F8)
 val designPrimaryColor = Color(0xFF141414)
 
-// Backgrounds for icons (ensure these use design prefix or are clear)
-val bgGreen100 = Color(0xFFDCFCE7) // Renamed from designIconBgGreen for consistency with user's example
-val bgRed100 = Color(0xFFFEE2E2)   // Renamed from designIconBgRed
-val bgYellow100 = Color(0xFFFEF9C3) // Renamed from designIconBgYellow
+val bgGreen100 = Color(0xFFDCFCE7)
+val bgRed100 = Color(0xFFFEE2E2)
+val bgYellow100 = Color(0xFFFEF9C3)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +59,7 @@ fun MatchHistoryItem(
     // Define all derived properties at the top
     val outcomeText = when (match.winner) {
         MatchWinner.PLAYER1 -> "Win"
-        MatchWinner.PLAYER2 -> "Loss" // Assuming PLAYER1 is "You"
+        MatchWinner.PLAYER2 -> "Loss"
         MatchWinner.DRAW -> "Draw"
     }
     val outcomeColor = when (match.winner) {
@@ -78,14 +78,9 @@ fun MatchHistoryItem(
         MatchWinner.DRAW -> bgYellow100
     }
 
-    // Opponent text logic from previous correct step
-    val opponentDisplayName = if (match.isAgainstAi) {
-        "Computer" + (match.aiDifficulty?.let { " ($it)" } ?: "")
-    } else {
-        match.player2Name?.takeIf { it.isNotBlank() } ?: "Player 2"
-    }
+    // CORRECTED AND SIMPLIFIED OPPONENT LOGIC:
+    val opponentDisplayName = if (match.isAgainstAi) "Computer" else "Player 2"
     val fullOpponentText = "vs. $opponentDisplayName"
-
 
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     val formattedDate = dateFormatter.format(Date(match.timestamp))
@@ -94,7 +89,7 @@ fun MatchHistoryItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { navController.navigate("match_details/${match.matchId}") },
-        shape = MaterialTheme.shapes.medium, // Ensure MaterialTheme is M3 if Card shape depends on it
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = designNeutralCardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -106,14 +101,14 @@ fun MatchHistoryItem(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(color = iconBackgroundColor, shape = CircleShape) // Use iconBackgroundColor
-                    .padding(8.dp), // Padding for the icon within its background circle
-                contentAlignment = Alignment.Center // Center the icon inside the Box
+                    .background(color = iconBackgroundColor, shape = CircleShape)
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = iconToShow, // Use iconToShow
-                    contentDescription = outcomeText, // Use outcomeText for content description
-                    tint = outcomeColor, // Use outcomeColor for icon tint
+                    imageVector = iconToShow,
+                    contentDescription = outcomeText,
+                    tint = outcomeColor,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -128,9 +123,9 @@ fun MatchHistoryItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = outcomeText, // Use outcomeText
+                        text = outcomeText,
                         fontWeight = FontWeight.SemiBold,
-                        color = outcomeColor, // Use outcomeColor
+                        color = outcomeColor,
                         fontSize = 16.sp
                     )
                     Text(
@@ -141,7 +136,7 @@ fun MatchHistoryItem(
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = fullOpponentText,
+                    text = fullOpponentText, // Uses the corrected fullOpponentText
                     color = designSubtleText,
                     fontSize = 14.sp
                 )
