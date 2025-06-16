@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.a_gud_boy.tictactoe.GameType // Import GameType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray // Import JSONArray
 
 // AIDifficulty is now in its own file: AIDifficulty.kt
@@ -328,14 +330,21 @@ class InfiniteTicTacToeViewModel(
 
     fun makeAIMove() {
         if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value || !_isAIMode.value) return
-        viewModelScope.launch {
-            delay(100)
-            soundManager.playComputerMoveSound(volume)
-            val move = when (_aiDifficulty.value) {
-                AIDifficulty.EASY -> getRandomMove()
-                AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove()
-                AIDifficulty.HARD -> getBestMove()
+        viewModelScope.launch { // Outer launch remains on Main for initial checks and final UI update via onButtonClick
+            // Delay and sound play can remain on Main or be moved, but are short.
+            delay(100) // Small delay, likely fine on Main.
+            soundManager.playComputerMoveSound(volume) // Sound operations should be quick.
+
+            val move = withContext(Dispatchers.Default) { // Switch to background thread for CPU-intensive work
+                when (_aiDifficulty.value) {
+                    AIDifficulty.EASY -> getRandomMove()
+                    AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove() // getBestMove includes minimax
+                    AIDifficulty.HARD -> getBestMove() // getBestMove includes minimax
+                }
             }
+            // By this point, `move` is calculated. `onButtonClick` will update StateFlows,
+            // which should happen on the main thread. Since `onButtonClick` itself doesn't
+            // specify a dispatcher and StateFlow updates are main-safe, this is okay.
             move?.let { onButtonClick(it) }
         }
     }
