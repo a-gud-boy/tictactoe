@@ -14,12 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.List // New import for Statistics
-// import androidx.compose.material.icons.filled.Analytics // Commented out/Removed
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.outlined.List // Will be unused if Statistics item removed, keep for now
+import androidx.compose.material.icons.filled.Build // Icon for Game History
+import androidx.compose.material.icons.filled.Delete // To be removed from TopAppBar actions here
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+// import androidx.compose.material.icons.filled.Analytics // No longer needed for BottomNav
+// import androidx.compose.material.icons.filled.List as FilledList // No longer needed for BottomNav
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -35,10 +36,13 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+// import androidx.compose.material.BottomNavigation // Removed
+// import androidx.compose.material.BottomNavigationItem // Removed
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect // For history_list redirect, if kept
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -91,8 +95,10 @@ fun MainPage() { // Removed viewModelFactory parameter
     var showInfoDialog by rememberSaveable { mutableStateOf(false) }
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
-    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) } // Added state for clear history dialog
+    var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) } // This state will likely move to GameHistoryScreen or be managed there
 
+    // State for Bottom Navigation - REMOVED
+    // var selectedBottomTab by remember { mutableStateOf("History") }
 
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
@@ -101,18 +107,16 @@ fun MainPage() { // Removed viewModelFactory parameter
     val scope = rememberCoroutineScope()
 
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
-    // Add "Statistics" to the list of items for the drawer
-    // New Order: Normal, Infinite, Statistics, History, Settings, Help
+    // Updated drawer items
     val items = listOf(
         "Normal TicTacToe",
         "Infinite TicTacToe",
-        "Statistics",
-        "History",
+        "Game History", // Replaces Statistics and History
         "Settings",
         "Help"
     )
 
-    val navController = rememberNavController() // NavController for History section
+    val navController = rememberNavController() // NavController for the NavHost handling GameHistoryScreen, MatchDetails, etc.
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -127,34 +131,32 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    // Indices updated for new item order:
-                                    // 0: Normal, 1: Infinite, 2: Statistics, 3: History, 4: Settings, 5: Help
-                                    if (index == 3) { // History item is now at index 3
-                                        if (selectedItemIndex == 3) { // Already on History section
-                                            // If on match_details or roundReplay, pop back to history_list
-                                            if (navController.currentBackStackEntry?.destination?.route != "history_list") {
-                                                navController.navigate("history_list") {
-                                                    popUpTo(navController.graph.startDestinationId) {
-                                                        saveState =
-                                                            true // Preserve state of history_list
-                                                    }
-                                                    launchSingleTop =
-                                                        true // Avoid multiple copies of history_list
-                                                    restoreState =
-                                                        true // Restore state if returning
+                                    // New indices: 0: Normal, 1: Infinite, 2: Game History, 3: Settings, 4: Help
+                                    if (index == 2) { // Game History
+                                        if (selectedItemIndex == 2) { // Already on Game History section
+                                            // If on a sub-page of Game History (e.g. match_details, roundReplay),
+                                            // navigate to the main Game History screen (defaulting to history tab).
+                                            val currentRoute = navController.currentBackStackEntry?.destination?.route
+                                            if (currentRoute != "game_history_screen/history" && currentRoute != "game_history_screen/stats") {
+                                                navController.navigate("game_history_screen/history") {
+                                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
                                             }
-                                            // If already on history_list, do nothing extra, just close drawer.
                                         } else {
-                                            selectedItemIndex = index // Switch to History section
-                                            // NavHost will show "history_list" by default when selectedItemIndex becomes 3
+                                            selectedItemIndex = index // Switch to Game History section
+                                            // Navigate to the Game History screen, defaulting to the 'history' tab.
+                                            // Clear back stack of the NavHost for a clean entry.
+                                            navController.navigate("game_history_screen/history") {
+                                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                                launchSingleTop = true
+                                            }
                                         }
                                     } else {
-                                        // For other items (Normal, Infinite, Statistics, Settings, Help)
-                                        // or when switching *to* History from another section
+                                        // For other items (Normal, Infinite, Settings, Help)
                                         selectedItemIndex = index
-                                        // If navigating *away* from History, ensure NavController is reset or handled if needed
-                                        // For this setup, direct selection of other items handles it.
+                                        // If navigating away from Game History, its NavHost's backstack is preserved.
                                     }
                                     scope.launch { drawerState.close() }
                                 },
@@ -185,25 +187,19 @@ fun MainPage() { // Removed viewModelFactory parameter
                                             contentDescription = "Navigation Icon for Infinite Tic Tac Toe",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 2) { // Statistics - NEW
+                                    } else if (index == 2) { // Game History (new index 2)
                                         Icon(
-                                            Icons.AutoMirrored.Outlined.List, // Updated Icon for Statistics
-                                            contentDescription = "Navigation Icon for Statistics",
+                                            Icons.Filled.Build, // Using Build icon; can be changed e.g. Icons.Filled.History
+                                            contentDescription = "Navigation Icon for Game History",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 3) { // History - was 2, now 3
-                                        Icon(
-                                            Icons.Filled.Build, // Kept Build icon for History
-                                            contentDescription = "Navigation Icon for History",
-                                            modifier = Modifier.size(30.dp)
-                                        )
-                                    } else if (index == 4) { // Settings - was 3, now 4
+                                    } else if (index == 3) { // Settings (new index 3)
                                         Icon(
                                             Icons.Filled.Settings,
                                             contentDescription = "Navigation Icon for Settings",
                                             modifier = Modifier.size(30.dp)
                                         )
-                                    } else if (index == 5) { // Help - was 4, now 5
+                                    } else if (index == 4) { // Help (new index 4)
                                         Icon(
                                             Icons.Outlined.Info,
                                             contentDescription = "Navigation Icon for Help",
@@ -236,21 +232,13 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 val currentRoute =
                                     navBackStackEntry?.destination?.route // Correct: uses hoisted state
                                 when (selectedItemIndex) {
-                                    0 -> "Tic Tac Toe"
-                                    1 -> "Infinite TicTacToe"
-                                    2 -> "Statistics" // New Title for Statistics
-                                    3 -> { // History is now index 3
-                                        if (currentRoute?.startsWith("roundReplay/") == true) {
-                                            "Match Replay"
-                                        } else if (currentRoute?.startsWith("match_details/") == true) {
-                                            "Match Details"
-                                        } else {
-                                            "History"
-                                        }
-                                    }
-
-                                    4 -> "Settings" // Was 3
-                                    5 -> "Help" // Was 4
+                                    0 -> "Tic Tac Toe" // Normal
+                                    1 -> "Infinite TicTacToe" // Infinite
+                                    2 -> "Game History" // Game History (new index 2)
+                                    // Sub-page titles like "Match Details" will be handled by GameHistoryScreen's TopAppBar.
+                                    // MainPage's TopAppBar will show "Game History" when selectedItemIndex is 2.
+                                    3 -> "Settings" // Settings (new index 3)
+                                    4 -> "Help" // Help (new index 4)
                                     else -> "Lorem Ipsum" // Default
                                 }
                             }
@@ -267,80 +255,47 @@ fun MainPage() { // Removed viewModelFactory parameter
                     navigationIcon = {
                         // val navBackStackEntry by navController.currentBackStackEntryAsState() // Already hoisted
                         val currentRoute = navBackStackEntry?.destination?.route
-                        // Back arrow for History (index 3) sub-pages
-                        if (selectedItemIndex == 3 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith(
-                                "roundReplay/"
-                            ) == true)
+                        // Back arrow logic for sub-pages of Game History (index 2)
+                        if (selectedItemIndex == 2 &&
+                            (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith("roundReplay/") == true)
                         ) {
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                             }
                         } else {
+                            // Standard drawer menu icon
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(Icons.Filled.Menu, contentDescription = "Menu Icon")
                             }
                         }
                     },
                     actions = {
-                        // val navBackStackEntry by navController.currentBackStackEntryAsState() // Already hoisted
-                        val currentRoute = navBackStackEntry?.destination?.route
-                        // TopAppBar actions:
-                        // History (index 3) specific actions
-                        if (selectedItemIndex == 3) {
-                            if (currentRoute == "history_list") {
-                                IconButton(onClick = { showClearHistoryDialog = true }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Clear History")
-                                }
-                                IconButton(onClick = {
-                                    infoDialogTitle = "Match History"
-                                    infoDialogMessage =
-                                        "View your past matches, including scores, rounds, and individual moves. You can also clear all history from this page."
-                                    showInfoDialog = true
-                                }) {
-                                    Icon(Icons.Outlined.Info, contentDescription = "Information")
-                                }
-                            } // Else (on match_details or roundReplay for History), no specific actions for these sub-pages
-                        }
-                        // Info buttons for Normal (0), Infinite (1), Statistics (2), Settings (4), Help (5)
-                        // Exclude History (3) here as its info button is handled above for 'history_list' route only.
-                        else { // Not History page
+                        // Removed history-specific actions (Delete, Info). These belong in GameHistoryScreen.
+                        // Info buttons for Normal (0), Infinite (1), Settings (3), Help (4).
+                        if (selectedItemIndex != 2) { // Not Game History page
                             IconButton(onClick = {
                                 when (selectedItemIndex) {
                                     0 -> { // Normal TicTacToe
                                         infoDialogTitle = "Normal Tic Tac Toe"
-                                        infoDialogMessage =
-                                            "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                                        infoDialogMessage = "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
                                     }
-
                                     1 -> { // Infinite TicTacToe
                                         infoDialogTitle = "Infinite Tic Tac Toe"
-                                        infoDialogMessage =
-                                            "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                        infoDialogMessage = "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
                                     }
-
-                                    2 -> { // Statistics
-                                        infoDialogTitle = "Statistics"
-                                        infoDialogMessage =
-                                            "View your overall game statistics, including total matches played, wins, losses (vs AI/Player 2), and draws."
-                                    }
-
-                                    4 -> { // Settings (was 3, now 4)
+                                    // selectedItemIndex == 2 (Game History) is handled by its own screen.
+                                    3 -> { // Settings (new index 3)
                                         infoDialogTitle = "Settings"
-                                        infoDialogMessage =
-                                            "Here you can configure various application settings:\n" +
-                                                    "- Sound: Toggle game sounds on or off.\n" +
-                                                    "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
-                                                    "- AI Mode: Enable or disable playing against the AI.\n" +
-                                                    "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
+                                        infoDialogMessage = "Here you can configure various application settings:\n" +
+                                                "- Sound: Toggle game sounds on or off.\n" +
+                                                "- Haptic Feedback: Toggle vibrational feedback on or off.\n" +
+                                                "- AI Mode: Enable or disable playing against the AI.\n" +
+                                                "- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
                                     }
-
-                                    5 -> { // Help (was 4, now 5)
+                                    4 -> { // Help (new index 4)
                                         infoDialogTitle = "Help"
                                         infoDialogMessage = "Welcome to Tic Tac Toe!\n\n" +
-                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between game modes, view Statistics, History, Settings, and this Help page.\n" +
+                                                "- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between game modes, view Game History, Settings, and this Help page.\n" +
                                                 "- Game Play: Follow on-screen instructions for each game mode.\n" +
                                                 "- Settings: Customize your experience in the Settings page."
                                     }
@@ -358,7 +313,9 @@ fun MainPage() { // Removed viewModelFactory parameter
                         actionIconContentColor = colorResource(R.color.darkTextColor)
                     )
                 )
-            }) { innerPadding ->
+            }
+            // bottomBar = { ... } // REMOVED BottomNavigation
+        ) { innerPadding ->
 
             // Removed Log.d call for PaddingDebug and associated topPaddingValue variable
 
@@ -376,41 +333,45 @@ fun MainPage() { // Removed viewModelFactory parameter
                 )
             }
 
+            // General Info Dialog - This is triggered by the Info icon in TopAppBar for various pages
+            if (showInfoDialog) {
+                AlertDialog(
+                    onDismissRequest = { showInfoDialog = false },
+                    title = { Text(text = infoDialogTitle) },
+                    text = { Text(text = infoDialogMessage) },
+                    confirmButton = {
+                        Button(onClick = { showInfoDialog = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
 
+            // Content switching based on drawer selection
             when (selectedItemIndex) {
-                0 -> {
-                    // Use LocalViewModelFactory.current, defined in MainActivity.kt
-                    val viewModel: NormalTicTacToeViewModel =
-                        viewModel(factory = LocalViewModelFactory.current)
-                    NormalTicTacToePage(
-                        innerPadding = innerPadding,
-                        viewModel = viewModel
-                    )
+                0 -> { // Normal TicTacToe
+                    val viewModel: NormalTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
+                    NormalTicTacToePage(innerPadding = innerPadding, viewModel = viewModel)
                 }
-
                 1 -> { // Infinite TicTacToe
-                    val infiniteViewModel: InfiniteTicTacToeViewModel =
-                        viewModel(factory = LocalViewModelFactory.current)
+                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
-
-                2 -> { // Statistics Page - NEW
-                    // HistoryViewModel is obtained within StatisticsPage using LocalViewModelFactory.current
-                    StatisticsPage()
-                }
-
-                3 -> { // History Page uses NavHost now (was index 2)
+                2 -> { // Game History (new index 2)
+                    // This NavHost handles navigation for GameHistoryScreen and its sub-pages
                     NavHost(
-                        navController = navController,
-                        startDestination = "history_list",
+                        navController = navController, // Use the main navController for this NavHost
+                        startDestination = "game_history_screen/history", // Default to history tab
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("history_list") {
-                            HistoryPage(
-                                innerPadding = innerPadding,
-                                showClearConfirmDialog = showClearHistoryDialog,
-                                onShowClearConfirmDialogChange = { showClearHistoryDialog = it },
-                                navController = navController
+                        composable(
+                            route = "game_history_screen/{initialTab}",
+                            arguments = listOf(navArgument("initialTab") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val initialTab = backStackEntry.arguments?.getString("initialTab") ?: "history"
+                            GameHistoryScreen(
+                                mainNavController = navController, // Pass this NavController to GameHistoryScreen
+                                initialTab = initialTab
                             )
                         }
                         composable(
@@ -418,7 +379,7 @@ fun MainPage() { // Removed viewModelFactory parameter
                             arguments = listOf(navArgument("matchId") { type = NavType.LongType })
                         ) {
                             MatchDetailsPage(
-                                innerPadding = innerPadding,
+                                innerPadding = innerPadding, // This padding might be better handled by GameHistoryScreen
                                 navController = navController
                             )
                         }
@@ -438,14 +399,15 @@ fun MainPage() { // Removed viewModelFactory parameter
                                 roundId = roundId
                             )
                         }
+                        // The old "history_list" route is removed. GameHistoryScreen is the new entry.
+                        // If direct navigation to "history_list" was possible, it should be updated
+                        // to "game_history_screen/history". The LaunchedEffect for redirect is removed.
                     }
                 }
-
-                4 -> { // Settings (was index 3)
+                3 -> { // Settings (new index 3)
                     SettingsPage(innerPadding = innerPadding)
                 }
-
-                5 -> { // Help (was index 4)
+                4 -> { // Help (new index 4)
                     HelpPage(innerPadding = innerPadding)
                 }
             }
