@@ -1,12 +1,14 @@
 package com.a_gud_boy.tictactoe
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope // For AnimatedBar
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,35 +17,52 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card // Keep for StatisticCard
+import androidx.compose.material3.CardDefaults // Keep for StatisticCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.* // For remember, mutableStateOf, getValue, setValue, LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+// import androidx.compose.runtime.getValue // Already imported by wildcard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// Import ViewModel if needed directly, though passed as param to StatisticsPageContent
-// import androidx.lifecycle.viewmodel.compose.viewModel
-// import com.a_gud_boy.tictactoe.ui.theme.surfaceSecondary // Will be replaced by designNeutralBg
 
-// Data class for Bar Chart
-data class BarData(val label: String, val value: Float, val color: Color)
+// Assuming HistoryViewModel and MatchStatistics are correctly imported/defined elsewhere
 
-// designNeutralBg, designNeutralCardBg, designNeutralText, designSubtleText are used from HistoryPage.kt (same package)
+// Color definitions - ensure these are accessible
+// These should ideally be in a central theme file (e.g., ui/theme/Color.kt)
+// For self-containment of this overwrite, they are listed here.
+// These were previously expected to be available from HistoryPage.kt.
+// If they are indeed available via import from HistoryPage.kt (same package), these explicit vals can be removed.
+// To be safe for this overwrite, I'm including them.
+val designNeutralText = Color(0xFF1F2937)
+val designSubtleText = Color(0xFF6B7280)
+val designAccentGreen = Color(0xFF4ADE80)
+val designAccentRed = Color(0xFFF87171)
+val designAccentYellow = Color(0xFFFACC15)
+val designBorderColor = Color(0xFFE5E7EB)
+val designNeutralBg = Color(0xFFF8F8F8) // Expected to be used by StatisticsPageContent's background
+val designNeutralCardBg = Color(0xFFFFFFFF) // For StatisticCard background
 
-// New StatisticsPageContent composable
+// New Data class for Chart Items
+data class ChartBarItem(
+    val label: String,      // e.g., "Won", "Lost", "Drawn"
+    val count: Int,         // Actual count of games
+    val percentage: Float,  // Percentage (0.0 to 1.0 for bar height factor)
+    val color: Color,       // Color of the bar
+    val labelBottom: String // e.g., "Won (50.5%)"
+)
+
 @Composable
 fun StatisticsPageContent(
-    historyViewModel: HistoryViewModel, // Pass ViewModel explicitly
+    historyViewModel: HistoryViewModel,
     modifier: Modifier = Modifier
 ) {
     val matchStatistics by historyViewModel.matchStatistics.collectAsState()
@@ -51,8 +70,8 @@ fun StatisticsPageContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(designNeutralBg) // Changed from surfaceSecondary
-            .padding(16.dp) // Overall padding for the content area
+            .background(designNeutralBg)
+            .padding(16.dp)
     ) {
         OverallStatsSection(stats = matchStatistics)
         Spacer(modifier = Modifier.height(24.dp))
@@ -62,21 +81,17 @@ fun StatisticsPageContent(
     }
 }
 
-// Existing helper composables (OverallStatsSection, GameOutcomesSection, GameResultsBreakdownSection, StatisticCard, Bar)
-// remain below. The old StatisticsPage and AppHeader are removed.
-
 @Composable
 fun OverallStatsSection(stats: MatchStatistics) {
     Column {
         Text(
             "Overall Stats",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = designNeutralText // Use design color
+            color = designNeutralText
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             StatisticCard("Total Matches", stats.totalMatches.toString(), Modifier.weight(1f), contentColor = designNeutralText)
-            // Assuming winRate is a Float like 50.0 for 50%.
             StatisticCard("Win Rate", "${String.format("%.1f", stats.winRate)}%", Modifier.weight(1f), contentColor = designNeutralText)
         }
     }
@@ -88,60 +103,160 @@ fun GameOutcomesSection(stats: MatchStatistics) {
         Text(
             "Game Outcomes",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = designNeutralText // Use design color
+            color = designNeutralText
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             StatisticCard("Wins", stats.playerWins.toString(), Modifier.weight(1f), contentColor = designAccentGreen)
-            StatisticCard("Losses", stats.aiWins.toString(), Modifier.weight(1f), contentColor = designAccentRed) // Player's losses are AI wins
+            StatisticCard("Losses", stats.aiWins.toString(), Modifier.weight(1f), contentColor = designAccentRed)
             StatisticCard("Draws", stats.draws.toString(), Modifier.weight(1f), contentColor = designAccentYellow)
         }
     }
 }
 
 @Composable
+fun RowScope.AnimatedBar(
+    item: ChartBarItem,
+    modifier: Modifier = Modifier
+) {
+    var animationPlayed by remember { mutableStateOf(false) }
+    val barHeightFactor by animateFloatAsState(
+        targetValue = if (animationPlayed) item.percentage else 0f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "${item.label}BarAnimation"
+    )
+
+    LaunchedEffect(Unit) {
+        animationPlayed = true
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxHeight(barHeightFactor)
+            .background(item.color)
+    )
+}
+
+@Composable
 fun GameResultsBreakdownSection(stats: MatchStatistics) {
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Results Breakdown",
+            text = "Results Breakdown",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = designNeutralText // Use design color
+            color = designNeutralText,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
 
-        val barDataList = listOfNotNull(
-            BarData("Won", stats.playerWins.toFloat(), designAccentGreen),
-            BarData("Lost", stats.aiWins.toFloat(), designAccentRed), // Player's losses
-            BarData("Drawn", stats.draws.toFloat(), designAccentYellow)
-        ).filter { it.value > 0 } // Only show bars with value > 0
+        val totalGames = stats.totalMatches.toFloat().coerceAtLeast(1.0f)
 
-        if (barDataList.isNotEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = designNeutralCardBg), // Use design color
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    BarChart(barDataList)
+        val chartItems = listOf(
+            ChartBarItem(
+                label = "Won",
+                count = stats.playerWins,
+                percentage = (stats.playerWins / totalGames),
+                color = designAccentGreen,
+                labelBottom = "Won (${String.format("%.1f", (stats.playerWins / totalGames) * 100)}%)"
+            ),
+            ChartBarItem(
+                label = "Lost",
+                count = stats.aiWins,
+                percentage = (stats.aiWins / totalGames),
+                color = designAccentRed,
+                labelBottom = "Lost (${String.format("%.1f", (stats.aiWins / totalGames) * 100)}%)"
+            ),
+            ChartBarItem(
+                label = "Drawn",
+                count = stats.draws,
+                percentage = (stats.draws / totalGames),
+                color = designAccentYellow,
+                labelBottom = "Drawn (${String.format("%.1f", (stats.draws / totalGames) * 100)}%)"
+            )
+        )
+
+        if (stats.totalMatches == 0) {
+             Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center){
+                Text("No games played yet to show breakdown.", color = designSubtleText)
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                chartItems.forEach { _ ->
+                     Text("", modifier = Modifier.weight(1f), fontSize = 12.sp, maxLines = 2)
                 }
             }
         } else {
-            Text(
-                "No breakdown data available yet.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = designSubtleText // Use design color
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+            ) {
+                Column( // YAxisLabelsColumn
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(40.dp)
+                        .padding(end = 8.dp),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text("100%", fontSize = 10.sp, color = designSubtleText)
+                    Text("75%", fontSize = 10.sp, color = designSubtleText)
+                    Text("50%", fontSize = 10.sp, color = designSubtleText)
+                    Text("25%", fontSize = 10.sp, color = designSubtleText)
+                    Text("0%", fontSize = 10.sp, color = designSubtleText)
+                }
+
+                Column(modifier = Modifier.weight(1f)) { // CenterContentColumn
+                    Row( // AnimatedBarsRow
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp), // Fixed height for bar chart area
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        chartItems.forEach { item ->
+                            if (item.count > 0) {
+                                 AnimatedBar(
+                                    item = item,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.weight(1f).fillMaxHeight())
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        thickness = 1.dp,
+                        color = designBorderColor
+                    )
+
+                    Row( // XAxisLabelsRow
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        chartItems.forEach { item ->
+                            Text(
+                                text = item.labelBottom,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                fontSize = 12.sp,
+                                color = designSubtleText,
+                                maxLines = 2
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier, contentColor: Color = designNeutralText) { // Default contentColor updated
+fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier, contentColor: Color = designNeutralText) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = designNeutralCardBg), // Use design color
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = designNeutralCardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -149,73 +264,12 @@ fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier, c
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(title, style = MaterialTheme.typography.titleMedium, color = designSubtleText) // Use design color
+            Text(title, style = MaterialTheme.typography.titleMedium, color = designSubtleText)
             Spacer(modifier = Modifier.height(8.dp))
             Text(value, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = contentColor)
         }
     }
 }
 
-@Composable
-fun BarChart(bars: List<BarData>) {
-    val maxValue = bars.maxOfOrNull { it.value } ?: 0f
-    if (maxValue == 0f) { // Avoid division by zero if all values are 0
-        Text("No data to display in chart.", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp))
-        return
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min), // Ensures Row respects children's intrinsic height for text alignment
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        bars.forEach { bar ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 4.dp)
-            ) {
-                // Bar
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp) // Fixed height for the bar area
-                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val barHeight = (bar.value / maxValue) * size.height
-                        drawLine(
-                            color = bar.color,
-                            start = Offset(x = size.width / 2, y = size.height),
-                            end = Offset(x = size.width / 2, y = size.height - barHeight),
-                            strokeWidth = size.width * 0.5f // Adjust bar width relative to available space
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                // Label
-                Text(
-                    text = bar.label,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2 // Allow label to wrap if too long
-                )
-                // Value Text (optional, can be added above or below label)
-                Text(
-                    text = bar.value.toInt().toString(), // Display value as Int
-                    style = MaterialTheme.typography.labelSmall,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-// Old StatisticsPage composable and AppHeader are removed.
-// surfaceSecondary is imported from ui.theme.Color
-// MatchStatistics data class should be available (defined in HistoryViewModel.kt or similar)
-// HistoryViewModel is passed as a parameter.
+// Old Canvas-based BarChart is removed.
+// Old BarData data class is removed.
