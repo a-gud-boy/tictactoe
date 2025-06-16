@@ -36,20 +36,17 @@ import androidx.compose.ui.unit.sp
 
 // Assuming HistoryViewModel and MatchStatistics are correctly imported/defined elsewhere
 
-// Color definitions - ensure these are accessible
-// These should ideally be in a central theme file (e.g., ui/theme/Color.kt)
+// Color definitions - These are essential for this file's composables.
+// These should ideally be in a central theme file (e.g., ui/theme/Color.kt) and imported.
 // For self-containment of this overwrite, they are listed here.
-// These were previously expected to be available from HistoryPage.kt.
-// If they are indeed available via import from HistoryPage.kt (same package), these explicit vals can be removed.
-// To be safe for this overwrite, I'm including them.
 val designNeutralText = Color(0xFF1F2937)
 val designSubtleText = Color(0xFF6B7280)
 val designAccentGreen = Color(0xFF4ADE80)
 val designAccentRed = Color(0xFFF87171)
 val designAccentYellow = Color(0xFFFACC15)
 val designBorderColor = Color(0xFFE5E7EB)
-val designNeutralBg = Color(0xFFF8F8F8) // Expected to be used by StatisticsPageContent's background
-val designNeutralCardBg = Color(0xFFFFFFFF) // For StatisticCard background
+val designNeutralBg = Color(0xFFF8F8F8)
+val designNeutralCardBg = Color(0xFFFFFFFF)
 
 // New Data class for Chart Items
 data class ChartBarItem(
@@ -270,6 +267,5 @@ fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier, c
         }
     }
 }
-
-// Old Canvas-based BarChart is removed.
-// Old BarData data class is removed.
+// Old Canvas-based BarChart and old BarData data class are removed.
+// The old StatisticsPage composable with Scaffold is also removed.

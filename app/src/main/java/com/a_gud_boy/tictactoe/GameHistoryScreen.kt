@@ -21,8 +21,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 
 // Assuming HistoryPageContent and StatisticsPageContent are correctly imported
-// import com.a_gud_boy.tictactoe.HistoryPageContent
-// import com.a_gud_boy.tictactoe.StatisticsPageContent
+import com.a_gud_boy.tictactoe.HistoryPageContent
+import com.a_gud_boy.tictactoe.StatisticsPageContent
 
 // Define design colors locally as per prompt.
 // These were previously defined in HistoryPage.kt and used in GameHistoryScreen styling.
