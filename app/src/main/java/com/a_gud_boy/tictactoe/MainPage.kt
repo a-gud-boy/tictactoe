@@ -92,6 +92,7 @@ fun MainPage() {
         "Settings",
         "Help"
     )
+    val gameHistoryItemIndex = 2 // Explicitly define for clarity
 
     val navController = rememberNavController()
 
@@ -102,33 +103,28 @@ fun MainPage() {
                     DrawerHeader()
                     Column {
                         items.forEachIndexed { index, itemText ->
-                            val gameHistoryItemIndex = 2 // Defined index for "Game History"
-
                             NavigationDrawerItem(
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
                                     if (index == gameHistoryItemIndex) { // "Game History" item
-                                        val gameHistoryNavController = navController
                                         val startRouteForGameHistoryNavHost = "game_history_screen/history"
 
                                         if (selectedItemIndex == gameHistoryItemIndex) {
                                             // Already in the Game History section.
-                                            gameHistoryNavController.navigate(startRouteForGameHistoryNavHost) {
+                                            // Reset to the "History" tab and clear deeper screens like MatchDetails.
+                                            navController.navigate(startRouteForGameHistoryNavHost) {
                                                 popUpTo(startRouteForGameHistoryNavHost) {
                                                     inclusive = true
                                                 }
                                                 launchSingleTop = true
                                             }
                                         } else {
-                                            // Switching to the Game History section.
+                                            // Switching to the Game History section from another section.
+                                            // Only update selectedItemIndex. The NavHost for Game History,
+                                            // when composed, will automatically show its startDestination.
                                             selectedItemIndex = gameHistoryItemIndex
-                                            gameHistoryNavController.navigate(startRouteForGameHistoryNavHost) {
-                                                popUpTo(startRouteForGameHistoryNavHost) { // Use route string
-                                                    inclusive = true
-                                                }
-                                                launchSingleTop = true // Added this as per prompt example
-                                            }
+                                            // DO NOT call navController.navigate here for the initial switch.
                                         }
                                     } else {
                                         // For other items (Normal, Infinite, Settings, Help)
@@ -140,7 +136,7 @@ fun MainPage() {
                                 colors = NavigationDrawerItemDefaults.colors(
                                     unselectedContainerColor = Color.Transparent,
                                     selectedContainerColor = if (index == selectedItemIndex) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else Color.Transparent,
-                                    selectedTextColor = Color.Black
+                                    selectedTextColor = Color.Black // Ensure this is intended, or use design system colors
                                 ),
                                 icon = {
                                     if (index == 0) {
@@ -149,9 +145,9 @@ fun MainPage() {
                                         Icon(painterResource(R.drawable.infinite_tic_tac_toe), "Infinite Tic Tac Toe", modifier = Modifier.size(30.dp))
                                     } else if (index == gameHistoryItemIndex) { // Game History
                                         Icon(Icons.Filled.Build, "Game History", modifier = Modifier.size(30.dp))
-                                    } else if (index == 3) { // Settings
+                                    } else if (index == 3) { // Settings (items list index)
                                         Icon(Icons.Filled.Settings, "Settings", modifier = Modifier.size(30.dp))
-                                    } else if (index == 4) { // Help
+                                    } else if (index == 4) { // Help (items list index)
                                         Icon(Icons.Outlined.Info, "Help", modifier = Modifier.size(30.dp))
                                     }
                                 }
@@ -172,11 +168,11 @@ fun MainPage() {
                     title = {
                         val titleText by remember {
                             derivedStateOf {
-                                val currentRoute = navBackStackEntry?.destination?.route
+                                // val currentRoute = navBackStackEntry?.destination?.route // Not needed for title based on selectedItemIndex
                                 when (selectedItemIndex) {
                                     0 -> "Tic Tac Toe"
                                     1 -> "Infinite TicTacToe"
-                                    2 -> "Game History" // Title for Game History section
+                                    gameHistoryItemIndex -> "Game History" // Title for Game History section
                                     3 -> "Settings"
                                     4 -> "Help"
                                     else -> "Lorem Ipsum"
@@ -187,7 +183,7 @@ fun MainPage() {
                     },
                     navigationIcon = {
                         val currentRoute = navBackStackEntry?.destination?.route
-                        if (selectedItemIndex == 2 && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith("roundReplay/") == true)) {
+                        if (selectedItemIndex == gameHistoryItemIndex && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith("roundReplay/") == true)) {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                             }
@@ -198,13 +194,13 @@ fun MainPage() {
                         }
                     },
                     actions = {
-                        if (selectedItemIndex != 2) { // Not Game History page
+                        if (selectedItemIndex != gameHistoryItemIndex) { // Not Game History page
                             IconButton(onClick = {
                                 when (selectedItemIndex) {
-                                    0 -> { infoDialogTitle = "Normal Tic Tac Toe"; infoDialogMessage = "This is the classic Tic Tac Toe game..." }
-                                    1 -> { infoDialogTitle = "Infinite Tic Tac Toe"; infoDialogMessage = "A twist on the classic! ..." }
-                                    3 -> { infoDialogTitle = "Settings"; infoDialogMessage = "Here you can configure various application settings..." }
-                                    4 -> { infoDialogTitle = "Help"; infoDialogMessage = "Welcome to Tic Tac Toe!..." }
+                                    0 -> { infoDialogTitle = "Normal Tic Tac Toe"; infoDialogMessage = "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first." }
+                                    1 -> { infoDialogTitle = "Infinite Tic Tac Toe"; infoDialogMessage = "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win." }
+                                    3 -> { infoDialogTitle = "Settings"; infoDialogMessage = "Here you can configure various application settings:\n- Sound: Toggle game sounds on or off.\n- Haptic Feedback: Toggle vibrational feedback on or off.\n- AI Mode: Enable or disable playing against the AI.\n- AI Difficulty: Adjust the AI's skill level when AI mode is enabled." }
+                                    4 -> { infoDialogTitle = "Help"; infoDialogMessage = "Welcome to Tic Tac Toe!\n\n- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between game modes, view Game History, Settings, and this Help page.\n- Game Play: Follow on-screen instructions for each game mode.\n- Settings: Customize your experience in the Settings page." }
                                 }
                                 showInfoDialog = true
                             }) {
@@ -239,7 +235,7 @@ fun MainPage() {
                     val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
                     InfiniteTicTacToePage(innerPadding, infiniteViewModel)
                 }
-                2 -> { // Game History
+                gameHistoryItemIndex -> { // Game History
                     NavHost(
                         navController = navController,
                         startDestination = "game_history_screen/history",
@@ -275,8 +271,8 @@ fun MainPage() {
                         }
                     }
                 }
-                3 -> SettingsPage(innerPadding = innerPadding)
-                4 -> HelpPage(innerPadding = innerPadding)
+                3 -> SettingsPage(innerPadding = innerPadding) // Index for Settings
+                4 -> HelpPage(innerPadding = innerPadding)   // Index for Help
             }
         }
     }
