@@ -143,19 +143,22 @@ fun GameOutcomesSection(stats: MatchStatistics) {
 @Composable
 fun AnimatedBar(
     item: ChartBarItem,
+    animationTriggerKey: Any, // New parameter
     modifier: Modifier = Modifier
 ) {
-    var animationPlayed by remember { mutableStateOf(false) }
+    // animationPlayed state reset when animationTriggerKey changes
+    var animationPlayed by remember(animationTriggerKey) { mutableStateOf(false) }
     val barHeightFactor by animateFloatAsState(
         targetValue = if (animationPlayed) item.percentage else 0f,
         animationSpec = tween(durationMillis = 1000),
         label = "${item.label}BarAnimation"
     )
 
-    LaunchedEffect(item.count) {
-        // Reset animationPlayed to false first, then to true to ensure animation restarts
-        animationPlayed = false
-        animationPlayed = true
+    // LaunchedEffect keyed by animationTriggerKey and item.percentage
+    LaunchedEffect(animationTriggerKey, item.percentage) {
+        if (!animationPlayed) { // If false (initial or after reset by remember(animationTriggerKey))
+            animationPlayed = true // Start the animation
+        }
     }
 
     Box(
@@ -259,6 +262,7 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                             if (item.count > 0) {
                                 AnimatedBar(
                                     item = item,
+                                    animationTriggerKey = stats, // Pass the stats object here
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
