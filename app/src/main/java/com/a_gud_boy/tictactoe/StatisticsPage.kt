@@ -152,7 +152,9 @@ fun AnimatedBar(
         label = "${item.label}BarAnimation"
     )
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(item.count) {
+        // Reset animationPlayed to false first, then to true to ensure animation restarts
+        animationPlayed = false
         animationPlayed = true
     }
 
@@ -223,31 +225,33 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 }
             }
         } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
-            ) {
-                Column( // YAxisLabelsColumn
+            // New Structure:
+            Column(modifier = Modifier.fillMaxWidth()) { // This Column will now organize the chart elements vertically
+                Row( // New Row for Y-axis labels and Bars
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .width(40.dp)
-                        .padding(end = 8.dp),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.End
+                        .fillMaxWidth()
+                        .height(200.dp) // Explicit height for alignment
                 ) {
-                    Text("100%", fontSize = 10.sp, color = designSubtleText)
-                    Text("75%", fontSize = 10.sp, color = designSubtleText)
-                    Text("50%", fontSize = 10.sp, color = designSubtleText)
-                    Text("25%", fontSize = 10.sp, color = designSubtleText)
-                    Text("0%", fontSize = 10.sp, color = designSubtleText)
-                }
+                    Column( // YAxisLabelsColumn
+                        modifier = Modifier
+                            .height(200.dp) // Match height of AnimatedBarsRow
+                            .width(40.dp)
+                            .padding(end = 8.dp),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text("100%", fontSize = 10.sp, color = designSubtleText)
+                        Text("75%", fontSize = 10.sp, color = designSubtleText)
+                        Text("50%", fontSize = 10.sp, color = designSubtleText)
+                        Text("25%", fontSize = 10.sp, color = designSubtleText)
+                        Text("0%", fontSize = 10.sp, color = designSubtleText)
+                    }
 
-                Column(modifier = Modifier.weight(1f)) { // CenterContentColumn
+                    // This is the content of the original CenterContentColumn's AnimatedBarsRow
                     Row( // AnimatedBarsRow
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp), // Fixed height for bar chart area
+                            .weight(1f)       // Take remaining width
+                            .fillMaxHeight(), // Fill the 200.dp height of the parent Row
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.Bottom
                     ) {
@@ -267,29 +271,28 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                             }
                         }
                     }
+                }
 
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        thickness = 1.dp,
-                        color = designBorderColor
-                    )
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    thickness = 1.dp,
+                    color = designBorderColor
+                )
 
-                    Row(
-                        // XAxisLabelsRow
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        chartItems.forEach { item ->
-                            Text(
-                                text = item.labelBottom,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
-                                fontSize = 12.sp,
-                                color = designSubtleText,
-                                maxLines = 2
-                            )
-                        }
+                Row( // XAxisLabelsRow
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    chartItems.forEach { item ->
+                        Text(
+                            text = item.labelBottom,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 12.sp,
+                            color = designSubtleText,
+                            maxLines = 2
+                        )
                     }
                 }
             }
