@@ -2,14 +2,25 @@ package com.a_gud_boy.tictactoe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,8 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.a_gud_boy.tictactoe.database.MatchEntity
-import com.a_gud_boy.tictactoe.database.MatchWithRoundsAndMoves
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,19 +49,13 @@ val accentYellow = Color(0xFFFACC15)
 val neutralCardBg = Color(0xFFFFFFFF)
 val neutralText = Color(0xFF1F2937)
 val subtleText = Color(0xFF6B7280)
+
 // Backgrounds for icons in MatchHistoryItem
 val bgGreen100 = Color(0xFFDCFCE7)
 val bgRed100 = Color(0xFFFEE2E2)
 val bgYellow100 = Color(0xFFFEF9C3)
 // These were also added in a later step, ensuring they are here for consistency if any other part uses them.
-val designAccentGreen = accentGreen
-val designAccentRed = accentRed
-val designAccentYellow = accentYellow
-val designNeutralCardBg = neutralCardBg
-val designNeutralText = neutralText
-val designSubtleText = subtleText
-val designBorderColor = Color(0xFFE5E7EB)
-val designNeutralBg = Color(0xFFF8F8F8)
+
 val designPrimaryColor = Color(0xFF141414)
 
 
@@ -76,15 +79,17 @@ fun MatchHistoryItem(
             currentOutcomeColor = accentGreen // Use local/restored color name
             currentIconBackgroundColor = bgGreen100 // Use local/restored color name
         }
+
         MatchWinner.PLAYER2 -> {
             outcomeText = "Loss"
             iconToShow = Icons.Filled.Close
             currentOutcomeColor = accentRed // Use local/restored color name
             currentIconBackgroundColor = bgRed100 // Use local/restored color name
         }
+
         MatchWinner.DRAW -> {
             outcomeText = "Draw"
-            iconToShow = Icons.Filled.Remove
+            iconToShow = Icons.Filled.Add
             currentOutcomeColor = accentYellow // Use local/restored color name
             currentIconBackgroundColor = bgYellow100 // Use local/restored color name
         }
@@ -167,7 +172,11 @@ fun HistoryPageContent(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No match history yet.", fontSize = 18.sp, color = neutralText) // Use local/restored color name
+            Text(
+                "No match history yet.",
+                fontSize = 18.sp,
+                color = neutralText
+            ) // Use local/restored color name
         }
     } else {
         LazyColumn(

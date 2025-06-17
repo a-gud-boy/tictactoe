@@ -1,5 +1,6 @@
 package com.a_gud_boy.tictactoe
 
+// import androidx.compose.runtime.getValue // Already imported by wildcard
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope // For AnimatedBar
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,14 +17,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card // Keep for StatisticCard
-import androidx.compose.material3.CardDefaults // Keep for StatisticCard
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.* // For remember, mutableStateOf, getValue, setValue, LaunchedEffect
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-// import androidx.compose.runtime.getValue // Already imported by wildcard
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,8 +92,18 @@ fun OverallStatsSection(stats: MatchStatistics) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatisticCard("Total Matches", stats.totalMatches.toString(), Modifier.weight(1f), contentColor = designNeutralText)
-            StatisticCard("Win Rate", "${String.format("%.1f", stats.winRate)}%", Modifier.weight(1f), contentColor = designNeutralText)
+            StatisticCard(
+                "Total Matches",
+                stats.totalMatches.toString(),
+                Modifier.weight(1f),
+                contentColor = designNeutralText
+            )
+            StatisticCard(
+                "Win Rate",
+                "${String.format("%.1f", stats.winRate)}%",
+                Modifier.weight(1f),
+                contentColor = designNeutralText
+            )
         }
     }
 }
@@ -104,15 +118,30 @@ fun GameOutcomesSection(stats: MatchStatistics) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatisticCard("Wins", stats.playerWins.toString(), Modifier.weight(1f), contentColor = designAccentGreen)
-            StatisticCard("Losses", stats.aiWins.toString(), Modifier.weight(1f), contentColor = designAccentRed)
-            StatisticCard("Draws", stats.draws.toString(), Modifier.weight(1f), contentColor = designAccentYellow)
+            StatisticCard(
+                "Wins",
+                stats.playerWins.toString(),
+                Modifier.weight(1f),
+                contentColor = designAccentGreen
+            )
+            StatisticCard(
+                "Losses",
+                stats.aiWins.toString(),
+                Modifier.weight(1f),
+                contentColor = designAccentRed
+            )
+            StatisticCard(
+                "Draws",
+                stats.draws.toString(),
+                Modifier.weight(1f),
+                contentColor = designAccentYellow
+            )
         }
     }
 }
 
 @Composable
-fun RowScope.AnimatedBar(
+fun AnimatedBar(
     item: ChartBarItem,
     modifier: Modifier = Modifier
 ) {
@@ -152,7 +181,12 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 count = stats.playerWins,
                 percentage = (stats.playerWins / totalGames),
                 color = designAccentGreen,
-                labelBottom = "Won (${String.format("%.1f", (stats.playerWins / totalGames) * 100)}%)"
+                labelBottom = "Won (${
+                    String.format(
+                        "%.1f",
+                        (stats.playerWins / totalGames) * 100
+                    )
+                }%)"
             ),
             ChartBarItem(
                 label = "Lost",
@@ -171,18 +205,28 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
         )
 
         if (stats.totalMatches == 0) {
-             Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center){
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text("No games played yet to show breakdown.", color = designSubtleText)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)) {
                 chartItems.forEach { _ ->
-                     Text("", modifier = Modifier.weight(1f), fontSize = 12.sp, maxLines = 2)
+                    Text("", modifier = Modifier.weight(1f), fontSize = 12.sp, maxLines = 2)
                 }
             }
         } else {
             Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
             ) {
                 Column( // YAxisLabelsColumn
                     modifier = Modifier
@@ -209,7 +253,7 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                     ) {
                         chartItems.forEach { item ->
                             if (item.count > 0) {
-                                 AnimatedBar(
+                                AnimatedBar(
                                     item = item,
                                     modifier = Modifier
                                         .weight(1f)
@@ -217,18 +261,23 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                                 )
                             } else {
-                                Spacer(modifier = Modifier.weight(1f).fillMaxHeight())
+                                Spacer(modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight())
                             }
                         }
                     }
 
                     HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
                         thickness = 1.dp,
                         color = designBorderColor
                     )
 
-                    Row( // XAxisLabelsRow
+                    Row(
+                        // XAxisLabelsRow
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         chartItems.forEach { item ->
@@ -249,7 +298,12 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
 }
 
 @Composable
-fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier, contentColor: Color = designNeutralText) {
+fun StatisticCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    contentColor: Color = designNeutralText
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -263,7 +317,11 @@ fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier, c
         ) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = designSubtleText)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = contentColor)
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = contentColor
+            )
         }
     }
 }
