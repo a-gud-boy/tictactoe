@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -143,20 +142,22 @@ fun GameOutcomesSection(stats: MatchStatistics) {
 @Composable
 fun AnimatedBar(
     item: ChartBarItem,
-    animationTriggerKey: Any, // New parameter
+    // animationTriggerKey: Any, // Parameter removed or ignored if not needed elsewhere
     modifier: Modifier = Modifier
 ) {
-    // animationPlayed state reset when animationTriggerKey changes
-    var animationPlayed by remember(animationTriggerKey) { mutableStateOf(false) }
+    // animationPlayed state reset when item.percentage changes
+    var animationPlayed by remember(item.percentage) { mutableStateOf(false) }
     val barHeightFactor by animateFloatAsState(
         targetValue = if (animationPlayed) item.percentage else 0f,
         animationSpec = tween(durationMillis = 1000),
         label = "${item.label}BarAnimation"
     )
 
-    // LaunchedEffect keyed by animationTriggerKey and item.percentage
-    LaunchedEffect(animationTriggerKey, item.percentage) {
-        if (!animationPlayed) { // If false (initial or after reset by remember(animationTriggerKey))
+    // LaunchedEffect keyed by item.percentage
+    LaunchedEffect(item.percentage) {
+        // If animationPlayed is false (which it will be on initial composition or when item.percentage changes),
+        // set it to true to start the animation from 0 towards item.percentage.
+        if (!animationPlayed) {
             animationPlayed = true // Start the animation
         }
     }
@@ -220,9 +221,11 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 Text("No games played yet to show breakdown.", color = designSubtleText)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+            ) {
                 chartItems.forEach { _ ->
                     Text("", modifier = Modifier.weight(1f), fontSize = 12.sp, maxLines = 2)
                 }
@@ -262,16 +265,17 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                             if (item.count > 0) {
                                 AnimatedBar(
                                     item = item,
-                                    animationTriggerKey = stats, // Pass the stats object here
+                                    // animationTriggerKey = stats, // Removed
                                     modifier = Modifier
                                         .weight(1f)
-                                        .fillMaxHeight()
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                                 )
                             } else {
-                                Spacer(modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight())
+                                Spacer(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                )
                             }
                         }
                     }
@@ -285,7 +289,8 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                     color = designBorderColor
                 )
 
-                Row( // XAxisLabelsRow
+                Row(
+                    // XAxisLabelsRow
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     chartItems.forEach { item ->
