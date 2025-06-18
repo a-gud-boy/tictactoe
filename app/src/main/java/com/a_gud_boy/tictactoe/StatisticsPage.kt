@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -143,17 +142,24 @@ fun GameOutcomesSection(stats: MatchStatistics) {
 @Composable
 fun AnimatedBar(
     item: ChartBarItem,
+    // animationTriggerKey: Any, // Parameter removed or ignored if not needed elsewhere
     modifier: Modifier = Modifier
 ) {
-    var animationPlayed by remember { mutableStateOf(false) }
+    // animationPlayed state reset when item.percentage changes
+    var animationPlayed by remember(item.percentage) { mutableStateOf(false) }
     val barHeightFactor by animateFloatAsState(
         targetValue = if (animationPlayed) item.percentage else 0f,
         animationSpec = tween(durationMillis = 1000),
         label = "${item.label}BarAnimation"
     )
 
-    LaunchedEffect(Unit) {
-        animationPlayed = true
+    // LaunchedEffect keyed by item.percentage
+    LaunchedEffect(item.percentage) {
+        // If animationPlayed is false (which it will be on initial composition or when item.percentage changes),
+        // set it to true to start the animation from 0 towards item.percentage.
+        if (!animationPlayed) {
+            animationPlayed = true // Start the animation
+        }
     }
 
     Box(
@@ -215,39 +221,43 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 Text("No games played yet to show breakdown.", color = designSubtleText)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+            ) {
                 chartItems.forEach { _ ->
                     Text("", modifier = Modifier.weight(1f), fontSize = 12.sp, maxLines = 2)
                 }
             }
         } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
-            ) {
-                Column( // YAxisLabelsColumn
+            // New Structure:
+            Column(modifier = Modifier.fillMaxWidth()) { // This Column will now organize the chart elements vertically
+                Row( // New Row for Y-axis labels and Bars
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .width(40.dp)
-                        .padding(end = 8.dp),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.End
+                        .fillMaxWidth()
+                        .height(200.dp) // Explicit height for alignment
                 ) {
-                    Text("100%", fontSize = 10.sp, color = designSubtleText)
-                    Text("75%", fontSize = 10.sp, color = designSubtleText)
-                    Text("50%", fontSize = 10.sp, color = designSubtleText)
-                    Text("25%", fontSize = 10.sp, color = designSubtleText)
-                    Text("0%", fontSize = 10.sp, color = designSubtleText)
-                }
+                    Column( // YAxisLabelsColumn
+                        modifier = Modifier
+                            .height(200.dp) // Match height of AnimatedBarsRow
+                            .width(40.dp)
+                            .padding(end = 8.dp),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text("100%", fontSize = 10.sp, color = designSubtleText)
+                        Text("75%", fontSize = 10.sp, color = designSubtleText)
+                        Text("50%", fontSize = 10.sp, color = designSubtleText)
+                        Text("25%", fontSize = 10.sp, color = designSubtleText)
+                        Text("0%", fontSize = 10.sp, color = designSubtleText)
+                    }
 
-                Column(modifier = Modifier.weight(1f)) { // CenterContentColumn
+                    // This is the content of the original CenterContentColumn's AnimatedBarsRow
                     Row( // AnimatedBarsRow
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp), // Fixed height for bar chart area
+                            .weight(1f)       // Take remaining width
+                            .fillMaxHeight(), // Fill the 200.dp height of the parent Row
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.Bottom
                     ) {
@@ -255,41 +265,43 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                             if (item.count > 0) {
                                 AnimatedBar(
                                     item = item,
+                                    // animationTriggerKey = stats, // Removed
                                     modifier = Modifier
                                         .weight(1f)
-                                        .fillMaxHeight()
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                                 )
                             } else {
-                                Spacer(modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight())
+                                Spacer(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                )
                             }
                         }
                     }
+                }
 
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        thickness = 1.dp,
-                        color = designBorderColor
-                    )
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    thickness = 1.dp,
+                    color = designBorderColor
+                )
 
-                    Row(
-                        // XAxisLabelsRow
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        chartItems.forEach { item ->
-                            Text(
-                                text = item.labelBottom,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
-                                fontSize = 12.sp,
-                                color = designSubtleText,
-                                maxLines = 2
-                            )
-                        }
+                Row(
+                    // XAxisLabelsRow
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    chartItems.forEach { item ->
+                        Text(
+                            text = item.labelBottom,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 12.sp,
+                            color = designSubtleText,
+                            maxLines = 2
+                        )
                     }
                 }
             }
