@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -222,9 +221,11 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 Text("No games played yet to show breakdown.", color = designSubtleText)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+            ) {
                 chartItems.forEach { _ ->
                     Text("", modifier = Modifier.weight(1f), fontSize = 12.sp, maxLines = 2)
                 }
@@ -267,13 +268,14 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                                     // animationTriggerKey = stats, // Removed
                                     modifier = Modifier
                                         .weight(1f)
-                                        .fillMaxHeight()
                                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                                 )
                             } else {
-                                Spacer(modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight())
+                                Spacer(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                )
                             }
                         }
                     }
@@ -287,7 +289,8 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                     color = designBorderColor
                 )
 
-                Row( // XAxisLabelsRow
+                Row(
+                    // XAxisLabelsRow
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     chartItems.forEach { item ->
