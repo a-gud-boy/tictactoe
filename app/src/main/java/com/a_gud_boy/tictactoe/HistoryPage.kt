@@ -21,16 +21,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete // Added import for Delete icon
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton // Added import for IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold // Added import for Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // Added import for TextButton
+import androidx.compose.material3.TopAppBar // Added import for TopAppBar
+import androidx.compose.material3.TopAppBarDefaults // Added import for TopAppBarDefaults
+import androidx.compose.material3.AlertDialog // Added import for AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf // Added import for mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue // Added import for setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -166,29 +175,78 @@ fun HistoryPageContent(
     modifier: Modifier = Modifier
 ) {
     val matchHistory by historyViewModel.matchHistory.collectAsState()
+    var showConfirmationDialog by remember { mutableStateOf(false) }
 
-    if (matchHistory.isEmpty()) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "No match history yet.",
-                fontSize = 18.sp,
-                color = neutralText
-            ) // Use local/restored color name
-        }
-    } else {
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(matchHistory) { matchWithRoundsAndMoves ->
-                MatchHistoryItem(
-                    matchWithRoundsAndMoves = matchWithRoundsAndMoves,
-                    navController = navController
+    if (showConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmationDialog = false },
+            title = { Text("Confirm Deletion") },
+            text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        historyViewModel.clearAllHistory()
+                        showConfirmationDialog = false
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmationDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Match History", color = neutralText) },
+                actions = {
+                    IconButton(onClick = { showConfirmationDialog = true }) { // Updated onClick
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Clear All History",
+                            tint = neutralText // Ensure icon is visible
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer // Or any other suitable color
                 )
+            )
+        },
+        modifier = modifier
+    ) { paddingValues ->
+        if (matchHistory.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues), // Apply padding from Scaffold
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No match history yet.",
+                    fontSize = 18.sp,
+                    color = neutralText
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues), // Apply padding from Scaffold
+                contentPadding = PaddingValues(16.dp), // Additional padding for content inside LazyColumn
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(matchHistory) { matchWithRoundsAndMoves ->
+                    MatchHistoryItem(
+                        matchWithRoundsAndMoves = matchWithRoundsAndMoves,
+                        navController = navController
+                    )
+                }
             }
         }
     }
