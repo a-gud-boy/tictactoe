@@ -224,16 +224,9 @@ fun MainPage() {
                     },
                     actions = {
                         val currentRoute = navBackStackEntry?.destination?.route
-                        // Debug Text - STARTS
-                        Text(
-                            text = "SI: $selectedItemIndex, GHI: $gameHistoryItemIndex, Route: $currentRoute, Cond1: ${selectedItemIndex == gameHistoryItemIndex}, Cond2: ${currentRoute == "game_history_screen/history"}",
-                            color = Color.Red, // Make it prominent
-                            fontSize = 10.sp // Smaller to not take too much space but readable
-                        )
-                        // Debug Text - ENDS
 
                         if (selectedItemIndex == gameHistoryItemIndex) {
-                            if (currentRoute == "game_history_screen/history") {
+                            if (currentRoute == "game_history_screen/{initialTab}") {
                                 IconButton(onClick = { showClearHistoryDialog = true }) {
                                     Icon(
                                         Icons.Filled.Delete,
