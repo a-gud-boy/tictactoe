@@ -224,8 +224,9 @@ fun MainPage() {
                     },
                     actions = {
                         val currentRoute = navBackStackEntry?.destination?.route
+
                         if (selectedItemIndex == gameHistoryItemIndex) {
-                            if (currentRoute == "game_history_screen/history") {
+                            if (currentRoute == "game_history_screen/{initialTab}") {
                                 IconButton(onClick = { showClearHistoryDialog = true }) {
                                     Icon(
                                         Icons.Filled.Delete,
