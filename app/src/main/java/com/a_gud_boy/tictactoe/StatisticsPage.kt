@@ -236,11 +236,11 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                 Row( // New Row for Y-axis labels and Bars
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp) // Explicit height for alignment
+                        .height(206.dp) // Explicit height for alignment
                 ) {
                     Column( // YAxisLabelsColumn
                         modifier = Modifier
-                            .height(200.dp) // Match height of AnimatedBarsRow
+                            .fillMaxHeight() // Match height of AnimatedBarsRow
                             .width(40.dp)
                             .padding(end = 8.dp),
                         verticalArrangement = Arrangement.SpaceBetween,
@@ -253,41 +253,52 @@ fun GameResultsBreakdownSection(stats: MatchStatistics) {
                         Text("0%", fontSize = 10.sp, color = designSubtleText)
                     }
 
-                    // This is the content of the original CenterContentColumn's AnimatedBarsRow
-                    Row( // AnimatedBarsRow
-                        modifier = Modifier
-                            .weight(1f)       // Take remaining width
-                            .fillMaxHeight(), // Fill the 200.dp height of the parent Row
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Bottom
+                    Column(
+                        modifier = Modifier.padding(bottom = 2.dp, top = 10.dp)
                     ) {
-                        chartItems.forEach { item ->
-                            if (item.count > 0) {
-                                AnimatedBar(
-                                    item = item,
-                                    // animationTriggerKey = stats, // Removed
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                )
-                            } else {
-                                Spacer(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                )
+
+                        // This is the content of the original CenterContentColumn's AnimatedBarsRow
+                        Row( // AnimatedBarsRow
+                            modifier = Modifier
+                                .weight(1f)       // Take remaining width
+                                .fillMaxHeight(), // Fill the 200.dp height of the parent Row
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            chartItems.forEach { item ->
+                                if (item.count > 0) {
+                                    AnimatedBar(
+                                        item = item,
+                                        // animationTriggerKey = stats, // Removed
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    topStart = 4.dp,
+                                                    topEnd = 4.dp
+                                                )
+                                            )
+                                    )
+                                } else {
+                                    Spacer(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                    )
+                                }
                             }
                         }
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            thickness = 1.dp,
+                            color = designBorderColor
+                        )
                     }
                 }
 
-                HorizontalDivider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    thickness = 1.dp,
-                    color = designBorderColor
-                )
+
 
                 Row(
                     // XAxisLabelsRow
