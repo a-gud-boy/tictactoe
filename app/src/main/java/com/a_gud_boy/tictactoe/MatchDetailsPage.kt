@@ -250,7 +250,8 @@ fun RoundHistoryItem(
         )
         Spacer(modifier = Modifier.height(4.dp))
         if (roundWithMoves.moves.isNotEmpty()) {
-            roundWithMoves.moves.forEachIndexed { index, move ->
+            val movesToDisplay = roundWithMoves.moves.take(5)
+            movesToDisplay.forEachIndexed { index, move ->
                 Text(
                     text = "  ${index + 1}. Player ${move.player} -> Cell ${
                         move.cellId.replace(
@@ -259,6 +260,13 @@ fun RoundHistoryItem(
                         )
                     }",
                     style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (roundWithMoves.moves.size > 5) {
+                Text(
+                    text = "  view more",
+                    style = MaterialTheme.typography.bodySmall,
+                    // Add any desired styling for "view more" text, like color or font weight
                 )
             }
         } else {
