@@ -252,30 +252,36 @@ class InfiniteTicTacToeViewModel(
                 timestamp = System.currentTimeMillis(),
                 duration = gameTimer.getFinalMatchDuration()
             )
-            val matchId = matchDao.insertMatch(matchEntity)
 
-            // Save all accumulated rounds. Their winningCombinationJson should be set
-            // either by previous calls to resetRound() or by the logic at the start of this function.
-            _currentMatchRounds.value.forEach { roundWithMoves ->
-                val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
-                // roundDao.insertRound(actualRoundEntity) // roundWithMoves.round already has winningCombinationJson
-                // val roundId = actualRoundEntity.roundId // Assuming insertRound returns the ID or it's auto-generated and part of actualRoundEntity
+            if (AISettingsManager.saveHistoryEnabled) {
+                val matchId = matchDao.insertMatch(matchEntity)
 
-                // If roundId is not directly available, this part might need adjustment
-                // For now, assume roundId is obtainable for linking moves.
-                // A more robust way would be to get the returned roundId from insertRound.
-                // However, RoundEntity's PK is autoGenerate=true. The DAO insert should return the generated ID.
-                // For simplicity, we'll assume the roundId from actualRoundEntity is sufficient if it's auto-updated post-insert,
-                // or that the DAO structure handles this. The critical part is that actualRoundEntity has the JSON string.
-                // The subtask should ensure that the `roundId` used for `move.copy(ownerRoundId = roundId)` is correct.
-                // The current structure seems to imply `roundDao.insertRound` returns the ID.
-                // Let's assume `val actualRoundId = roundDao.insertRound(actualRoundEntity)` is how it works.
-                val actualRoundId = roundDao.insertRound(actualRoundEntity)
+                // Save all accumulated rounds. Their winningCombinationJson should be set
+                // either by previous calls to resetRound() or by the logic at the start of this function.
+                _currentMatchRounds.value.forEach { roundWithMoves ->
+                    val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
+                    // roundDao.insertRound(actualRoundEntity) // roundWithMoves.round already has winningCombinationJson
+                    // val roundId = actualRoundEntity.roundId // Assuming insertRound returns the ID or it's auto-generated and part of actualRoundEntity
+
+                    // If roundId is not directly available, this part might need adjustment
+                    // For now, assume roundId is obtainable for linking moves.
+                    // A more robust way would be to get the returned roundId from insertRound.
+                    // However, RoundEntity's PK is autoGenerate=true. The DAO insert should return the generated ID.
+                    // For simplicity, we'll assume the roundId from actualRoundEntity is sufficient if it's auto-updated post-insert,
+                    // or that the DAO structure handles this. The critical part is that actualRoundEntity has the JSON string.
+                    // The subtask should ensure that the `roundId` used for `move.copy(ownerRoundId = roundId)` is correct.
+                    // The current structure seems to imply `roundDao.insertRound` returns the ID.
+                    // Let's assume `val actualRoundId = roundDao.insertRound(actualRoundEntity)` is how it works.
+                    val actualRoundId = roundDao.insertRound(actualRoundEntity)
 
 
-                roundWithMoves.moves.forEach { move ->
-                    moveDao.insertMove(move.copy(ownerRoundId = actualRoundId))
+                    roundWithMoves.moves.forEach { move ->
+                        moveDao.insertMove(move.copy(ownerRoundId = actualRoundId))
+                    }
                 }
+            } else {
+                // Optionally, log that history saving is disabled
+                // Log.d("InfiniteTicTacToeViewModel", "Save history is disabled. Match data not saved.")
             }
 
             // Clear all match-specific states for a new game

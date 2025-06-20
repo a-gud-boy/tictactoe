@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +44,11 @@ fun SettingsPage(innerPadding: PaddingValues) {
     val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel = viewModel(
         factory = TicTacToeViewModelFactory(SoundManager(context), appDatabase)
     )
+    val historyViewModel: HistoryViewModel = viewModel(
+        factory = HistoryViewModelFactory(appDatabase.matchDao())
+    )
+
+    var showDeleteHistoryDialog by remember { mutableStateOf(false) }
 
     // var soundEnabled by remember { mutableStateOf(soundManager.isSoundEnabled) } // Removed: State now from AISettingsManager
     // Haptic feedback state is managed by HapticFeedbackManager
@@ -88,6 +95,25 @@ fun SettingsPage(innerPadding: PaddingValues) {
                     checked = AISettingsManager.isSoundEnabled, // Read from AISettingsManager
                     onCheckedChange = {
                         AISettingsManager.isSoundEnabled = it // Update AISettingsManager
+                    }
+                )
+            }
+
+            // Save History Setting
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Save History")
+                Switch(
+                    checked = AISettingsManager.saveHistoryEnabled, // Read from AISettingsManager
+                    onCheckedChange = { newValue ->
+                        if (!newValue) { // If attempting to disable save history
+                            showDeleteHistoryDialog = true
+                        } else {
+                            AISettingsManager.saveHistoryEnabled = true
+                        }
                     }
                 )
             }
@@ -153,6 +179,31 @@ fun SettingsPage(innerPadding: PaddingValues) {
                     },
                     valueRange = 0f..2f,
                     steps = 1 // 0 (Easy), 1 (Medium), 2 (Hard)
+                )
+            }
+
+            if (showDeleteHistoryDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteHistoryDialog = false },
+                    title = { Text("Disable Save History") },
+                    text = { Text("Do you also want to delete all previously saved match history?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            AISettingsManager.saveHistoryEnabled = false
+                            historyViewModel.clearAllHistory() // Call the deletion method
+                            showDeleteHistoryDialog = false
+                        }) {
+                            Text("Yes, Delete History")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            AISettingsManager.saveHistoryEnabled = false // Still disable saving, just don't delete
+                            showDeleteHistoryDialog = false
+                        }) {
+                            Text("No, Keep History")
+                        }
+                    }
                 )
             }
         }
