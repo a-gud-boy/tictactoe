@@ -24,6 +24,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+// Enum for game types (copied from OnlineLobbyScreen.kt for now)
+//enum class GameType {
+//    NORMAL,
+//    INFINITE
+//}
+
 // Data class to represent the state of an online game
 data class OnlineGameState(
     val gameId: String = "",
@@ -36,7 +42,10 @@ data class OnlineGameState(
     val status: String = "loading", // e.g., "loading", "waiting_for_player", "active", "player1_wins", "player2_wins", "draw"
     val winnerId: String? = null,
     val isUserTurn: Boolean = false, // Helper to quickly check if it's the current user's turn
-    val turnMessage: String = "Loading game..." // Message like "Your turn" or "Waiting for opponent"
+    val turnMessage: String = "Loading game...", // Message like "Your turn" or "Waiting for opponent"
+    val gameType: String = GameType.NORMAL.name, // Added: NORMAL or INFINITE
+    val player1Moves: List<Int> = emptyList(), // Added: Keeps track of Player 1's move indices for INFINITE mode
+    val player2Moves: List<Int> = emptyList()  // Added: Keeps track of Player 2's move indices for INFINITE mode
 )
 
 // ViewModel for the Online Game Screen
@@ -48,6 +57,10 @@ class OnlineGameViewModel(private val gameId: String) : ViewModel() {
     val gameState: StateFlow<OnlineGameState> = _gameState
 
     private var gameListenerRegistration: ListenerRegistration? = null
+
+    companion object {
+        const val MAX_VISIBLE_MOVES_PER_PLAYER = 3
+    }
 
     init {
         listenToGameUpdates()
@@ -91,6 +104,41 @@ class OnlineGameViewModel(private val gameId: String) : ViewModel() {
                         else -> "Loading game..."
                     }
 
+                    val gameTypeString = snapshot.getString("gameType") ?: GameType.NORMAL.name
+                    // Firestore stores lists of numbers (Long by default) for player moves
+                    val p1MovesRaw = snapshot.get("player1Moves") as? List<*> ?: emptyList<Long>()
+                    val p2MovesRaw = snapshot.get("player2Moves") as? List<*> ?: emptyList<Long>()
+                    val player1Moves = p1MovesRaw.filterIsInstance<Long>().map { it.toInt() }
+                    val player2Moves = p2MovesRaw.filterIsInstance<Long>().map { it.toInt() }
+
+                    Log.d(
+                        "OnlineGameViewModel",
+                        "listenToGameUpdates: Received snapshot for gameId: $gameId"
+                    )
+                    Log.d(
+                        "OnlineGameViewModel",
+                        "listenToGameUpdates: hasPendingWrites: ${snapshot.metadata.hasPendingWrites()}"
+                    )
+                    Log.d("OnlineGameViewModel", "listenToGameUpdates: Parsed boardState: $board")
+                    Log.d(
+                        "OnlineGameViewModel",
+                        "listenToGameUpdates: Parsed player1Moves: $player1Moves"
+                    )
+                    Log.d(
+                        "OnlineGameViewModel",
+                        "listenToGameUpdates: Parsed player2Moves: $player2Moves"
+                    )
+                    Log.d(
+                        "OnlineGameViewModel",
+                        "listenToGameUpdates: Parsed currentPlayerId: $currentPlayerId"
+                    )
+                    Log.d("OnlineGameViewModel", "listenToGameUpdates: Parsed status: $status")
+                    Log.d("OnlineGameViewModel", "listenToGameUpdates: Parsed winnerId: $winnerId")
+                    Log.d(
+                        "OnlineGameViewModel",
+                        "listenToGameUpdates: Parsed gameType: $gameTypeString"
+                    )
+
                     _gameState.value = OnlineGameState(
                         gameId = gameId,
                         player1Id = player1Id,
@@ -102,7 +150,10 @@ class OnlineGameViewModel(private val gameId: String) : ViewModel() {
                         status = status,
                         winnerId = winnerId,
                         isUserTurn = isMyTurn && status == "active",
-                        turnMessage = turnMsg
+                        turnMessage = turnMsg,
+                        gameType = gameTypeString,
+                        player1Moves = player1Moves,
+                        player2Moves = player2Moves
                     )
                 } else {
                     Log.w("OnlineGameViewModel", "Game document does not exist.")
@@ -113,32 +164,76 @@ class OnlineGameViewModel(private val gameId: String) : ViewModel() {
 
     fun makeMove(index: Int) {
         if (currentUser == null || !_gameState.value.isUserTurn || _gameState.value.boardState[index].isNotEmpty()) {
-            Log.d("OnlineGameViewModel", "Cannot make move: Not user's turn, cell not empty, or user not logged in.")
+            Log.d(
+                "OnlineGameViewModel",
+                "Cannot make move: Not user's turn, cell not empty, or user not logged in."
+            )
             return // Not current user's turn, or cell is not empty
         }
 
-        val newBoardState = _gameState.value.boardState.toMutableList()
-        val currentPlayerMark = if (_gameState.value.player1Id == currentUser.uid) "X" else "O"
+        val currentGameState = _gameState.value // Get a reference to the current state
+        val newBoardState = currentGameState.boardState.toMutableList()
+        val currentPlayerMark = if (currentGameState.player1Id == currentUser.uid) "X" else "O"
+        val isPlayer1MakingMove = currentGameState.player1Id == currentUser.uid
+
+        // Place the new mark
         newBoardState[index] = currentPlayerMark
 
-        // Determine winner and next player
-        val (newStatus, newWinnerId) = checkWinCondition(newBoardState, currentUser.uid, _gameState.value.player1Id == currentUser.uid)
-        val nextPlayerId = if (newStatus == "active") {
-            if (_gameState.value.player1Id == currentUser.uid) _gameState.value.player2Id else _gameState.value.player1Id
-        } else {
-            null // Game ended or draw
+        // Prepare current move lists (copy to modify)
+        val currentP1Moves = currentGameState.player1Moves.toMutableList()
+        val currentP2Moves = currentGameState.player2Moves.toMutableList()
+
+        // Apply Infinite mode logic if applicable
+        if (currentGameState.gameType == GameType.INFINITE.name) {
+            if (isPlayer1MakingMove) {
+                currentP1Moves.add(index)
+                if (currentP1Moves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
+                    val oldestMoveIndex = currentP1Moves.removeAt(0)
+                    newBoardState[oldestMoveIndex] = "" // Clear the oldest mark from the board
+                }
+            } else { // Player 2 is making the move
+                currentP2Moves.add(index)
+                if (currentP2Moves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
+                    val oldestMoveIndex = currentP2Moves.removeAt(0)
+                    newBoardState[oldestMoveIndex] = "" // Clear the oldest mark from the board
+                }
+            }
         }
 
+        // Determine winner and next player
+        // Note: isPlayer1MakingMove is used here to correctly attribute the win
+        val (newStatus, newWinnerId) = checkWinCondition(
+            newBoardState,
+            currentUser.uid,
+            isPlayer1MakingMove
+        )
+        val nextPlayerId = if (newStatus == "active") {
+            // Switch turns
+            if (isPlayer1MakingMove) currentGameState.player2Id else currentGameState.player1Id
+        } else {
+            null // Game ended or draw, no next player
+        }
 
+        // Prepare updates for Firestore
         val gameUpdates = hashMapOf<String, Any?>(
             "boardState" to newBoardState,
             "currentPlayerId" to nextPlayerId,
             "status" to newStatus,
-            "lastMoveAt" to FieldValue.serverTimestamp()
+            "lastMoveAt" to FieldValue.serverTimestamp(),
+            "player1Moves" to currentP1Moves, // Always update move lists
+            "player2Moves" to currentP2Moves  // Always update move lists
         )
         if (newWinnerId != null) {
             gameUpdates["winnerId"] = newWinnerId
         }
+
+        Log.d("OnlineGameViewModel", "makeMove: Updating Firestore with gameId: $gameId")
+        Log.d("OnlineGameViewModel", "makeMove: boardState to write: $newBoardState")
+        Log.d("OnlineGameViewModel", "makeMove: player1Moves to write: $currentP1Moves")
+        Log.d("OnlineGameViewModel", "makeMove: player2Moves to write: $currentP2Moves")
+        Log.d("OnlineGameViewModel", "makeMove: currentPlayerId to write: $nextPlayerId")
+        Log.d("OnlineGameViewModel", "makeMove: status to write: $newStatus")
+        Log.d("OnlineGameViewModel", "makeMove: winnerId to write: $newWinnerId")
 
         db.collection("gameSessions").document(gameId)
             .update(gameUpdates)

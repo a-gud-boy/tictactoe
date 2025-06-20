@@ -17,6 +17,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,11 +42,18 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+// Enum for game types
+//enum class GameType {
+//    NORMAL,
+//    INFINITE
+//}
+
 // Data class to represent a game in the lobby
 data class GameLobbyItem(
     val gameId: String = "",
     val player1DisplayName: String = "Unknown Player",
-    val createdAt: Timestamp? = null // Firestore Timestamp
+    val createdAt: Timestamp? = null, // Firestore Timestamp
+    val gameType: String? = GameType.NORMAL.name // Add gameType field
 ) {
     // Helper to format timestamp, can be expanded
     fun getFormattedCreationTime(): String {
@@ -62,6 +71,7 @@ fun OnlineLobbyScreen(innerPadding: PaddingValues, onNavigateToGame: (String) ->
     var availableGames by remember { mutableStateOf<List<GameLobbyItem>>(emptyList()) }
     var isLoadingGames by remember { mutableStateOf(true) }
     var gamesListenerRegistration by remember { mutableStateOf<ListenerRegistration?>(null) }
+    var showGameTypeDialog by remember { mutableStateOf(false) }
 
     // Listener for available games
     LaunchedEffect(currentUser?.uid) {
@@ -97,7 +107,8 @@ fun OnlineLobbyScreen(innerPadding: PaddingValues, onNavigateToGame: (String) ->
                 GameLobbyItem(
                     gameId = doc.id,
                     player1DisplayName = doc.getString("player1DisplayName") ?: "Player 1",
-                    createdAt = doc.getTimestamp("createdAt")
+                    createdAt = doc.getTimestamp("createdAt"),
+                    gameType = doc.getString("gameType") ?: GameType.NORMAL.name
                 )
             } ?: emptyList()
 
@@ -113,6 +124,39 @@ fun OnlineLobbyScreen(innerPadding: PaddingValues, onNavigateToGame: (String) ->
         }
     }
 
+    if (showGameTypeDialog) {
+        GameTypeSelectionDialog(
+            onDismissRequest = { showGameTypeDialog = false },
+            onGameTypeSelected = {
+                showGameTypeDialog = false
+                // Create game with selected type
+                val gameSession = hashMapOf(
+                    "player1Id" to currentUser!!.uid,
+                    "player1DisplayName" to (currentUser.displayName ?: currentUser.email ?: "Anonymous P1"),
+                    "player2Id" to null,
+                    "player2DisplayName" to null,
+                    "boardState" to List(9) { "" }, // Empty 3x3 board
+                    "currentPlayerId" to currentUser.uid, // Creator starts
+                    "status" to "waiting_for_player",
+                    "winnerId" to null,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                    "lastMoveAt" to FieldValue.serverTimestamp(),
+                    "gameType" to it.name // Add gameType to Firestore document
+                )
+
+                db.collection("gameSessions")
+                    .add(gameSession)
+                    .addOnSuccessListener { documentReference ->
+                        Log.d("OnlineLobby", "Game session created with ID: ${documentReference.id}, Type: ${it.name}")
+                        onNavigateToGame(documentReference.id)
+                    }
+                    .addOnFailureListener { ex ->
+                        Log.w("OnlineLobby", "Error creating game session", ex)
+                        // TODO: Show error to user (e.g., Toast)
+                    }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -132,31 +176,7 @@ fun OnlineLobbyScreen(innerPadding: PaddingValues, onNavigateToGame: (String) ->
         }
 
         Button(
-            onClick = {
-                val gameSession = hashMapOf(
-                    "player1Id" to currentUser.uid,
-                    "player1DisplayName" to (currentUser.displayName ?: currentUser.email ?: "Anonymous P1"),
-                    "player2Id" to null,
-                    "player2DisplayName" to null,
-                    "boardState" to List(9) { "" }, // Empty 3x3 board
-                    "currentPlayerId" to currentUser.uid, // Creator starts
-                    "status" to "waiting_for_player",
-                    "winnerId" to null,
-                    "createdAt" to FieldValue.serverTimestamp(),
-                    "lastMoveAt" to FieldValue.serverTimestamp()
-                )
-
-                db.collection("gameSessions")
-                    .add(gameSession)
-                    .addOnSuccessListener { documentReference ->
-                        Log.d("OnlineLobby", "Game session created with ID: ${'$'}{documentReference.id}")
-                        onNavigateToGame(documentReference.id)
-                    }
-                    .addOnFailureListener { ex ->
-                        Log.w("OnlineLobby", "Error creating game session", ex)
-                        // TODO: Show error to user (e.g., Toast)
-                    }
-            },
+            onClick = { showGameTypeDialog = true },
             // enabled = !isLoadingGames // Disable if games are loading, or allow creating while loading
         ) {
             Text("Create New Game")
@@ -216,8 +236,9 @@ fun GameListItem(game: GameLobbyItem, currentUserId: String, onJoinGame: (String
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text("Game by: ${'$'}{game.player1DisplayName}", style = MaterialTheme.typography.bodyLarge)
-            Text("Created: ${'$'}{game.getFormattedCreationTime()}", style = MaterialTheme.typography.bodySmall)
+            Text("Game by: ${game.player1DisplayName}", style = MaterialTheme.typography.bodyLarge)
+            Text("Type: ${game.gameType ?: GameType.NORMAL.name}", style = MaterialTheme.typography.bodyMedium) // Display game type
+            Text("Created: ${game.getFormattedCreationTime()}", style = MaterialTheme.typography.bodySmall)
         }
         // Button to join the game
         // Ensure user cannot join their own game (already filtered in query, but good for UI too)
@@ -229,6 +250,28 @@ fun GameListItem(game: GameLobbyItem, currentUserId: String, onJoinGame: (String
     }
 }
 
+@Composable
+fun GameTypeSelectionDialog(
+    onDismissRequest: () -> Unit,
+    onGameTypeSelected: (GameType) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Select Game Type") },
+        text = { Text("Which type of Tic Tac Toe would you like to play?") },
+        confirmButton = {
+            TextButton(onClick = { onGameTypeSelected(GameType.NORMAL) }) {
+                Text("Normal")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onGameTypeSelected(GameType.INFINITE) }) { // Changed to INFINITE
+                Text("Infinite")
+            }
+        }
+    )
+}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -236,8 +279,8 @@ fun OnlineLobbyScreenPreview() {
     TictactoeTheme { // Assuming your theme is TicTacToeTheme
         // Mock data for preview
         val mockGames = listOf(
-            GameLobbyItem("game1", "PlayerOne", Timestamp.now()),
-            GameLobbyItem("game2", "AnotherPlayer", Timestamp.now())
+            GameLobbyItem("game1", "PlayerOne", Timestamp.now(), GameType.NORMAL.name),
+            GameLobbyItem("game2", "AnotherPlayer", Timestamp.now(), GameType.INFINITE.name)
         )
         var availableGames by remember { mutableStateOf(mockGames) }
         var isLoadingGames by remember { mutableStateOf(false) }
