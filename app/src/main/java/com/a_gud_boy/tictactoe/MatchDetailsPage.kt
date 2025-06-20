@@ -156,13 +156,6 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
                 }
             }
 
-            Text(
-                text = "Match #${match.matchNumber}",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp)) // Increased spacing
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = match.matchWinnerName,

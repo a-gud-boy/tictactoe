@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
@@ -34,6 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -89,7 +91,7 @@ fun MatchHistoryItem(
 
         MatchWinner.DRAW -> {
             outcomeText = "Draw"
-            iconToShow = Icons.Filled.Add
+            iconToShow = ImageVector.vectorResource(R.drawable.draw_hyphen)
             currentOutcomeColor = accentYellow // Use local/restored color name
             currentIconBackgroundColor = bgYellow100 // Use local/restored color name
         }
