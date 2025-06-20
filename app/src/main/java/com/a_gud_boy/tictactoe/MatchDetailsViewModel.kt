@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch // Added for viewModelScope.launch
 
 class MatchDetailsViewModel(
     private val matchDao: MatchDao,
@@ -28,4 +29,15 @@ class MatchDetailsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    fun deleteMatch() {
+        viewModelScope.launch {
+            matchId.value?.let { id ->
+                matchDao.deleteMatchById(id)
+            } ?: run {
+                // Optional: Log or handle the case where matchId is null
+                android.util.Log.w("MatchDetailsViewModel", "Attempted to delete match but matchId was null.")
+            }
+        }
+    }
 }

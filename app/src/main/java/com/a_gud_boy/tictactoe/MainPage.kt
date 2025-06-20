@@ -74,6 +74,7 @@ fun MainPage() {
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
     var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteMatchDialog by rememberSaveable { mutableStateOf(false) }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -233,6 +234,13 @@ fun MainPage() {
                                         contentDescription = "Clear All History"
                                     )
                                 }
+                            } else if (currentRoute?.startsWith("match_details/") == true) {
+                                IconButton(onClick = { showDeleteMatchDialog = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Delete Match"
+                                    )
+                                }
                             }
                         } else {
                             IconButton(onClick = {
@@ -273,6 +281,34 @@ fun MainPage() {
                 )
             }
         ) { innerPadding ->
+            val navBackStackEntry by navController.currentBackStackEntryAsState() // Make navBackStackEntry available here
+
+            if (showDeleteMatchDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteMatchDialog = false },
+                    title = { Text("Delete Match") },
+                    text = { Text("Are you sure you want to delete this match? This action cannot be undone.") },
+                    confirmButton = {
+                        Button(onClick = {
+                            val matchId = navBackStackEntry?.arguments?.getLong("matchId")
+                            if (matchId != null) {
+                                // Instantiate MatchDetailsViewModel using the key, as per subtask instructions
+                                val matchDetailsViewModel: MatchDetailsViewModel = viewModel(
+                                    factory = LocalViewModelFactory.current,
+                                    key = "match_details_vm_$matchId"
+                                )
+                                matchDetailsViewModel.deleteMatch()
+                                navController.popBackStack()
+                            }
+                            showDeleteMatchDialog = false
+                        }) { Text("Delete") }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showDeleteMatchDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
+
             if (showClearHistoryDialog) {
                 AlertDialog(
                     onDismissRequest = { showClearHistoryDialog = false },
