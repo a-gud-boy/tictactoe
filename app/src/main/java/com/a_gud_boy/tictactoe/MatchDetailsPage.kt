@@ -31,9 +31,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -150,13 +156,6 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
                 }
             }
 
-            Text(
-                text = "Match #${match.matchNumber}",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp)) // Increased spacing
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = match.matchWinnerName,
@@ -235,6 +234,8 @@ fun RoundHistoryItem(
     gameType: GameType // Changed to GameType enum
 ) {
     val round = roundWithMoves.round
+    var expanded by remember { mutableStateOf(false) } // State for expansion
+
     Column(
         modifier = Modifier
             .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
@@ -249,17 +250,37 @@ fun RoundHistoryItem(
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(4.dp))
-        if (roundWithMoves.moves.isNotEmpty()) {
-            roundWithMoves.moves.forEachIndexed { index, move ->
-                Text(
-                    text = "  ${index + 1}. Player ${move.player} -> Cell ${
-                        move.cellId.replace(
-                            "button",
-                            ""
-                        )
-                    }",
-                    style = MaterialTheme.typography.bodySmall
-                )
+
+        val moves = roundWithMoves.moves
+        if (moves.isNotEmpty()) {
+            val itemsToDisplay = if (expanded || moves.size <= 5) moves else moves.take(5)
+
+            itemsToDisplay.forEachIndexed { index, move ->
+                val moveText = "  ${index + 1}. Player ${move.player} -> Cell ${move.cellId.replace("button", "")}"
+
+                if (moves.size > 5 && index == itemsToDisplay.lastIndex) {
+                    // This is the last item being displayed, and there are more moves than 5 (implying it's either the 5th item or the actual last item)
+                    val annotatedText = buildAnnotatedString {
+                        append(moveText)
+                        pushStringAnnotation(tag = "ACTION", annotation = if (expanded) "LESS" else "MORE")
+                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                            append(if (expanded) " view less" else " view more")
+                        }
+                        pop()
+                    }
+                    ClickableText(
+                        text = annotatedText,
+                        style = MaterialTheme.typography.bodySmall,
+                        onClick = { offset ->
+                            annotatedText.getStringAnnotations(tag = "ACTION", start = offset, end = offset)
+                                .firstOrNull()?.let {
+                                    expanded = !expanded // Toggle expansion
+                                }
+                        }
+                    )
+                } else {
+                    Text(text = moveText, style = MaterialTheme.typography.bodySmall)
+                }
             }
         } else {
             Text("  No moves recorded for this round.", style = MaterialTheme.typography.bodySmall)

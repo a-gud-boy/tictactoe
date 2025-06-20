@@ -218,4 +218,13 @@ class RoundReplayViewModel(
         // updateGridState() is not needed here due to reactive combine
         println("RoundReplayViewModel: nextMove() called, new index: ${_currentMoveIndex.value}")
     }
+
+    fun deleteRound() {
+        viewModelScope.launch {
+            // roundId is guaranteed non-null by the class's init block via SavedStateHandle
+            roundDao.deleteRoundById(roundId)
+            // Optionally, could set a flag or use a Channel to notify UI of deletion
+            Log.d("RoundReplayVM", "Round with ID $roundId deletion initiated.")
+        }
+    }
 }
