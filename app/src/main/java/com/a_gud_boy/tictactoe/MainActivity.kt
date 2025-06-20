@@ -63,6 +63,9 @@ class TicTacToeViewModelFactory(
         if (modelClass.isAssignableFrom(MatchDetailsViewModel::class.java)) {
             throw IllegalArgumentException("MatchDetailsViewModel requires SavedStateHandle. Use create(modelClass, extras) instead.")
         }
+        if (modelClass.isAssignableFrom(OnlineGameViewModel::class.java)) {
+            throw IllegalArgumentException("OnlineGameViewModel requires gameId and SoundManager. Use create(modelClass, extras) with CreationExtras providing SavedStateHandle for gameId.")
+        }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 
@@ -101,6 +104,13 @@ class TicTacToeViewModelFactory(
                     // appDatabase.moveDao(),  // Removed as per subtask (and ViewModel update)
                     savedStateHandle
                 ) as T
+
+            modelClass.isAssignableFrom(OnlineGameViewModel::class.java) -> {
+                val gameId = savedStateHandle.get<String>("gameId")
+                    ?: throw IllegalStateException("gameId not found in SavedStateHandle for OnlineGameViewModel")
+                @Suppress("UNCHECKED_CAST")
+                OnlineGameViewModel(gameId, soundManager) as T
+            }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

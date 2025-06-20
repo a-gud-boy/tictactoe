@@ -44,7 +44,8 @@ fun OnlineInfiniteTicTacToePage(
     gameState: OnlineGameState,
     onCellClick: (Int) -> Unit,
     onNavigateBackToLobby: () -> Unit,
-    maxVisibleMovesPerPlayer: Int // Added parameter
+    maxVisibleMovesPerPlayer: Int, // Added parameter
+    winningLine: List<Int>? = null // Added for winning line display
 ) {
     val view = LocalView.current
     val playerXColor = colorResource(R.color.red_x_icon)
@@ -180,9 +181,51 @@ fun OnlineInfiniteTicTacToePage(
                         )
                     }
                 }
-                // Winning Line Canvas (omitted for now as gameState doesn't provide winningLine)
-                // If it were to be added, it would be similar to InfiniteTicTacToePage's Canvas,
-                // but would need gameState.winningLine (e.g., List<Int> of cell indices)
+                // Winning Line Canvas
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    if (winningLine != null && winningLine.size >= 2 && buttonCoordinates.isNotEmpty()) {
+                        val startCellIndex = winningLine.first()
+                        val endCellIndex = winningLine.last()
+
+                        val startCoords = buttonCoordinates[startCellIndex]
+                        val endCoords = buttonCoordinates[endCellIndex]
+
+                        if (startCoords != null && endCoords != null) {
+                            val startOffset = Offset(
+                                startCoords.positionInParent().x + startCoords.size.width / 2f,
+                                startCoords.positionInParent().y + startCoords.size.height / 2f
+                            )
+                            val endOffset = Offset(
+                                endCoords.positionInParent().x + endCoords.size.width / 2f,
+                                endCoords.positionInParent().y + endCoords.size.height / 2f
+                            )
+
+                            val winnerMarkString = gameState.boardState.getOrNull(startCellIndex)
+                            val winnerPlayer = Player.fromString(winnerMarkString)
+
+                            val lineColor = when (winnerPlayer) {
+                                Player.X -> playerXColor
+                                Player.O -> playerOColor
+                                null -> Color.Transparent // Should not happen if there's a winning line
+                            }
+
+                            if (lineColor != Color.Transparent) {
+                                // Extend line slightly for better visuals
+                                val direction = endOffset - startOffset
+                                val normalizedDirection = if (direction.getDistanceSquared() > 0) direction / direction.getDistance() else Offset.Zero
+                                val extension = 30.dp.toPx()
+
+                                drawLine(
+                                    color = lineColor.copy(alpha = 0.7f),
+                                    start = startOffset - normalizedDirection * extension,
+                                    end = endOffset + normalizedDirection * extension,
+                                    strokeWidth = 5.dp.toPx(),
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
