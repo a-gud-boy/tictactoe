@@ -74,6 +74,8 @@ fun MainPage() {
     var infoDialogTitle by rememberSaveable { mutableStateOf("") }
     var infoDialogMessage by rememberSaveable { mutableStateOf("") }
     var showClearHistoryDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteMatchDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteRoundDialog by rememberSaveable { mutableStateOf(false) }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -233,6 +235,20 @@ fun MainPage() {
                                         contentDescription = "Clear All History"
                                     )
                                 }
+                            } else if (currentRoute?.startsWith("match_details/") == true) {
+                                IconButton(onClick = { showDeleteMatchDialog = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Delete Match"
+                                    )
+                                }
+                            } else if (currentRoute?.startsWith("roundReplay/") == true) {
+                                IconButton(onClick = { showDeleteRoundDialog = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Delete Round Data" // Or a more appropriate description
+                                    )
+                                }
                             }
                         } else {
                             IconButton(onClick = {
@@ -273,6 +289,75 @@ fun MainPage() {
                 )
             }
         ) { innerPadding ->
+            val navBackStackEntry by navController.currentBackStackEntryAsState() // Make navBackStackEntry available here
+
+            if (showDeleteMatchDialog) {
+                val currentMatchId = navBackStackEntry?.arguments?.getLong("matchId")
+                val matchDetailsViewModelInstance: MatchDetailsViewModel? = if (currentMatchId != null && navBackStackEntry != null) {
+                    // Ensure navBackStackEntry is not null before using it as ViewModelStoreOwner
+                    if (navBackStackEntry?.destination?.route == "match_details/{matchId}") { // Double check we have the correct NBE
+                        viewModel(
+                            viewModelStoreOwner = navBackStackEntry!!,
+                            factory = LocalViewModelFactory.current,
+                            key = "match_details_vm_$currentMatchId"
+                        )
+                    } else {
+                        null // navBackStackEntry is not for match_details, should not happen if dialog is shown
+                    }
+                } else {
+                    null
+                }
+
+                AlertDialog(
+                    onDismissRequest = { showDeleteMatchDialog = false },
+                    title = { Text("Delete Match") },
+                    text = { Text("Are you sure you want to delete this match? This action cannot be undone.") },
+                    confirmButton = {
+                        Button(onClick = {
+                            matchDetailsViewModelInstance?.let { vm ->
+                                vm.deleteMatch()
+                                navController.popBackStack()
+                            }
+                            showDeleteMatchDialog = false
+                        }) { Text("Delete") }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showDeleteMatchDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
+
+            if (showDeleteRoundDialog) {
+                val currentRoundId = navBackStackEntry?.arguments?.getLong("roundId")
+                // val currentMatchIdForNav = navBackStackEntry?.arguments?.getLong("matchId") // For navigation if needed later
+
+                val roundReplayViewModelInstance: RoundReplayViewModel? = if (currentRoundId != null && navBackStackEntry != null && navBackStackEntry?.destination?.route == "roundReplay/{matchId}/{roundId}/{gameType}") {
+                    viewModel(
+                        viewModelStoreOwner = navBackStackEntry!!,
+                        factory = LocalViewModelFactory.current,
+                        key = "round_replay_vm_$currentRoundId"
+                    )
+                } else {
+                    null
+                }
+
+                AlertDialog(
+                    onDismissRequest = { showDeleteRoundDialog = false },
+                    title = { Text("Delete Round") },
+                    text = { Text("Are you sure you want to delete this round's data? This action cannot be undone.") },
+                    confirmButton = {
+                        Button(onClick = {
+                            roundReplayViewModelInstance?.deleteRound()
+                            navController.popBackStack() // Go back to Match Details
+                            showDeleteRoundDialog = false
+                        }) { Text("Delete") }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showDeleteRoundDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
+
             if (showClearHistoryDialog) {
                 AlertDialog(
                     onDismissRequest = { showClearHistoryDialog = false },
