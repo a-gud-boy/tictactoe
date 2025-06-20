@@ -285,11 +285,17 @@ fun MainPage() {
 
             if (showDeleteMatchDialog) {
                 val currentMatchId = navBackStackEntry?.arguments?.getLong("matchId")
-                val matchDetailsViewModelInstance: MatchDetailsViewModel? = if (currentMatchId != null) {
-                    viewModel(
-                        factory = LocalViewModelFactory.current,
-                        key = "match_details_vm_$currentMatchId"
-                    )
+                val matchDetailsViewModelInstance: MatchDetailsViewModel? = if (currentMatchId != null && navBackStackEntry != null) {
+                    // Ensure navBackStackEntry is not null before using it as ViewModelStoreOwner
+                    if (navBackStackEntry?.destination?.route == "match_details/{matchId}") { // Double check we have the correct NBE
+                        viewModel(
+                            viewModelStoreOwner = navBackStackEntry!!,
+                            factory = LocalViewModelFactory.current,
+                            key = "match_details_vm_$currentMatchId"
+                        )
+                    } else {
+                        null // navBackStackEntry is not for match_details, should not happen if dialog is shown
+                    }
                 } else {
                     null
                 }
