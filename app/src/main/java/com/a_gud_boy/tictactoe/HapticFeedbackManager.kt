@@ -19,7 +19,7 @@ object HapticFeedbackManager {
         get() = _isHapticFeedbackEnabled
         set(value) {
             _isHapticFeedbackEnabled = value
-            sharedPreferences?.edit()?.putBoolean(KEY_HAPTIC_ENABLED, value)?.apply()
+            sharedPreferences?.edit()?.putBoolean(KEY_HAPTIC_ENABLED, value)?.commit() // Changed to commit
         }
 
     fun init(context: Context) {
