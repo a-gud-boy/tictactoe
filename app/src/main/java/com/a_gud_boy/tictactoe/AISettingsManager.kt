@@ -11,6 +11,7 @@ object AISettingsManager {
     private const val KEY_DIFFICULTY = "key_difficulty"
     private const val KEY_AI_MODE = "key_ai_mode"
     private const val KEY_SOUND_ENABLED = "key_sound_enabled"
+    private const val KEY_SAVE_HISTORY = "key_save_history"
 
     private var sharedPreferences: SharedPreferences? = null
 
@@ -32,11 +33,19 @@ object AISettingsManager {
         }
 
     private var _isSoundEnabled by mutableStateOf(true)
+    private var _saveHistoryEnabled by mutableStateOf(true) // Default to true
     var isSoundEnabled: Boolean
         get() = _isSoundEnabled
         set(value) {
             _isSoundEnabled = value
             sharedPreferences?.edit()?.putBoolean(KEY_SOUND_ENABLED, value)?.apply()
+        }
+
+    var saveHistoryEnabled: Boolean
+        get() = _saveHistoryEnabled
+        set(value) {
+            _saveHistoryEnabled = value
+            sharedPreferences?.edit()?.putBoolean(KEY_SAVE_HISTORY, value)?.apply()
         }
 
     fun init(context: Context) {
@@ -63,6 +72,8 @@ object AISettingsManager {
 
             // Load sound enabled
             _isSoundEnabled = prefs.getBoolean(KEY_SOUND_ENABLED, true)
+            // Load save history enabled
+            _saveHistoryEnabled = prefs.getBoolean(KEY_SAVE_HISTORY, true) // Default to true
         }
     }
 }

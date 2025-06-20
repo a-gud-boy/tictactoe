@@ -245,15 +245,20 @@ class NormalTicTacToeViewModel(
                 duration = gameTimer.getFinalMatchDuration()
             )
 
-            val matchId = matchDao.insertMatch(matchEntity)
+            if (AISettingsManager.saveHistoryEnabled) {
+                val matchId = matchDao.insertMatch(matchEntity)
 
-            _currentMatchRounds.value.forEach { roundWithMoves ->
-                val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
-                // The roundWithMoves.round should already have winningCombinationJson populated
-                val actualRoundId = roundDao.insertRound(actualRoundEntity) // Get the actual ID
-                roundWithMoves.moves.forEach { move ->
-                    moveDao.insertMove(move.copy(ownerRoundId = actualRoundId)) // Use actual ID
+                _currentMatchRounds.value.forEach { roundWithMoves ->
+                    val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
+                    // The roundWithMoves.round should already have winningCombinationJson populated
+                    val actualRoundId = roundDao.insertRound(actualRoundEntity) // Get the actual ID
+                    roundWithMoves.moves.forEach { move ->
+                        moveDao.insertMove(move.copy(ownerRoundId = actualRoundId)) // Use actual ID
+                    }
                 }
+            } else {
+                // Optionally, log that history saving is disabled
+                // Log.d("NormalTicTacToeViewModel", "Save history is disabled. Match data not saved.")
             }
 
             // Clear all match-specific states
