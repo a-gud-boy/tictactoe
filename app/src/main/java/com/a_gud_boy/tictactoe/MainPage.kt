@@ -284,20 +284,24 @@ fun MainPage() {
             val navBackStackEntry by navController.currentBackStackEntryAsState() // Make navBackStackEntry available here
 
             if (showDeleteMatchDialog) {
+                val currentMatchId = navBackStackEntry?.arguments?.getLong("matchId")
+                val matchDetailsViewModelInstance: MatchDetailsViewModel? = if (currentMatchId != null) {
+                    viewModel(
+                        factory = LocalViewModelFactory.current,
+                        key = "match_details_vm_$currentMatchId"
+                    )
+                } else {
+                    null
+                }
+
                 AlertDialog(
                     onDismissRequest = { showDeleteMatchDialog = false },
                     title = { Text("Delete Match") },
                     text = { Text("Are you sure you want to delete this match? This action cannot be undone.") },
                     confirmButton = {
                         Button(onClick = {
-                            val matchId = navBackStackEntry?.arguments?.getLong("matchId")
-                            if (matchId != null) {
-                                // Instantiate MatchDetailsViewModel using the key, as per subtask instructions
-                                val matchDetailsViewModel: MatchDetailsViewModel = viewModel(
-                                    factory = LocalViewModelFactory.current,
-                                    key = "match_details_vm_$matchId"
-                                )
-                                matchDetailsViewModel.deleteMatch()
+                            matchDetailsViewModelInstance?.let { vm ->
+                                vm.deleteMatch()
                                 navController.popBackStack()
                             }
                             showDeleteMatchDialog = false
