@@ -25,10 +25,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 // Enum for game types (copied from OnlineLobbyScreen.kt for now)
-//enum class GameType {
-//    NORMAL,
-//    INFINITE
-//}
+enum class GameType { // Assuming this was uncommented or made available globally
+   NORMAL,
+   INFINITE
+}
 
 // Data class to represent the state of an online game
 data class OnlineGameState(
@@ -291,8 +291,8 @@ fun OnlineGameScreen(
     val gameState by viewModel.gameState.collectAsState()
     // val currentUser = FirebaseAuth.getInstance().currentUser // Not strictly needed here anymore for UI logic
 
-    val isGameOver =
-        gameState.status == "player1_wins" || gameState.status == "player2_wins" || gameState.status == "draw"
+    // val isGameOver = // This variable is not used after removing the local "Back to Lobby" button
+    //     gameState.status == "player1_wins" || gameState.status == "player2_wins" || gameState.status == "draw"
 
     Scaffold(
         topBar = {
@@ -328,50 +328,48 @@ fun OnlineGameScreen(
                     Text("Back to Lobby")
                 }
             } else {
-                Text(
-                    text = "${gameState.player1DisplayName ?: "Player 1"} (X) vs ${gameState.player2DisplayName ?: "Waiting..."} (O)",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                // The following Text composables for player display names and turn messages
+                // have been removed as this information is now displayed within the
+                // OnlineNormalTicTacToePage and OnlineInfiniteTicTacToePage composables.
+                // Text(
+                //     text = "${gameState.player1DisplayName ?: "Player 1"} (X) vs ${gameState.player2DisplayName ?: "Waiting..."} (O)",
+                //     style = MaterialTheme.typography.titleLarge,
+                //     modifier = Modifier.padding(bottom = 16.dp)
+                // )
+                //
+                // Text(
+                //     text = gameState.turnMessage,
+                //     style = MaterialTheme.typography.titleMedium,
+                //     modifier = Modifier.padding(bottom = 24.dp)
+                // )
 
-                Text(
-                    text = gameState.turnMessage,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                // Game Board
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 16.dp) // Added padding below board
-                ) {
-                    (0..2).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            (0..2).forEach { col ->
-                                val index = row * 3 + col
-                                Button(
-                                    onClick = { viewModel.makeMove(index) },
-                                    modifier = Modifier.size(80.dp),
-                                    enabled = gameState.boardState[index].isEmpty() && gameState.isUserTurn && !isGameOver, // <<< MODIFIED THIS LINE
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        contentColor = if (gameState.boardState[index] == "X") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                                    )
-                                ) {
-                                    Text(
-                                        gameState.boardState[index],
-                                        style = MaterialTheme.typography.headlineLarge
-                                    )
-                                }
-                            }
-                        }
-                    }
+                // Conditionally display Normal or Infinite Tic Tac Toe page
+                if (gameState.gameType == GameType.NORMAL.name) {
+                    OnlineNormalTicTacToePage(
+                        gameState = gameState,
+                        onCellClick = { index -> viewModel.makeMove(index) },
+                        onNavigateBackToLobby = { navController.popBackStack() },
+                        winningLine = null // Passing null for now
+                    )
+                } else if (gameState.gameType == GameType.INFINITE.name) {
+                    OnlineInfiniteTicTacToePage(
+                        gameState = gameState,
+                        onCellClick = { index -> viewModel.makeMove(index) },
+                        onNavigateBackToLobby = { navController.popBackStack() },
+                        maxVisibleMovesPerPlayer = OnlineGameViewModel.MAX_VISIBLE_MOVES_PER_PLAYER
+                    )
+                } else {
+                    // Fallback or error for unknown game type, though OnlineGameState should have a valid one.
+                    Text("Unknown game type: ${gameState.gameType}")
                 }
 
-                // "Back to Lobby" button when game is over
-                if (isGameOver) { // <<< ADDED THIS CONDITIONAL BLOCK
+
+                // "Back to Lobby" button when game is over - This is now handled within each specific game page.
+                // However, if a general back button is still desired at this level for game over, it can be kept.
+                // For this refactoring, let's assume the individual pages handle their "Back to Lobby" on game over.
+                // If not, the following block could be reinstated:
+                /*
+                if (isGameOver) { // isGameOver would need to be defined if this block is used
                     Button(
                         onClick = { navController.popBackStack() },
                         modifier = Modifier.padding(top = 24.dp)
@@ -379,9 +377,11 @@ fun OnlineGameScreen(
                         Text("Back to Lobby")
                     }
                 }
+                */
+                // The "Back to Lobby" button is now primarily managed by OnlineNormalTicTacToePage and OnlineInfiniteTicTacToePage
+                // when the game is over. If an additional one is needed here, it can be added.
+                // For now, let's rely on the pages' buttons.
             }
         }
     }
 }
-
-
