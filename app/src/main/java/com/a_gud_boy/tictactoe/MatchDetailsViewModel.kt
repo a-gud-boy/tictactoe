@@ -35,8 +35,7 @@ class MatchDetailsViewModel(
             matchId.value?.let { id ->
                 matchDao.deleteMatchById(id)
             } ?: run {
-                // Optional: Log or handle the case where matchId is null
-                android.util.Log.w("MatchDetailsViewModel", "Attempted to delete match but matchId was null.")
+                throw IllegalStateException("Attempted to delete match but matchId was null in ViewModel.")
             }
         }
     }
