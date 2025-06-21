@@ -6,8 +6,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
@@ -16,35 +27,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
-import com.a_gud_boy.tictactoe.HomeScreen // Updated import for HomeScreen
-// GameSetupScreen is already in the same package, so direct import might not be needed if not explicitly used by MainActivity directly.
-// However, it's good practice for clarity if NavHost is referencing it.
-import com.a_gud_boy.tictactoe.GameSetupScreen
-
-// ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.delay
+import com.google.firebase.auth.FirebaseAuth
+import android.util.Log
 
 // Define LocalViewModelFactory, can be in MainActivity.kt or a separate file
 val LocalViewModelFactory = staticCompositionLocalOf<ViewModelProvider.Factory> {
     error("ViewModelFactory not provided")
 }
 
-/**
- * A [ViewModelProvider.Factory] responsible for creating instances of [NormalTicTacToeViewModel],
- * [InfiniteTicTacToeViewModel], and [HistoryViewModel].
- *
- * This factory allows the ViewModels to be instantiated with dependencies like [SoundManager]
- * and [AppDatabase] (via its DAOs), which are used for audio feedback and data persistence.
- *
- * @param soundManager The [SoundManager] instance.
- * @param appDatabase The [AppDatabase] instance for accessing DAOs.
- */
 class TicTacToeViewModelFactory(
     private val soundManager: SoundManager,
-    private val appDatabase: AppDatabase // Added AppDatabase
+    private val appDatabase: AppDatabase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        // This version of create is kept for compatibility if still called directly by older framework versions
-        // or if CreationExtras are not available. It cannot create MatchDetailsViewModel.
         if (modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return NormalTicTacToeViewModel(
@@ -63,7 +59,7 @@ class TicTacToeViewModelFactory(
                 appDatabase.moveDao()
             ) as T
         }
-        if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) { // Added HistoryViewModel
+        if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return HistoryViewModel(appDatabase.matchDao()) as T
         }
@@ -78,7 +74,6 @@ class TicTacToeViewModelFactory(
 
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         val savedStateHandle = extras.createSavedStateHandle()
-
         return when {
             modelClass.isAssignableFrom(NormalTicTacToeViewModel::class.java) ->
                 NormalTicTacToeViewModel(
@@ -87,7 +82,6 @@ class TicTacToeViewModelFactory(
                     appDatabase.roundDao(),
                     appDatabase.moveDao()
                 ) as T
-
             modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java) ->
                 InfiniteTicTacToeViewModel(
                     soundManager,
@@ -95,93 +89,85 @@ class TicTacToeViewModelFactory(
                     appDatabase.roundDao(),
                     appDatabase.moveDao()
                 ) as T
-
             modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
                 HistoryViewModel(appDatabase.matchDao()) as T
-
             modelClass.isAssignableFrom(MatchDetailsViewModel::class.java) ->
                 MatchDetailsViewModel(
                     appDatabase.matchDao(),
                     savedStateHandle
-                ) as T // Pass the created SavedStateHandle
+                ) as T
             modelClass.isAssignableFrom(RoundReplayViewModel::class.java) ->
                 RoundReplayViewModel(
                     appDatabase.matchDao(),
-                    appDatabase.roundDao(), // Removed as per subtask
-                    // appDatabase.moveDao(),  // Removed as per subtask (and ViewModel update)
+                    appDatabase.roundDao(),
                     savedStateHandle
                 ) as T
-
             modelClass.isAssignableFrom(OnlineGameViewModel::class.java) -> {
                 val gameId = savedStateHandle.get<String>("gameId")
                     ?: throw IllegalStateException("gameId not found in SavedStateHandle for OnlineGameViewModel")
                 @Suppress("UNCHECKED_CAST")
                 OnlineGameViewModel(gameId, soundManager) as T
             }
-
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }
 }
 
-/**
- * The main activity for the Tic Tac Toe application.
- *
- * This activity serves as the entry point of the application and sets up the initial UI content.
- * It uses Jetpack Compose for building the user interface.
- *
- * On creation, it enables edge-to-edge display and then sets the content to the [MainPage]
- * composable, wrapped within the application's [TictactoeTheme].
- */
 class MainActivity : ComponentActivity() {
-    /**
-     * Called when the activity is first created.
-     *
-     * This method initializes the activity, enables edge-to-edge display for a modern look and feel,
-     * and sets the main content view to be the [MainPage] composable function, which provides
-     * the core UI structure including navigation between different game modes.
-     *
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
-     *                           this Bundle contains the data it most recently supplied in [onSaveInstanceState].
-     *                           Otherwise, it is null.
-     */
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Create SoundManager instance
         val soundManager = SoundManager(this)
-
-        // Create AppDatabase instance
         val appDatabase = AppDatabase.getDatabase(applicationContext)
-
-        // Create the custom factory
         val viewModelFactory = TicTacToeViewModelFactory(soundManager, appDatabase)
 
-        // Set content. MainPage will need to be able to use this factory
-        // if it or its children directly call viewModel().
-        // For example, by passing viewModelFactory to MainPage.
-        // Or, if ViewModels are to be scoped to MainActivity, they could be created here:
-        // val normalTicTacToeViewModel: NormalTicTacToeViewModel by viewModels { viewModelFactory }
-        // val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel by viewModels { viewModelFactory }
-        // And then passed to MainPage.
-        // For now, just making the factory available for potential use in composables.
-
-        // Initialize settings managers
         AISettingsManager.init(this)
         HapticFeedbackManager.init(this)
 
         setContent {
             TictactoeTheme {
+                var isSignedIn by remember { mutableStateOf(false) }
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "home") {
-                    composable("home") {
-                        HomeScreen(navController = navController)
+
+                LaunchedEffect(Unit) {
+                    val auth = FirebaseAuth.getInstance()
+                    if (auth.currentUser == null) {
+                        auth.signInAnonymously()
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Log.d("MainPageAuth", "signInAnonymously:success. User ID: ${auth.currentUser?.uid}")
+                                    isSignedIn = true
+                                } else {
+                                    Log.w("MainPageAuth", "signInAnonymously:failure", task.exception)
+                                    // Optionally, handle sign-in failure (e.g., show an error, retry, etc.)
+                                    // For now, it will remain on the loading screen if sign-in fails.
+                                }
+                            }
+                    } else {
+                        Log.d("MainPageAuth", "User already signed in. User ID: ${auth.currentUser?.uid}")
+                        isSignedIn = true // Already signed in
                     }
-                    composable("game_setup") {
-                        GameSetupScreen(navController = navController)
+                }
+
+                if (isSignedIn) {
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") {
+                            HomeScreen(navController = navController)
+                        }
+                        composable("game_setup") {
+                            GameSetupScreen(navController = navController)
+                        }
+                        composable("normal_game") {
+                            NormalTicTacToePage(innerPadding = PaddingValues()) // Pass empty PaddingValues for now
+                        }
+                        composable("infinite_game") {
+                            InfiniteTicTacToePage(innerPadding = PaddingValues()) // Pass empty PaddingValues for now
+                        }
                     }
+                } else {
+                    LoadingScreen()
                 }
             }
         }
@@ -189,10 +175,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // It's good practice to release SoundManager resources here if it's tied to the Activity lifecycle
-        // However, ViewModels now call release() in onCleared(), which is generally preferred.
-        // If SoundManager were a singleton or shared beyond ViewModels tied to this Activity,
-        // then releasing here or in Application.onTerminate would be more appropriate.
-        // For this setup, ViewModel.onCleared() is sufficient.
+    }
+}
+
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }

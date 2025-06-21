@@ -92,7 +92,24 @@ fun GameSetupScreen(navController: NavController) {
                 contentPadding = PaddingValues(16.dp) // p-5 from footer
             ) {
                 Button(
-                    onClick = { /* TODO: Start game logic */ },
+                    onClick = {
+                        // Start game logic based on selectedGameMode and selectedGameType
+                        when (selectedGameMode) {
+                            ONLINE_MODE -> {
+                                // Do nothing for online mode as per requirement
+                            }
+                            OFFLINE_MODE, AI_MODE -> {
+                                when (selectedGameType) {
+                                    NORMAL_TYPE -> {
+                                        navController.navigate("normal_game")
+                                    }
+                                    INFINITE_TYPE -> {
+                                        navController.navigate("infinite_game")
+                                    }
+                                }
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp), // h-14

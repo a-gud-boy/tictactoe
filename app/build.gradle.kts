@@ -60,8 +60,8 @@ dependencies {
 
     // Firebase
     implementation(platform(libs.firebase.bom)) // Add the BOM
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth) // KTX is included in the main module with recent BoM
+    implementation(libs.firebase.firestore) // KTX is included in the main module with recent BoM
 
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.11.0") // Added Mockito
