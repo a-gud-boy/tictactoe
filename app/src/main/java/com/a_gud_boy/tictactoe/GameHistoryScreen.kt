@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,7 @@ import androidx.navigation.NavHostController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameHistoryScreen(
+    paddingValues: PaddingValues,
     mainNavController: NavHostController,
     initialTab: String
 ) {
@@ -54,6 +56,7 @@ fun GameHistoryScreen(
             when (selectedTab) {
                 "history" -> {
                     HistoryPageContent(
+                        paddingValues = paddingValues,
                         historyViewModel = historyViewModel,
                         navController = mainNavController,
                         modifier = Modifier.fillMaxSize()

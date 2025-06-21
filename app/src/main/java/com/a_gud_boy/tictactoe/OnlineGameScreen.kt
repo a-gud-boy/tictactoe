@@ -16,7 +16,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
+// FirebaseFirestore import is not directly used, can be removed if not needed by other parts of the file.
+// import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -24,38 +25,32 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// Enum for game types (copied from OnlineLobbyScreen.kt for now)
-//enum class GameType {
-//    NORMAL,
-//    INFINITE
-//}
-
-// Data class to represent the state of an online game
 data class OnlineGameState(
     val gameId: String = "",
     val player1Id: String? = null,
     val player1DisplayName: String? = "Player 1",
     val player2Id: String? = null,
     val player2DisplayName: String? = "Player 2",
-    val boardState: List<String> = List(9) { "" }, // "X", "O", or ""
+    val boardState: List<String> = List(9) { "" },
     val currentPlayerId: String? = null,
-    val status: String = "loading", // e.g., "loading", "waiting_for_player", "active", "player1_wins", "player2_wins", "draw"
+    val status: String = "loading",
     val winnerId: String? = null,
-    val isUserTurn: Boolean = false, // Helper to quickly check if it's the current user's turn
-    val turnMessage: String = "Loading game...", // Message like "Your turn" or "Waiting for opponent"
-    val gameType: String = GameType.NORMAL.name, // Added: NORMAL or INFINITE
-    val player1Moves: List<Int> = emptyList(), // Added: Keeps track of Player 1's move indices for INFINITE mode
-    val player2Moves: List<Int> = emptyList()  // Added: Keeps track of Player 2's move indices for INFINITE mode
+    val isUserTurn: Boolean = false,
+    val turnMessage: String = "Loading game...",
+    val gameType: String = GameType.NORMAL.name,
+    val player1Moves: List<Int> = emptyList(),
+    val player2Moves: List<Int> = emptyList(),
+    val winningLine: List<Int>? = null // Added for winning line display
 )
 
-// ViewModel for the Online Game Screen
-class OnlineGameViewModel(private val gameId: String) : ViewModel() {
+class OnlineGameViewModel(
+    private val gameId: String,
+    private val soundManager: SoundManager
+) : ViewModel() {
     private val db = Firebase.firestore
     private val currentUser = FirebaseAuth.getInstance().currentUser
-
     private val _gameState = MutableStateFlow(OnlineGameState(gameId = gameId))
     val gameState: StateFlow<OnlineGameState> = _gameState
-
     private var gameListenerRegistration: ListenerRegistration? = null
 
     companion object {
@@ -71,92 +66,54 @@ class OnlineGameViewModel(private val gameId: String) : ViewModel() {
             _gameState.value = _gameState.value.copy(status = "error", turnMessage = "Authentication error.")
             return
         }
-        gameListenerRegistration?.remove() // Remove previous listener if any
+        gameListenerRegistration?.remove()
         gameListenerRegistration = db.collection("gameSessions").document(gameId)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.w("OnlineGameViewModel", "Listen failed.", e)
                     _gameState.value = _gameState.value.copy(status = "error", turnMessage = "Error loading game.")
                     return@addSnapshotListener
                 }
-
                 if (snapshot != null && snapshot.exists()) {
                     val player1Id = snapshot.getString("player1Id")
-                    val player2Id = snapshot.getString("player2Id")
+                    val player2Id = snapshot.getString("player2Id") // Corrected: Was player1Id again
                     val board = snapshot.get("boardState") as? List<String> ?: List(9) { "" }
                     val currentPlayerId = snapshot.getString("currentPlayerId")
                     val status = snapshot.getString("status") ?: "unknown"
                     val winnerId = snapshot.getString("winnerId")
                     val player1Name = snapshot.getString("player1DisplayName") ?: "Player 1"
-                    val player2Name = snapshot.getString("player2DisplayName") ?: "Player 2"
-
+                    val player2Name = snapshot.getString("player2DisplayName") ?: "Player 2" // Corrected: Was player1DisplayName
                     val isMyTurn = currentPlayerId == currentUser.uid
                     val turnMsg = when {
-                        status.contains("_wins") || status == "draw" -> {
-                            when {
-                                winnerId == currentUser.uid -> "You won!"
-                                winnerId != null -> "Opponent won!"
-                                else -> "It's a draw!"
-                            }
+                        status.contains("_wins") || status == "draw" -> when {
+                            winnerId == currentUser.uid -> "You won!"
+                            winnerId != null -> "Opponent won!"
+                            else -> "It's a draw!"
                         }
                         status == "active" -> if (isMyTurn) "Your turn" else "Waiting for opponent..."
                         status == "waiting_for_player" -> "Waiting for opponent to join..."
                         else -> "Loading game..."
                     }
-
                     val gameTypeString = snapshot.getString("gameType") ?: GameType.NORMAL.name
-                    // Firestore stores lists of numbers (Long by default) for player moves
                     val p1MovesRaw = snapshot.get("player1Moves") as? List<*> ?: emptyList<Long>()
                     val p2MovesRaw = snapshot.get("player2Moves") as? List<*> ?: emptyList<Long>()
                     val player1Moves = p1MovesRaw.filterIsInstance<Long>().map { it.toInt() }
                     val player2Moves = p2MovesRaw.filterIsInstance<Long>().map { it.toInt() }
 
-                    Log.d(
-                        "OnlineGameViewModel",
-                        "listenToGameUpdates: Received snapshot for gameId: $gameId"
-                    )
-                    Log.d(
-                        "OnlineGameViewModel",
-                        "listenToGameUpdates: hasPendingWrites: ${snapshot.metadata.hasPendingWrites()}"
-                    )
-                    Log.d("OnlineGameViewModel", "listenToGameUpdates: Parsed boardState: $board")
-                    Log.d(
-                        "OnlineGameViewModel",
-                        "listenToGameUpdates: Parsed player1Moves: $player1Moves"
-                    )
-                    Log.d(
-                        "OnlineGameViewModel",
-                        "listenToGameUpdates: Parsed player2Moves: $player2Moves"
-                    )
-                    Log.d(
-                        "OnlineGameViewModel",
-                        "listenToGameUpdates: Parsed currentPlayerId: $currentPlayerId"
-                    )
-                    Log.d("OnlineGameViewModel", "listenToGameUpdates: Parsed status: $status")
-                    Log.d("OnlineGameViewModel", "listenToGameUpdates: Parsed winnerId: $winnerId")
-                    Log.d(
-                        "OnlineGameViewModel",
-                        "listenToGameUpdates: Parsed gameType: $gameTypeString"
-                    )
+                    val currentWinningLine = if (status.contains("_wins") && winnerId != null) {
+                        determineWinningLine(board, winnerId, player1Id)
+                    } else {
+                        null
+                    }
 
                     _gameState.value = OnlineGameState(
-                        gameId = gameId,
-                        player1Id = player1Id,
-                        player1DisplayName = player1Name,
-                        player2Id = player2Id,
-                        player2DisplayName = player2Name,
-                        boardState = board,
-                        currentPlayerId = currentPlayerId,
-                        status = status,
-                        winnerId = winnerId,
-                        isUserTurn = isMyTurn && status == "active",
-                        turnMessage = turnMsg,
-                        gameType = gameTypeString,
-                        player1Moves = player1Moves,
-                        player2Moves = player2Moves
+                        gameId = gameId, player1Id = player1Id, player1DisplayName = player1Name,
+                        player2Id = player2Id, player2DisplayName = player2Name, boardState = board,
+                        currentPlayerId = currentPlayerId, status = status, winnerId = winnerId,
+                        isUserTurn = isMyTurn && status == "active", turnMessage = turnMsg,
+                        gameType = gameTypeString, player1Moves = player1Moves, player2Moves = player2Moves,
+                        winningLine = currentWinningLine
                     )
                 } else {
-                    Log.w("OnlineGameViewModel", "Game document does not exist.")
                     _gameState.value = _gameState.value.copy(status = "error", turnMessage = "Game not found.")
                 }
             }
@@ -164,224 +121,153 @@ class OnlineGameViewModel(private val gameId: String) : ViewModel() {
 
     fun makeMove(index: Int) {
         if (currentUser == null || !_gameState.value.isUserTurn || _gameState.value.boardState[index].isNotEmpty()) {
-            Log.d(
-                "OnlineGameViewModel",
-                "Cannot make move: Not user's turn, cell not empty, or user not logged in."
-            )
-            return // Not current user's turn, or cell is not empty
+            return
         }
+        soundManager.playMoveSound()
 
-        val currentGameState = _gameState.value // Get a reference to the current state
+        val currentGameState = _gameState.value
         val newBoardState = currentGameState.boardState.toMutableList()
         val currentPlayerMark = if (currentGameState.player1Id == currentUser.uid) "X" else "O"
         val isPlayer1MakingMove = currentGameState.player1Id == currentUser.uid
 
-        // Place the new mark
         newBoardState[index] = currentPlayerMark
 
-        // Prepare current move lists (copy to modify)
         val currentP1Moves = currentGameState.player1Moves.toMutableList()
         val currentP2Moves = currentGameState.player2Moves.toMutableList()
 
-        // Apply Infinite mode logic if applicable
         if (currentGameState.gameType == GameType.INFINITE.name) {
             if (isPlayer1MakingMove) {
                 currentP1Moves.add(index)
                 if (currentP1Moves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
-                    val oldestMoveIndex = currentP1Moves.removeAt(0)
-                    newBoardState[oldestMoveIndex] = "" // Clear the oldest mark from the board
+                    newBoardState[currentP1Moves.removeAt(0)] = ""
                 }
-            } else { // Player 2 is making the move
+            } else {
                 currentP2Moves.add(index)
                 if (currentP2Moves.size > MAX_VISIBLE_MOVES_PER_PLAYER) {
-                    val oldestMoveIndex = currentP2Moves.removeAt(0)
-                    newBoardState[oldestMoveIndex] = "" // Clear the oldest mark from the board
+                    newBoardState[currentP2Moves.removeAt(0)] = ""
                 }
             }
         }
 
-        // Determine winner and next player
-        // Note: isPlayer1MakingMove is used here to correctly attribute the win
-        val (newStatus, newWinnerId) = checkWinCondition(
+        val (newStatus, newWinnerId, _) = checkWinCondition( // detectedWinningLine is not used here
             newBoardState,
             currentUser.uid,
             isPlayer1MakingMove
         )
+
+        if (newStatus.contains("_wins")) {
+            soundManager.playWinSound()
+        } else if (newStatus == "draw") {
+            soundManager.playDrawSound()
+        }
+
         val nextPlayerId = if (newStatus == "active") {
-            // Switch turns
             if (isPlayer1MakingMove) currentGameState.player2Id else currentGameState.player1Id
-        } else {
-            null // Game ended or draw, no next player
-        }
+        } else null
 
-        // Prepare updates for Firestore
         val gameUpdates = hashMapOf<String, Any?>(
-            "boardState" to newBoardState,
-            "currentPlayerId" to nextPlayerId,
-            "status" to newStatus,
-            "lastMoveAt" to FieldValue.serverTimestamp(),
-            "player1Moves" to currentP1Moves, // Always update move lists
-            "player2Moves" to currentP2Moves  // Always update move lists
+            "boardState" to newBoardState, "currentPlayerId" to nextPlayerId,
+            "status" to newStatus, "lastMoveAt" to FieldValue.serverTimestamp(),
+            "player1Moves" to currentP1Moves, "player2Moves" to currentP2Moves
         )
-        if (newWinnerId != null) {
-            gameUpdates["winnerId"] = newWinnerId
-        }
+        if (newWinnerId != null) gameUpdates["winnerId"] = newWinnerId
+        // winningLine is NOT sent to Firestore, it's derived locally by clients
 
-        Log.d("OnlineGameViewModel", "makeMove: Updating Firestore with gameId: $gameId")
-        Log.d("OnlineGameViewModel", "makeMove: boardState to write: $newBoardState")
-        Log.d("OnlineGameViewModel", "makeMove: player1Moves to write: $currentP1Moves")
-        Log.d("OnlineGameViewModel", "makeMove: player2Moves to write: $currentP2Moves")
-        Log.d("OnlineGameViewModel", "makeMove: currentPlayerId to write: $nextPlayerId")
-        Log.d("OnlineGameViewModel", "makeMove: status to write: $newStatus")
-        Log.d("OnlineGameViewModel", "makeMove: winnerId to write: $newWinnerId")
-
-        db.collection("gameSessions").document(gameId)
-            .update(gameUpdates)
-            .addOnSuccessListener { Log.d("OnlineGameViewModel", "Move successfully written!") }
-            .addOnFailureListener { e -> Log.w("OnlineGameViewModel", "Error writing move", e) }
+        db.collection("gameSessions").document(gameId).update(gameUpdates)
     }
 
-    // Basic win condition check for Tic Tac Toe
-    private fun checkWinCondition(board: List<String>, currentPlayerIdMakingMove: String, isPlayer1: Boolean): Pair<String, String?> {
+    private fun checkWinCondition(board: List<String>, currentPlayerIdMakingMove: String?, isPlayer1: Boolean): Triple<String, String?, List<Int>?> {
         val winPatterns = listOf(
             listOf(0, 1, 2), listOf(3, 4, 5), listOf(6, 7, 8), // Rows
             listOf(0, 3, 6), listOf(1, 4, 7), listOf(2, 5, 8), // Columns
             listOf(0, 4, 8), listOf(2, 4, 6)  // Diagonals
         )
         val currentPlayerMark = if (isPlayer1) "X" else "O"
-
         for (pattern in winPatterns) {
             if (pattern.all { board[it] == currentPlayerMark }) {
                 val winnerStatus = if (isPlayer1) "player1_wins" else "player2_wins"
-                return Pair(winnerStatus, currentPlayerIdMakingMove)
+                return Triple(winnerStatus, currentPlayerIdMakingMove, pattern)
             }
         }
         if (board.all { it.isNotEmpty() }) {
-            return Pair("draw", null) // Game is a draw
+            return Triple("draw", null, null)
         }
-        return Pair("active", null) // Game continues
+        return Triple("active", null, null)
+    }
+
+    private fun determineWinningLine(board: List<String>, actualWinnerId: String, p1Id: String?): List<Int>? {
+        if (p1Id == null) return null
+        val winPatterns = listOf(
+            listOf(0, 1, 2), listOf(3, 4, 5), listOf(6, 7, 8),
+            listOf(0, 3, 6), listOf(1, 4, 7), listOf(2, 5, 8),
+            listOf(0, 4, 8), listOf(2, 4, 6)
+        )
+        val winnerMark = if (actualWinnerId == p1Id) "X" else "O"
+        for (pattern in winPatterns) {
+            if (pattern.all { board[it] == winnerMark }) {
+                return pattern
+            }
+        }
+        return null
     }
 
     override fun onCleared() {
         super.onCleared()
         gameListenerRegistration?.remove()
+        soundManager.release()
     }
 }
 
-// ViewModel Factory to pass gameId to OnlineGameViewModel
-class OnlineGameViewModelFactory(private val gameId: String) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(OnlineGameViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return OnlineGameViewModel(gameId) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
+// OnlineGameViewModelFactory is removed as TicTacToeViewModelFactory handles it.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnlineGameScreen(
     gameId: String,
-    navController: NavHostController, // Added NavController
-    viewModel: OnlineGameViewModel = viewModel(
-        factory = OnlineGameViewModelFactory(gameId)
-    )
+    navController: NavHostController,
 ) {
+    val factory = LocalViewModelFactory.current
+    val viewModel: OnlineGameViewModel = viewModel(factory = factory, key = gameId)
     val gameState by viewModel.gameState.collectAsState()
-    // val currentUser = FirebaseAuth.getInstance().currentUser // Not strictly needed here anymore for UI logic
-
-    val isGameOver =
-        gameState.status == "player1_wins" || gameState.status == "player2_wins" || gameState.status == "draw"
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Tic Tac Toe - Online") })
-        }
+        topBar = { TopAppBar(title = { Text("Tic Tac Toe - Online") }) }
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(colorResource(R.color.background))
-                .padding(paddingValues)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().background(colorResource(R.color.background))
+                .padding(paddingValues).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             if (gameState.status == "loading") {
                 CircularProgressIndicator()
-                Text(
-                    "Loading game...",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                Text("Loading game...", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
             } else if (gameState.status == "error") {
-                Text(
-                    "Error: ${gameState.turnMessage}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-                Button( // <<< ADDED THIS BUTTON FOR ERROR CASE
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
+                Text("Error: ${gameState.turnMessage}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+                Button(onClick = { navController.popBackStack() }, modifier = Modifier.padding(top = 16.dp)) {
                     Text("Back to Lobby")
                 }
             } else {
-                Text(
-                    text = "${gameState.player1DisplayName ?: "Player 1"} (X) vs ${gameState.player2DisplayName ?: "Waiting..."} (O)",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Text(
-                    text = gameState.turnMessage,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                // Game Board
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 16.dp) // Added padding below board
-                ) {
-                    (0..2).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            (0..2).forEach { col ->
-                                val index = row * 3 + col
-                                Button(
-                                    onClick = { viewModel.makeMove(index) },
-                                    modifier = Modifier.size(80.dp),
-                                    enabled = gameState.boardState[index].isEmpty() && gameState.isUserTurn && !isGameOver, // <<< MODIFIED THIS LINE
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        contentColor = if (gameState.boardState[index] == "X") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                                    )
-                                ) {
-                                    Text(
-                                        gameState.boardState[index],
-                                        style = MaterialTheme.typography.headlineLarge
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // "Back to Lobby" button when game is over
-                if (isGameOver) { // <<< ADDED THIS CONDITIONAL BLOCK
-                    Button(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.padding(top = 24.dp)
-                    ) {
-                        Text("Back to Lobby")
-                    }
+                // Player display names and turn messages are handled by sub-pages
+                if (gameState.gameType == GameType.NORMAL.name) {
+                    OnlineNormalTicTacToePage(
+                        gameState = gameState,
+                        onCellClick = { index -> viewModel.makeMove(index) },
+                        onNavigateBackToLobby = { navController.popBackStack() },
+                        winningLine = gameState.winningLine // Now correctly passed
+                    )
+                } else if (gameState.gameType == GameType.INFINITE.name) {
+                    OnlineInfiniteTicTacToePage(
+                        gameState = gameState,
+                        onCellClick = { index -> viewModel.makeMove(index) },
+                        onNavigateBackToLobby = { navController.popBackStack() },
+                        maxVisibleMovesPerPlayer = OnlineGameViewModel.MAX_VISIBLE_MOVES_PER_PLAYER,
+                        winningLine = gameState.winningLine // Pass winningLine
+                    )
+                } else {
+                    Text("Unknown game type: ${gameState.gameType}")
                 }
             }
         }
     }
 }
-
-

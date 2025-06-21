@@ -196,7 +196,7 @@ class NormalTicTacToeViewModel(
         viewModelScope.launch {
             // gameTimer.getFinalMatchDuration() will handle pausing if active.
             // Handle the currently ongoing round's data
-            if (_currentRoundMoves.value.isNotEmpty()) {
+            if (_currentRoundMoves.value.isNotEmpty() || _winnerInfo.value != null) { // Ensure even a decided but not fully saved round is processed
                 val roundNumber = _currentMatchRounds.value.size + 1
                 val finalRoundWinnerInfo = _winnerInfo.value
                 val finalRoundWinner = finalRoundWinnerInfo?.winner
@@ -213,10 +213,14 @@ class NormalTicTacToeViewModel(
                     roundWinnerName = finalRoundWinnerName,
                     winningCombinationJson = finalRoundWinningComboJson
                 )
-                val lastRoundWithMoves =
-                    RoundWithMoves(round = finalTempRoundEntity, moves = _currentRoundMoves.value)
-                _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
+                // Only add if there were moves or a winner, to avoid empty rounds on immediate resetScores
+                if (_currentRoundMoves.value.isNotEmpty() || finalRoundWinner != null) {
+                    val lastRoundWithMoves =
+                        RoundWithMoves(round = finalTempRoundEntity, moves = _currentRoundMoves.value)
+                    _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
+                }
             }
+
 
             val p1FinalScore = _player1Wins.value
             val p2FinalScore = _player2Wins.value
@@ -245,28 +249,21 @@ class NormalTicTacToeViewModel(
                 duration = gameTimer.getFinalMatchDuration()
             )
 
-            if (AISettingsManager.saveHistoryEnabled) {
+            if (AISettingsManager.saveHistoryEnabled && _currentMatchRounds.value.isNotEmpty()) { // Only save if there are rounds
                 val matchId = matchDao.insertMatch(matchEntity)
 
                 _currentMatchRounds.value.forEach { roundWithMoves ->
                     val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
-                    // The roundWithMoves.round should already have winningCombinationJson populated
-                    val actualRoundId = roundDao.insertRound(actualRoundEntity) // Get the actual ID
+                    val actualRoundId = roundDao.insertRound(actualRoundEntity)
                     roundWithMoves.moves.forEach { move ->
-                        moveDao.insertMove(move.copy(ownerRoundId = actualRoundId)) // Use actual ID
+                        moveDao.insertMove(move.copy(ownerRoundId = actualRoundId))
                     }
                 }
-            } else {
-                // Optionally, log that history saving is disabled
-                // Log.d("NormalTicTacToeViewModel", "Save history is disabled. Match data not saved.")
             }
 
-            // Clear all match-specific states
             _player1Wins.value = 0
             _player2Wins.value = 0
             _currentMatchRounds.value = emptyList()
-
-            // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
             resetRound()
             gameTimer.reset()
         }
@@ -288,7 +285,8 @@ class NormalTicTacToeViewModel(
 
         for (combination in relevantCombinations) {
             if (p1MovesSet.containsAll(combination)) {
-                val orderedWin = combination.toList()
+                val orderedWin = combination.toList() // Assuming WINNING_COMBINATIONS stores them in order or order doesn't matter for this use.
+                                                 // If specific order based on moves is needed, this needs adjustment.
                 _winnerInfo.value = WinnerInfo(Player.X, combination, orderedWin)
                 _player1Wins.value += 1
                 _isGameConcluded.value = true
@@ -396,15 +394,41 @@ class NormalTicTacToeViewModel(
 
     fun setAIMode(enabled: Boolean) {
         _isAIMode.value = enabled
-        AISettingsManager.isAiModeEnabled = enabled
+        // AISettingsManager.isAiModeEnabled = enabled // This line is handled by SettingsPage now
         resetScores() // Reset scores and round when AI mode changes
     }
 
     fun setAIDifficulty(difficulty: AIDifficulty) {
         _aiDifficulty.value = difficulty
-        AISettingsManager.currentDifficulty = difficulty
+        // AISettingsManager.currentDifficulty = difficulty // This line is handled by SettingsPage now
         if (_isAIMode.value) {
             resetScores() // Reset scores and round if AI is active and difficulty changes
+        }
+    }
+
+    fun refreshSettingsFromManager() {
+        val newAiMode = AISettingsManager.isAiModeEnabled
+        val newDifficulty = AISettingsManager.currentDifficulty
+        var settingsChanged = false
+
+        if (newAiMode != _isAIMode.value) {
+            _isAIMode.value = newAiMode
+            settingsChanged = true
+        }
+
+        // Only update difficulty if AI mode is enabled, and if difficulty actually changed
+        if (newAiMode && newDifficulty != _aiDifficulty.value) {
+            _aiDifficulty.value = newDifficulty
+            settingsChanged = true
+        } else if (!newAiMode && _aiDifficulty.value != newDifficulty) {
+            // If AI mode was just turned off, also update the stored difficulty
+            // so it's correct for next time AI mode is enabled.
+            // No game reset needed here if AI mode is off.
+            _aiDifficulty.value = newDifficulty
+        }
+
+        if (settingsChanged) {
+            resetScores() // Reset game if AI mode was toggled, or if difficulty changed while AI mode is on.
         }
     }
 

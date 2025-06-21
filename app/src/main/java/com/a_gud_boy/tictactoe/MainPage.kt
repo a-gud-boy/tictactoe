@@ -381,6 +381,7 @@ fun MainPage() {
                 composable(routeGameHistoryWrapper) {
                     val gameHistoryNavController = rememberNavController()
                     GameHistoryWrapper(
+                        paddingValues = innerPadding,
                         mainNavController = navController, 
                         gameHistoryNavController = gameHistoryNavController,
                         showClearHistoryDialog = { showClearHistoryDialog = true },
@@ -406,6 +407,7 @@ fun MainPage() {
 // Wrapper Composable for Game History's nested navigation
 @Composable
 fun GameHistoryWrapper(
+    paddingValues: PaddingValues,
     mainNavController: NavHostController, 
     gameHistoryNavController: NavHostController,
     showClearHistoryDialog: () -> Unit, 
@@ -423,6 +425,7 @@ fun GameHistoryWrapper(
         ) { backStackEntry ->
             val initialTab = backStackEntry.arguments?.getString("initialTab") ?: "history"
             GameHistoryScreen(
+                paddingValues,
                 mainNavController = gameHistoryNavController, 
                 initialTab = initialTab
             )
