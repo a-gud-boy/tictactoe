@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.a_gud_boy.tictactoe.GameType // Import GameType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -198,7 +197,7 @@ fun MatchSummaryCard(match: MatchEntity, dateFormatter: SimpleDateFormat) {
 
                 // AI Icon
                 Icon(
-                    painter = painterResource(R.drawable.microchip), // Or Icons.Filled.Adb as fallback
+                    painter = painterResource(R.drawable.ai), // Or Icons.Filled.Adb as fallback
                     contentDescription = "AI Icon",
                     modifier = Modifier.size(20.dp)
                 )

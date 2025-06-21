@@ -7,10 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.PeopleAlt // for people_alt
-import androidx.compose.material.icons.filled.Public // for public
-import androidx.compose.material.icons.filled.SmartToy // for smart_toy
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,7 +66,7 @@ fun GameSetupScreen(navController: NavController) {
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.Filled.ArrowBackIosNew,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = gameSetupTextPrimaryColor
                         )
@@ -110,8 +109,7 @@ fun GameSetupScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(Color.White) // main bg, though body is white
-                .padding(20.dp) // p-5 for main
-                .let { it }, // Added to resolve linting error for unused it
+                .padding(20.dp), // Added to resolve linting error for unused it
             verticalArrangement = Arrangement.spacedBy(32.dp) // space-y-8
         ) {
             // Game Mode Section
@@ -131,21 +129,21 @@ fun GameSetupScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp) // gap-4
                 ) {
                     GameModeCard(
-                        icon = Icons.Filled.Public,
+                        icon = Icons.Filled.Add,
                         title = ONLINE_MODE,
                         isSelected = selectedGameMode == ONLINE_MODE,
                         onClick = { selectedGameMode = ONLINE_MODE },
                         modifier = Modifier.weight(1f)
                     )
                     GameModeCard(
-                        icon = Icons.Filled.PeopleAlt,
+                        icon = Icons.Filled.Add,
                         title = OFFLINE_MODE,
                         isSelected = selectedGameMode == OFFLINE_MODE,
                         onClick = { selectedGameMode = OFFLINE_MODE },
                         modifier = Modifier.weight(1f)
                     )
                     GameModeCard(
-                        icon = Icons.Filled.SmartToy,
+                        icon = ImageVector.vectorResource(R.drawable.ai),
                         title = AI_MODE,
                         isSelected = selectedGameMode == AI_MODE,
                         onClick = { selectedGameMode = AI_MODE },
@@ -167,14 +165,14 @@ fun GameSetupScreen(navController: NavController) {
                     GameTypeLabel(
                         title = NORMAL_TYPE,
                         description = "Classic Tic Tac Toe with a 3x3 grid.",
-                        icon = Icons.Filled.Add, // Placeholder icon
+                        icon = ImageVector.vectorResource(R.drawable.normal_tic_tac_toe),
                         isSelected = selectedGameType == NORMAL_TYPE,
                         onClick = { selectedGameType = NORMAL_TYPE }
                     )
                     GameTypeLabel(
                         title = INFINITE_TYPE,
-                        description = "Play on an infinite grid, first to 5 in a row wins.",
-                        icon = Icons.Filled.Add, // Placeholder icon
+                        description = "Play with a twist where old moves disappear",
+                        icon = ImageVector.vectorResource(R.drawable.infinite_tic_tac_toe),
                         isSelected = selectedGameType == INFINITE_TYPE,
                         onClick = { selectedGameType = INFINITE_TYPE }
                     )
@@ -229,8 +227,6 @@ fun GameModeCard(
         }
     }
 }
-
-import androidx.compose.material.icons.filled.Add // Import for placeholder icon
 
 @Composable
 fun GameTypeLabel(

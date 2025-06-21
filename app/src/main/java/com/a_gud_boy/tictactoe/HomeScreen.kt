@@ -1,16 +1,26 @@
 package com.a_gud_boy.tictactoe // Updated package declaration
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.SportsEsports // Using SportsEsports as a proxy for stadia_controller
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +37,7 @@ val textPrimaryColor = Color(0xFF111418) // --text-primary: #111418;
 val slate600 = Color(0xFF475569) // Approx for text-slate-600
 val slate300 = Color(0xFFCBD5E1) // Approx for border-slate-300
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) { // Added NavController parameter
     Scaffold(
@@ -42,14 +53,15 @@ fun HomeScreen(navController: NavController) { // Added NavController parameter
                         textAlign = TextAlign.Center
                     )
                 },
-                backgroundColor = Color.White,
-                elevation = 4.dp // shadow-sm
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+//                elevation = 4.dp // shadow-sm
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(colorResource(R.color.background))
                 .padding(paddingValues) // Apply padding from Scaffold
                 .padding(top = 32.dp, bottom = 64.dp, start = 16.dp, end = 16.dp), // pt-8 pb-16 px-4
             horizontalAlignment = Alignment.CenterHorizontally
@@ -61,7 +73,7 @@ fun HomeScreen(navController: NavController) { // Added NavController parameter
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Filled.SportsEsports, // Using a similar available icon
+                    imageVector = Icons.Filled.Add, // Using a similar available icon
                     contentDescription = "Game Controller Icon",
                     tint = primaryColor,
                     modifier = Modifier.size(72.dp) // text-6xl is roughly 72.dp (6 * 12)
@@ -100,7 +112,7 @@ fun HomeScreen(navController: NavController) { // Added NavController parameter
 
                 FullWidthButton(
                     text = "Join Game with Code",
-                    icon = Icons.Filled.GroupAdd,
+                    icon = Icons.Filled.Add,
                     backgroundColor = backgroundColor,
                     textColor = textPrimaryColor,
                     borderColor = slate300,
@@ -109,7 +121,7 @@ fun HomeScreen(navController: NavController) { // Added NavController parameter
 
                 FullWidthButton(
                     text = "Game Rules",
-                    icon = Icons.Filled.MenuBook,
+                    icon = Icons.Filled.Menu,
                     backgroundColor = backgroundColor,
                     textColor = textPrimaryColor,
                     borderColor = slate300,
@@ -134,9 +146,9 @@ fun FullWidthButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp), // h-14
-        colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor),
+        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
         shape = MaterialTheme.shapes.medium, // rounded-xl
-        elevation = ButtonDefaults.elevation(defaultElevation = 2.dp), // shadow-md
+        elevation = ButtonDefaults.buttonElevation(2.dp),
         border = borderColor?.let { androidx.compose.foundation.BorderStroke(1.dp, it) }
     ) {
         Icon(

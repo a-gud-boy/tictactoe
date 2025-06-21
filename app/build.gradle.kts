@@ -53,8 +53,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.material.icons.core) // Explicitly add core icons
-    implementation(libs.androidx.material.icons.extended) // Add extended icons for SportsEsports
+//    implementation(libs.androidx.material.icons.core) // Explicitly add core icons
+//    implementation(libs.androidx.material.icons.extended) // Add extended icons for SportsEsports
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.firebase.crashlytics)
 
