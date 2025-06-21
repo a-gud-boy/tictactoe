@@ -167,12 +167,14 @@ fun GameSetupScreen(navController: NavController) {
                     GameTypeLabel(
                         title = NORMAL_TYPE,
                         description = "Classic Tic Tac Toe with a 3x3 grid.",
+                        icon = Icons.Filled.Add, // Placeholder icon
                         isSelected = selectedGameType == NORMAL_TYPE,
                         onClick = { selectedGameType = NORMAL_TYPE }
                     )
                     GameTypeLabel(
                         title = INFINITE_TYPE,
                         description = "Play on an infinite grid, first to 5 in a row wins.",
+                        icon = Icons.Filled.Add, // Placeholder icon
                         isSelected = selectedGameType == INFINITE_TYPE,
                         onClick = { selectedGameType = INFINITE_TYPE }
                     )
@@ -228,10 +230,13 @@ fun GameModeCard(
     }
 }
 
+import androidx.compose.material.icons.filled.Add // Import for placeholder icon
+
 @Composable
 fun GameTypeLabel(
     title: String,
     description: String,
+    icon: ImageVector, // Added icon parameter
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -249,6 +254,13 @@ fun GameTypeLabel(
             .padding(20.dp), // p-5
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null, // Decorative, title provides context
+            tint = gameSetupAccentColor, // Or gameSetupTextPrimaryColor if preferred
+            modifier = Modifier.size(24.dp) // Adjust size as needed
+        )
+        Spacer(modifier = Modifier.width(16.dp)) // Spacing between icon and text
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
