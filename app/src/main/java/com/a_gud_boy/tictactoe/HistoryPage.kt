@@ -163,6 +163,7 @@ fun MatchHistoryItem(
 
 @Composable
 fun HistoryPageContent(
+    paddingValues: PaddingValues,
     historyViewModel: HistoryViewModel,
     navController: NavHostController,
     modifier: Modifier = Modifier
@@ -171,7 +172,7 @@ fun HistoryPageContent(
 
     if (matchHistory.isEmpty()) {
         Box(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize().padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -182,7 +183,7 @@ fun HistoryPageContent(
         }
     } else {
         LazyColumn(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

@@ -25,11 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-enum class GameType {
-   NORMAL,
-   INFINITE
-}
-
 data class OnlineGameState(
     val gameId: String = "",
     val player1Id: String? = null,

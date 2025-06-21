@@ -29,8 +29,10 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import androidx.constraintlayout.compose.Dimension
 
 // Using project's OnlineGameState, Player, TicTacToeCell
 
@@ -71,12 +73,12 @@ fun OnlineNormalTicTacToePage(
                 if (col == 0) start.linkTo(parent.start, margin) else start.linkTo(refs[i - 1].end, margin)
             }
         }
-        createHorizontalChain(refs[0], refs[1], refs[2], chainStyle = ChainStyle.SpreadInside)
-        createHorizontalChain(refs[3], refs[4], refs[5], chainStyle = ChainStyle.SpreadInside)
-        createHorizontalChain(refs[6], refs[7], refs[8], chainStyle = ChainStyle.SpreadInside)
-        createVerticalChain(refs[0], refs[3], refs[6], chainStyle = ChainStyle.SpreadInside)
-        createVerticalChain(refs[1], refs[4], refs[7], chainStyle = ChainStyle.SpreadInside)
-        createVerticalChain(refs[2], refs[5], refs[8], chainStyle = ChainStyle.SpreadInside)
+        createHorizontalChain(refs[0], refs[1], refs[2], chainStyle = ChainStyle.Spread)
+        createHorizontalChain(refs[3], refs[4], refs[5], chainStyle = ChainStyle.Spread)
+        createHorizontalChain(refs[6], refs[7], refs[8], chainStyle = ChainStyle.Spread)
+        createVerticalChain(refs[0], refs[3], refs[6], chainStyle = ChainStyle.Spread)
+        createVerticalChain(refs[1], refs[4], refs[7], chainStyle = ChainStyle.Spread)
+        createVerticalChain(refs[2], refs[5], refs[8], chainStyle = ChainStyle.Spread)
     }
 
     Column(
