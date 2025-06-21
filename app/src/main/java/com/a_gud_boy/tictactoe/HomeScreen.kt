@@ -16,6 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController // Added NavController import
+import androidx.navigation.compose.rememberNavController // For preview
 
 // Color definitions based on CSS variables
 val primaryColor = Color(0xFF0C7FF2)
@@ -26,7 +28,7 @@ val slate600 = Color(0xFF475569) // Approx for text-slate-600
 val slate300 = Color(0xFFCBD5E1) // Approx for border-slate-300
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) { // Added NavController parameter
     Scaffold(
         topBar = {
             TopAppBar(
@@ -93,7 +95,7 @@ fun HomeScreen() {
                     icon = Icons.Filled.PlayArrow,
                     backgroundColor = primaryColor,
                     textColor = textSecondaryColor,
-                    onClick = { /* TODO */ }
+                    onClick = { navController.navigate("game_setup") } // Navigate to game_setup
                 )
 
                 FullWidthButton(
@@ -157,6 +159,6 @@ fun FullWidthButton(
 @Composable
 fun DefaultPreview() {
     MaterialTheme { // Wrap with MaterialTheme for preview
-        HomeScreen()
+        HomeScreen(navController = rememberNavController()) // Pass a dummy NavController for preview
     }
 }

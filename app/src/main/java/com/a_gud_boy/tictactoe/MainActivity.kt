@@ -12,8 +12,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
 import com.a_gud_boy.tictactoe.HomeScreen // Updated import for HomeScreen
+// GameSetupScreen is already in the same package, so direct import might not be needed if not explicitly used by MainActivity directly.
+// However, it's good practice for clarity if NavHost is referencing it.
+import com.a_gud_boy.tictactoe.GameSetupScreen
 
 // ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
 
@@ -168,12 +174,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TictactoeTheme {
-                // CompositionLocalProvider(LocalViewModelFactory provides viewModelFactory) { // Provide factory
-                //    MainPage() // MainPage will now have access via LocalViewModelFactory.current
-                //    // Assuming MainPage is updated to not expect viewModelFactory as a parameter
-                //    // or can still accept it for other purposes but new ViewModels use the Local.
-                // }
-                HomeScreen() // Call the new HomeScreen
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "home") {
+                    composable("home") {
+                        HomeScreen(navController = navController)
+                    }
+                    composable("game_setup") {
+                        GameSetupScreen(navController = navController)
+                    }
+                }
             }
         }
     }
