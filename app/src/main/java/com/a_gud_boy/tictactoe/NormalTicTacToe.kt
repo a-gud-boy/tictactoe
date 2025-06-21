@@ -32,6 +32,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 // Removed DisposableEffect as it's not used after recent changes
 import androidx.compose.runtime.LaunchedEffect // Ensure this is imported
@@ -63,6 +68,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 
 /**
@@ -74,7 +80,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  * - An indicator showing whose turn it is or the game result (win/draw).
  * - Buttons to reset the current round or start a new game (reset scores).
  *
- * @param innerPadding PaddingValues provided by the Scaffold, used for layout to avoid system UI elements.
+ * @param navController The NavController for handling navigation actions.
  * @param viewModel The NormalTicTacToeViewModel instance that manages the game's state and logic.
  */
 @RequiresApi(Build.VERSION_CODES.R)
@@ -82,15 +88,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NormalTicTacToePage(
-    innerPadding: PaddingValues,
+    navController: NavController,
     viewModel: NormalTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current) // Use central factory
 ) {
     // LaunchedEffect to refresh settings when the composable enters the composition
     LaunchedEffect(Unit) { // Using Unit ensures this runs once when the composable is first displayed
         viewModel.refreshSettingsFromManager()
     }
-
-    val volume = 1.0f // Adjust volume as needed, or make it a parameter
 
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
@@ -207,24 +211,44 @@ fun NormalTicTacToePage(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .padding(innerPadding)
-            .wrapContentSize()
-            .background(colorResource(R.color.background))
-            .padding(horizontal = 20.dp)
-    ) {
-        val scrollState = rememberScrollState()
-
-        Column(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Tic Tac Toe") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+    ) { scaffoldPaddingValues ->
+        Box(
             modifier = Modifier
+                .padding(scaffoldPaddingValues) // Use padding from Scaffold
                 .fillMaxSize()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+                .background(colorResource(R.color.background))
+                .padding(horizontal = 20.dp)
         ) {
-            ConstraintLayout(
-                constraintSet = constraints,
+            val scrollState = rememberScrollState()
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                ConstraintLayout(
+                    constraintSet = constraints,
                 modifier = Modifier
                     .padding(20.dp, 10.dp, 20.dp, 20.dp)
                     .width(300.dp)

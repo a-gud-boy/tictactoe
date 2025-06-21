@@ -28,8 +28,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 // Removed DisposableEffect as it's not used
 import androidx.compose.runtime.LaunchedEffect // Ensure this is imported
@@ -61,6 +66,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 /**
  * Composable function that represents the main screen for the Infinite Tic Tac Toe game.
@@ -78,8 +84,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  * A key visual feature is the line drawn across the winning combination of cells when a player wins.
  * Additionally, cells whose marks are about to disappear are visually dimmed to provide a cue to the player.
  *
- * @param innerPadding Padding values to apply to the root Box composable, typically provided by a Scaffold
- *                     or other parent layout, to ensure content is not obscured by system UI elements.
+ * @param navController The NavController for handling navigation actions.
  * @param viewModel The [InfiniteTicTacToeViewModel] instance that holds and manages the game's state
  *                  and business logic. Defaults to a new ViewModel instance provided by `viewModel()`.
  */
@@ -87,15 +92,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfiniteTicTacToePage(
-    innerPadding: PaddingValues,
+    navController: NavController,
     viewModel: InfiniteTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current) // Use central factory
 ) {
     // LaunchedEffect to refresh settings when the composable enters the composition
     LaunchedEffect(Unit) { // Using Unit ensures this runs once when the composable is first displayed
         viewModel.refreshSettingsFromManager()
     }
-
-    val volume = 1.0f
 
     val playerXColor = colorResource(R.color.red_x_icon)
     val playerOColor = colorResource(R.color.blue_o_icon)
