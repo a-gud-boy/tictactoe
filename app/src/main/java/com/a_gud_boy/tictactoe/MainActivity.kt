@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
@@ -127,11 +128,12 @@ class MainActivity : ComponentActivity() {
         HapticFeedbackManager.init(this)
 
         setContent {
-            TictactoeTheme {
-                var isSignedIn by remember { mutableStateOf(false) }
-                val navController = rememberNavController()
+            CompositionLocalProvider(LocalViewModelFactory provides viewModelFactory) {
+                TictactoeTheme {
+                    var isSignedIn by remember { mutableStateOf(false) }
+                    val navController = rememberNavController()
 
-                LaunchedEffect(Unit) {
+                    LaunchedEffect(Unit) {
                     val auth = FirebaseAuth.getInstance()
                     if (auth.currentUser == null) {
                         auth.signInAnonymously()
