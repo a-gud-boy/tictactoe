@@ -16,6 +16,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect // Keep this, it's used by other toggles and the new one
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,30 +33,40 @@ import kotlin.math.roundToInt
 @Composable
 fun SettingsPage(innerPadding: PaddingValues) {
     val context = LocalContext.current
-    // val soundManager = remember { SoundManager(context) } // Removed: SoundManager instance no longer created here
-
-    // ViewModel instances - In a real app, provide a proper factory or use Hilt for DI
-    // SoundManager is still needed by ViewModels, so it's instantiated inside the factory.
-    // This is acceptable as SoundManager itself doesn't hold the isSoundEnabled state anymore.
     val appDatabase = AppDatabase.getDatabase(context)
-    val normalTicTacToeViewModel: NormalTicTacToeViewModel = viewModel(
-        factory = TicTacToeViewModelFactory(SoundManager(context), appDatabase)
-    )
-    val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel = viewModel(
-        factory = TicTacToeViewModelFactory(SoundManager(context), appDatabase)
-    )
-    val historyViewModel: HistoryViewModel = viewModel(
-        factory = HistoryViewModelFactory(appDatabase.matchDao())
-    )
+    // ViewModel factory is provided by LocalViewModelFactory.current in MainActivity's CompositionLocalProvider
+    val factory = LocalViewModelFactory.current
+
+    val normalTicTacToeViewModel: NormalTicTacToeViewModel = viewModel(factory = factory)
+    val infiniteTicTacToeViewModel: InfiniteTicTacToeViewModel = viewModel(factory = factory)
+    val historyViewModel: HistoryViewModel = viewModel(factory = factory)
 
     var showDeleteHistoryDialog by remember { mutableStateOf(false) }
 
-    // var soundEnabled by remember { mutableStateOf(soundManager.isSoundEnabled) } // Removed: State now from AISettingsManager
-    // Haptic feedback state is managed by HapticFeedbackManager
+    // Local state for the Sound Switch
+    var localSoundEnabled by remember { mutableStateOf(AISettingsManager.isSoundEnabled) }
+    LaunchedEffect(AISettingsManager.isSoundEnabled) {
+        if (localSoundEnabled != AISettingsManager.isSoundEnabled) {
+            localSoundEnabled = AISettingsManager.isSoundEnabled
+        }
+    }
 
-    // AI settings are now managed by AISettingsManager
-    // Local state for slider position might still be useful for immediate UI response
-    // then update AISettingsManager and ViewModels.
+    // Local state for the Haptic Feedback Switch
+    var localHapticFeedbackEnabled by remember { mutableStateOf(HapticFeedbackManager.isHapticFeedbackEnabled) }
+    LaunchedEffect(HapticFeedbackManager.isHapticFeedbackEnabled) {
+        if (localHapticFeedbackEnabled != HapticFeedbackManager.isHapticFeedbackEnabled) {
+            localHapticFeedbackEnabled = HapticFeedbackManager.isHapticFeedbackEnabled
+        }
+    }
+
+    // Local state for "Play vs AI" Switch
+    var localIsAiModeEnabled by remember { mutableStateOf(AISettingsManager.isAiModeEnabled) }
+    LaunchedEffect(AISettingsManager.isAiModeEnabled) {
+        if (localIsAiModeEnabled != AISettingsManager.isAiModeEnabled) {
+            localIsAiModeEnabled = AISettingsManager.isAiModeEnabled
+        }
+    }
+
     var sliderPosition by remember {
         mutableStateOf(
             when (AISettingsManager.currentDifficulty) {
@@ -80,11 +91,7 @@ fun SettingsPage(innerPadding: PaddingValues) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-//            Text("Settings", style = MaterialTheme.typography.headlineMedium)
-
-//            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sound Setting
+            // Sound Setting Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -92,9 +99,10 @@ fun SettingsPage(innerPadding: PaddingValues) {
             ) {
                 Text("Sound")
                 Switch(
-                    checked = AISettingsManager.isSoundEnabled, // Read from AISettingsManager
-                    onCheckedChange = {
-                        AISettingsManager.isSoundEnabled = it // Update AISettingsManager
+                    checked = localSoundEnabled,
+                    onCheckedChange = { newCheckedState ->
+                        AISettingsManager.isSoundEnabled = newCheckedState
+                        localSoundEnabled = newCheckedState
                     }
                 )
             }
@@ -107,9 +115,9 @@ fun SettingsPage(innerPadding: PaddingValues) {
             ) {
                 Text("Save History")
                 Switch(
-                    checked = AISettingsManager.saveHistoryEnabled, // Read from AISettingsManager
+                    checked = AISettingsManager.saveHistoryEnabled,
                     onCheckedChange = { newValue ->
-                        if (!newValue) { // If attempting to disable save history
+                        if (!newValue) {
                             showDeleteHistoryDialog = true
                         } else {
                             AISettingsManager.saveHistoryEnabled = true
@@ -126,16 +134,19 @@ fun SettingsPage(innerPadding: PaddingValues) {
             ) {
                 Text("Play vs AI")
                 Switch(
-                    checked = AISettingsManager.isAiModeEnabled,
+                    checked = localIsAiModeEnabled, // Use the local state
                     onCheckedChange = { enabled ->
-                        AISettingsManager.isAiModeEnabled = enabled
+                        localIsAiModeEnabled = enabled          // 1. Update local UI state
+                        AISettingsManager.isAiModeEnabled = enabled // 2. Update global setting
+
+                        // 3. Notify ViewModels
                         normalTicTacToeViewModel.setAIMode(enabled)
                         infiniteTicTacToeViewModel.setAIMode(enabled)
                     }
                 )
             }
 
-            // Haptic Feedback Setting
+            // Haptic Feedback Setting Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -143,8 +154,11 @@ fun SettingsPage(innerPadding: PaddingValues) {
             ) {
                 Text("Haptic Feedback")
                 Switch(
-                    checked = HapticFeedbackManager.isHapticFeedbackEnabled,
-                    onCheckedChange = { HapticFeedbackManager.isHapticFeedbackEnabled = it }
+                    checked = localHapticFeedbackEnabled,
+                    onCheckedChange = { newCheckedState ->
+                        HapticFeedbackManager.isHapticFeedbackEnabled = newCheckedState
+                        localHapticFeedbackEnabled = newCheckedState
+                    }
                 )
             }
 
@@ -178,7 +192,7 @@ fun SettingsPage(innerPadding: PaddingValues) {
                         infiniteTicTacToeViewModel.setAIDifficulty(newDifficulty)
                     },
                     valueRange = 0f..2f,
-                    steps = 1 // 0 (Easy), 1 (Medium), 2 (Hard)
+                    steps = 1
                 )
             }
 
@@ -190,7 +204,7 @@ fun SettingsPage(innerPadding: PaddingValues) {
                     confirmButton = {
                         TextButton(onClick = {
                             AISettingsManager.saveHistoryEnabled = false
-                            historyViewModel.clearAllHistory() // Call the deletion method
+                            historyViewModel.clearAllHistory()
                             showDeleteHistoryDialog = false
                         }) {
                             Text("Yes, Delete History")
@@ -198,7 +212,7 @@ fun SettingsPage(innerPadding: PaddingValues) {
                     },
                     dismissButton = {
                         TextButton(onClick = {
-                            AISettingsManager.saveHistoryEnabled = false // Still disable saving, just don't delete
+                            AISettingsManager.saveHistoryEnabled = false
                             showDeleteHistoryDialog = false
                         }) {
                             Text("No, Keep History")

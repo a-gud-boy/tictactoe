@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues // Added import
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -63,6 +64,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
+import com.google.firebase.auth.FirebaseAuth
+import android.util.Log // For logging
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.filled.AccountCircle // Icon for Online Multiplayer
+import androidx.navigation.NavHostController
+import com.a_gud_boy.tictactoe.OnlineLobbyScreen // Added import
+import com.a_gud_boy.tictactoe.OnlineGameScreen // Added import
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,18 +88,41 @@ fun MainPage() {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) } // Used for drawer item selection state
 
     val items = listOf(
         "Normal TicTacToe",     // Index 0
         "Infinite TicTacToe", // Index 1
-        "Game History",         // Index 2
-        "Settings",             // Index 3
-        "Help"                  // Index 4
+        "Online Multiplayer",   // Index 2
+        "Game History",         // Index 3
+        "Settings",             // Index 4
+        "Help"                  // Index 5
     )
-    val gameHistoryItemIndex = 2
+    // Route constants for navigation
+    val routeNormalTicTacToe = "normal_tictactoe"
+    val routeInfiniteTicTacToe = "infinite_tictactoe"
+    val routeOnlineLobby = "online_lobby"
+    val routeGameHistoryWrapper = "game_history_wrapper"
+    val routeSettings = "settings"
+    val routeHelp = "help"
 
     val navController = rememberNavController()
+
+    LaunchedEffect(Unit) {
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser == null) {
+            auth.signInAnonymously()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("MainPageAuth", "signInAnonymously:success. User ID: ${auth.currentUser?.uid}")
+                    } else {
+                        Log.w("MainPageAuth", "signInAnonymously:failure", task.exception)
+                    }
+                }
+        } else {
+            Log.d("MainPageAuth", "User already signed in. User ID: ${auth.currentUser?.uid}")
+        }
+    }
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -99,67 +131,41 @@ fun MainPage() {
                     DrawerHeader()
                     Column {
                         items.forEachIndexed { index, itemText ->
+                            val route = when (index) {
+                                0 -> routeNormalTicTacToe
+                                1 -> routeInfiniteTicTacToe
+                                2 -> routeOnlineLobby
+                                3 -> routeGameHistoryWrapper
+                                4 -> routeSettings
+                                5 -> routeHelp
+                                else -> routeNormalTicTacToe
+                            }
                             NavigationDrawerItem(
                                 label = { Text(itemText) },
                                 selected = index == selectedItemIndex,
                                 onClick = {
-                                    if (index == gameHistoryItemIndex) {
-                                        val startRouteForGameHistoryNavHost =
-                                            "game_history_screen/history"
-                                        if (selectedItemIndex == gameHistoryItemIndex) {
-                                            navController.navigate(startRouteForGameHistoryNavHost) {
-                                                popUpTo(startRouteForGameHistoryNavHost) {
-                                                    inclusive = true
-                                                }
-                                                launchSingleTop = true
-                                            }
-                                        } else {
-                                            selectedItemIndex = gameHistoryItemIndex
-                                        }
-                                    } else {
-                                        selectedItemIndex = index
-                                    }
+                                    selectedItemIndex = index
                                     scope.launch { drawerState.close() }
+                                    navController.navigate(route) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 },
                                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                                 colors = NavigationDrawerItemDefaults.colors(
                                     unselectedContainerColor = Color.Transparent,
-                                    selectedContainerColor = if (index == selectedItemIndex) MaterialTheme.colorScheme.primaryContainer.copy(
-                                        alpha = 0.1f
-                                    ) else Color.Transparent,
+                                    selectedContainerColor = if (index == selectedItemIndex) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) else Color.Transparent,
                                     selectedTextColor = Color.Black
                                 ),
                                 icon = {
                                     when (index) {
-                                        0 -> Icon(
-                                            painterResource(R.drawable.normal_tic_tac_toe),
-                                            "Normal Tic Tac Toe",
-                                            modifier = Modifier.size(30.dp)
-                                        )
-
-                                        1 -> Icon(
-                                            painterResource(R.drawable.infinite_tic_tac_toe),
-                                            "Infinite Tic Tac Toe",
-                                            modifier = Modifier.size(30.dp)
-                                        )
-
-                                        gameHistoryItemIndex -> Icon(
-                                            Icons.Filled.Build,
-                                            "Game History",
-                                            modifier = Modifier.size(30.dp)
-                                        )
-
-                                        3 -> Icon(
-                                            Icons.Filled.Settings,
-                                            "Settings",
-                                            modifier = Modifier.size(30.dp)
-                                        )
-
-                                        4 -> Icon(
-                                            Icons.Outlined.Info,
-                                            "Help",
-                                            modifier = Modifier.size(30.dp)
-                                        )
+                                        0 -> Icon(painterResource(R.drawable.normal_tic_tac_toe), "Normal Tic Tac Toe", modifier = Modifier.size(30.dp))
+                                        1 -> Icon(painterResource(R.drawable.infinite_tic_tac_toe), "Infinite Tic Tac Toe", modifier = Modifier.size(30.dp))
+                                        2 -> Icon(Icons.Filled.AccountCircle, "Online Multiplayer", modifier = Modifier.size(30.dp))
+                                        3 -> Icon(Icons.Filled.Build, "Game History", modifier = Modifier.size(30.dp))
+                                        4 -> Icon(Icons.Filled.Settings, "Settings", modifier = Modifier.size(30.dp))
+                                        5 -> Icon(Icons.Outlined.Info, "Help", modifier = Modifier.size(30.dp))
                                     }
                                 }
                             )
@@ -175,28 +181,25 @@ fun MainPage() {
         Scaffold(
             topBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                val titleText = when (currentRoute) {
+                    routeNormalTicTacToe -> "Tic Tac Toe"
+                    routeInfiniteTicTacToe -> "Infinite TicTacToe"
+                    routeOnlineLobby -> "Online Multiplayer"
+                    routeGameHistoryWrapper -> "Game History"
+                    routeSettings -> "Settings"
+                    routeHelp -> "Help"
+                    else -> { 
+                        if (currentRoute?.startsWith("match_details/") == true) "Match Details"
+                        else if (currentRoute?.startsWith("roundReplay/") == true) "Match Replay"
+                        else if (currentRoute?.startsWith("online_game/") == true) "Online Game"
+                        else "Tic Tac Toe" 
+                    }
+                }
+
                 TopAppBar(
                     title = {
-                        val titleText by remember {
-                            derivedStateOf {
-                                val currentRoute = navBackStackEntry?.destination?.route
-                                when (selectedItemIndex) {
-                                    0 -> "Tic Tac Toe"
-                                    1 -> "Infinite TicTacToe"
-                                    gameHistoryItemIndex -> {
-                                        when {
-                                            currentRoute?.startsWith("match_details/") == true -> "Match Details"
-                                            currentRoute?.startsWith("roundReplay/") == true -> "Match Replay"
-                                            else -> "Game History"
-                                        }
-                                    }
-
-                                    3 -> "Settings"
-                                    4 -> "Help"
-                                    else -> "Lorem Ipsum"
-                                }
-                            }
-                        }
                         Text(
                             text = titleText,
                             modifier = Modifier.fillMaxWidth(),
@@ -207,16 +210,10 @@ fun MainPage() {
                         )
                     },
                     navigationIcon = {
-                        val currentRoute = navBackStackEntry?.destination?.route
-                        if (selectedItemIndex == gameHistoryItemIndex && (currentRoute?.startsWith("match_details/") == true || currentRoute?.startsWith(
-                                "roundReplay/"
-                            ) == true)
-                        ) {
+                        val canPop = navController.previousBackStackEntry != null
+                        if (canPop && currentRoute != routeNormalTicTacToe && currentRoute != routeInfiniteTicTacToe && currentRoute != routeOnlineLobby && currentRoute != routeGameHistoryWrapper && currentRoute != routeSettings && currentRoute != routeHelp ) { 
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                             }
                         } else {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -225,58 +222,32 @@ fun MainPage() {
                         }
                     },
                     actions = {
-                        val currentRoute = navBackStackEntry?.destination?.route
-
-                        if (selectedItemIndex == gameHistoryItemIndex) {
-                            if (currentRoute == "game_history_screen/{initialTab}") {
+                        when (currentRoute) {
+                            routeGameHistoryWrapper -> {
                                 IconButton(onClick = { showClearHistoryDialog = true }) {
-                                    Icon(
-                                        Icons.Filled.Delete,
-                                        contentDescription = "Clear All History"
-                                    )
-                                }
-                            } else if (currentRoute?.startsWith("match_details/") == true) {
-                                IconButton(onClick = { showDeleteMatchDialog = true }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Delete Match"
-                                    )
-                                }
-                            } else if (currentRoute?.startsWith("roundReplay/") == true) {
-                                IconButton(onClick = { showDeleteRoundDialog = true }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Delete Round Data" // Or a more appropriate description
-                                    )
+                                    Icon(Icons.Filled.Delete, contentDescription = "Clear All History")
                                 }
                             }
-                        } else {
-                            IconButton(onClick = {
-                                when (selectedItemIndex) {
-                                    0 -> {
-                                        infoDialogTitle = "Normal Tic Tac Toe"; infoDialogMessage =
-                                            "This is the classic Tic Tac Toe game. Get three of your marks in a row (horizontally, vertically, or diagonally) to win. Player X goes first."
+                            routeNormalTicTacToe, routeInfiniteTicTacToe, routeSettings, routeHelp -> {
+                                IconButton(onClick = {
+                                    infoDialogTitle = when(currentRoute) {
+                                        routeNormalTicTacToe -> "Normal Tic Tac Toe"
+                                        routeInfiniteTicTacToe -> "Infinite Tic Tac Toe"
+                                        routeSettings -> "Settings"
+                                        routeHelp -> "Help"
+                                        else -> ""
                                     }
-
-                                    1 -> {
-                                        infoDialogTitle =
-                                            "Infinite Tic Tac Toe"; infoDialogMessage =
-                                            "A twist on the classic! Marks disappear after 3 subsequent moves by any player. Strategy is key as the board constantly changes. Get three of your marks in a row to win."
+                                    infoDialogMessage = when(currentRoute) {
+                                        routeNormalTicTacToe -> "This is the classic Tic Tac Toe game..."
+                                        routeInfiniteTicTacToe -> "A twist on the classic! Marks disappear..."
+                                        routeSettings -> "Here you can configure various application settings..."
+                                        routeHelp -> "Welcome to Tic Tac Toe!..."
+                                        else -> ""
                                     }
-
-                                    3 -> {
-                                        infoDialogTitle = "Settings"; infoDialogMessage =
-                                            "Here you can configure various application settings:\n- Sound: Toggle game sounds on or off.\n- Haptic Feedback: Toggle vibrational feedback on or off.\n- AI Mode: Enable or disable playing against the AI.\n- AI Difficulty: Adjust the AI's skill level when AI mode is enabled."
-                                    }
-
-                                    4 -> {
-                                        infoDialogTitle = "Help"; infoDialogMessage =
-                                            "Welcome to Tic Tac Toe!\n\n- Navigation: Use the drawer menu (swipe from left or tap the menu icon) to switch between game modes, view Game History, Settings, and this Help page.\n- Game Play: Follow on-screen instructions for each game mode.\n- Settings: Customize your experience in the Settings page."
-                                    }
+                                    showInfoDialog = true
+                                }) {
+                                    Icon(Icons.Outlined.Info, contentDescription = "Information")
                                 }
-                                showInfoDialog = true
-                            }) {
-                                Icon(Icons.Outlined.Info, contentDescription = "Information")
                             }
                         }
                     },
@@ -288,25 +259,20 @@ fun MainPage() {
                     )
                 )
             }
-        ) { innerPadding ->
-            val navBackStackEntry by navController.currentBackStackEntryAsState() // Make navBackStackEntry available here
+        ) { innerPadding -> 
+            val currentNavBackStackEntry by navController.currentBackStackEntryAsState() 
 
             if (showDeleteMatchDialog) {
-                val currentMatchId = navBackStackEntry?.arguments?.getLong("matchId")
-                val matchDetailsViewModelInstance: MatchDetailsViewModel? = if (currentMatchId != null && navBackStackEntry != null) {
-                    // Ensure navBackStackEntry is not null before using it as ViewModelStoreOwner
-                    if (navBackStackEntry?.destination?.route == "match_details/{matchId}") { // Double check we have the correct NBE
-                        viewModel(
-                            viewModelStoreOwner = navBackStackEntry!!,
+                val matchIdFromArgs = currentNavBackStackEntry?.arguments?.getLong("matchId")
+                val matchDetailsViewModelInstance: MatchDetailsViewModel? = if (matchIdFromArgs != null && currentNavBackStackEntry != null) {
+                     if (currentNavBackStackEntry?.destination?.route == "match_details/{matchId}") {
+                         viewModel(
+                            viewModelStoreOwner = currentNavBackStackEntry!!, 
                             factory = LocalViewModelFactory.current,
-                            key = "match_details_vm_$currentMatchId"
+                            key = "match_details_vm_$matchIdFromArgs"
                         )
-                    } else {
-                        null // navBackStackEntry is not for match_details, should not happen if dialog is shown
-                    }
-                } else {
-                    null
-                }
+                    } else null
+                } else null
 
                 AlertDialog(
                     onDismissRequest = { showDeleteMatchDialog = false },
@@ -314,47 +280,40 @@ fun MainPage() {
                     text = { Text("Are you sure you want to delete this match? This action cannot be undone.") },
                     confirmButton = {
                         Button(onClick = {
-                            matchDetailsViewModelInstance?.let { vm ->
-                                vm.deleteMatch()
+                            matchDetailsViewModelInstance?.deleteMatch()
+                            if(navController.currentDestination?.route?.startsWith("game_history_wrapper") == true) {
                                 navController.popBackStack()
                             }
                             showDeleteMatchDialog = false
                         }) { Text("Delete") }
                     },
-                    dismissButton = {
-                        Button(onClick = { showDeleteMatchDialog = false }) { Text("Cancel") }
-                    }
+                    dismissButton = { Button(onClick = { showDeleteMatchDialog = false }) { Text("Cancel") } }
                 )
             }
 
             if (showDeleteRoundDialog) {
-                val currentRoundId = navBackStackEntry?.arguments?.getLong("roundId")
-                // val currentMatchIdForNav = navBackStackEntry?.arguments?.getLong("matchId") // For navigation if needed later
-
-                val roundReplayViewModelInstance: RoundReplayViewModel? = if (currentRoundId != null && navBackStackEntry != null && navBackStackEntry?.destination?.route == "roundReplay/{matchId}/{roundId}/{gameType}") {
-                    viewModel(
-                        viewModelStoreOwner = navBackStackEntry!!,
-                        factory = LocalViewModelFactory.current,
-                        key = "round_replay_vm_$currentRoundId"
-                    )
-                } else {
-                    null
-                }
-
+                val roundIdFromArgs = currentNavBackStackEntry?.arguments?.getLong("roundId")
+                 val roundReplayViewModelInstance: RoundReplayViewModel? = if (roundIdFromArgs != null && currentNavBackStackEntry != null) {
+                    if (currentNavBackStackEntry?.destination?.route == "roundReplay/{matchId}/{roundId}/{gameType}") {
+                        viewModel(
+                            viewModelStoreOwner = currentNavBackStackEntry!!,
+                            factory = LocalViewModelFactory.current,
+                            key = "round_replay_vm_$roundIdFromArgs"
+                        )
+                    } else null
+                } else null
                 AlertDialog(
                     onDismissRequest = { showDeleteRoundDialog = false },
                     title = { Text("Delete Round") },
-                    text = { Text("Are you sure you want to delete this round's data? This action cannot be undone.") },
+                    text = { Text("Are you sure you want to delete this round's data?") },
                     confirmButton = {
                         Button(onClick = {
                             roundReplayViewModelInstance?.deleteRound()
-                            navController.popBackStack() // Go back to Match Details
+                            navController.popBackStack()
                             showDeleteRoundDialog = false
                         }) { Text("Delete") }
                     },
-                    dismissButton = {
-                        Button(onClick = { showDeleteRoundDialog = false }) { Text("Cancel") }
-                    }
+                    dismissButton = { Button(onClick = { showDeleteRoundDialog = false }) { Text("Cancel") } }
                 )
             }
 
@@ -362,16 +321,14 @@ fun MainPage() {
                 AlertDialog(
                     onDismissRequest = { showClearHistoryDialog = false },
                     title = { Text("Clear All History") },
-                    text = { Text("Are you sure you want to delete all match history? This action cannot be undone.") },
+                    text = { Text("Are you sure you want to delete all match history?") },
                     confirmButton = {
                         Button(onClick = {
-                            historyViewModel.clearAllHistory()
+                            historyViewModel.clearAllHistory() 
                             showClearHistoryDialog = false
                         }) { Text("Clear All") }
                     },
-                    dismissButton = {
-                        Button(onClick = { showClearHistoryDialog = false }) { Text("Cancel") }
-                    }
+                    dismissButton = { Button(onClick = { showClearHistoryDialog = false }) { Text("Cancel") } }
                 )
             }
 
@@ -384,72 +341,123 @@ fun MainPage() {
                 )
             }
 
-            when (selectedItemIndex) {
-                0 -> {
-                    val viewModel: NormalTicTacToeViewModel =
-                        viewModel(factory = LocalViewModelFactory.current)
-                    NormalTicTacToePage(innerPadding = innerPadding, viewModel = viewModel)
+            NavHost(
+                navController = navController,
+                startDestination = routeNormalTicTacToe
+            ) {
+                composable(routeNormalTicTacToe) {
+                    val normalViewModel: NormalTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
+                    NormalTicTacToePage(innerPadding = innerPadding, viewModel = normalViewModel)
                 }
-
-                1 -> {
-                    val infiniteViewModel: InfiniteTicTacToeViewModel =
-                        viewModel(factory = LocalViewModelFactory.current)
-                    InfiniteTicTacToePage(innerPadding, infiniteViewModel)
+                composable(routeInfiniteTicTacToe) {
+                    val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
+                    InfiniteTicTacToePage(innerPadding = innerPadding, viewModel = infiniteViewModel)
                 }
-
-                gameHistoryItemIndex -> {
-                    NavHost(
-                        navController = navController,
-                        startDestination = "game_history_screen/history",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable(
-                            route = "game_history_screen/{initialTab}",
-                            arguments = listOf(navArgument("initialTab") {
-                                type = NavType.StringType
-                            })
-                        ) { backStackEntry ->
-                            val initialTab =
-                                backStackEntry.arguments?.getString("initialTab") ?: "history"
-                            GameHistoryScreen(
-                                mainNavController = navController,
-                                initialTab = initialTab
-                            )
+                composable(routeOnlineLobby) { 
+                    OnlineLobbyScreen(
+                        innerPadding = innerPadding,
+                        onNavigateToGame = { gameId ->
+                            navController.navigate("online_game/$gameId")
                         }
-                        composable(
-                            route = "match_details/{matchId}",
-                            arguments = listOf(navArgument("matchId") { type = NavType.LongType })
-                        ) {
-                            MatchDetailsPage(
-                                innerPadding = innerPadding,
-                                navController = navController
-                            )
-                        }
-                        composable(
-                            route = "roundReplay/{matchId}/{roundId}/{gameType}",
-                            arguments = listOf(
-                                navArgument("matchId") { type = NavType.LongType },
-                                navArgument("roundId") { type = NavType.LongType },
-                                navArgument("gameType") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            val matchId = backStackEntry.arguments?.getLong("matchId") ?: 0L
-                            val roundId = backStackEntry.arguments?.getLong("roundId") ?: 0L
-                            RoundReplayScreen(
-                                navController = navController,
-                                matchId = matchId,
-                                roundId = roundId
-                            )
-                        }
+                    )
+                }
+                composable(
+                    route = "online_game/{gameId}",
+                    arguments = listOf(navArgument("gameId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val gameId = backStackEntry.arguments?.getString("gameId")
+                    if (gameId != null) {
+                        OnlineGameScreen(
+                            gameId = gameId,
+                            navController = navController
+                        ) // Correctly passing navController
+                    } else {
+                        Text(
+                            "Error: Game ID missing. Cannot load game.",
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
-
-                3 -> SettingsPage(innerPadding = innerPadding)
-                4 -> HelpPage(innerPadding = innerPadding)
+                composable(routeGameHistoryWrapper) {
+                    val gameHistoryNavController = rememberNavController()
+                    GameHistoryWrapper(
+                        paddingValues = innerPadding,
+                        mainNavController = navController, 
+                        gameHistoryNavController = gameHistoryNavController,
+                        showClearHistoryDialog = { showClearHistoryDialog = true },
+                        showDeleteMatchDialog = { matchId ->
+                            showDeleteMatchDialog = true
+                        },
+                        showDeleteRoundDialog = { roundId ->
+                            showDeleteRoundDialog = true
+                        }
+                    )
+                }
+                composable(routeSettings) {
+                    SettingsPage(innerPadding = innerPadding)
+                }
+                composable(routeHelp) {
+                    HelpPage(innerPadding = innerPadding)
+                }
             }
         }
     }
 }
+
+// Wrapper Composable for Game History's nested navigation
+@Composable
+fun GameHistoryWrapper(
+    paddingValues: PaddingValues,
+    mainNavController: NavHostController, 
+    gameHistoryNavController: NavHostController,
+    showClearHistoryDialog: () -> Unit, 
+    showDeleteMatchDialog: (Long) -> Unit,
+    showDeleteRoundDialog: (Long) -> Unit
+) {
+    NavHost(
+        navController = gameHistoryNavController,
+        startDestination = "game_history_screen/history",
+        modifier = Modifier 
+    ) {
+        composable(
+            route = "game_history_screen/{initialTab}",
+            arguments = listOf(navArgument("initialTab") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val initialTab = backStackEntry.arguments?.getString("initialTab") ?: "history"
+            GameHistoryScreen(
+                paddingValues,
+                mainNavController = gameHistoryNavController, 
+                initialTab = initialTab
+            )
+        }
+        composable(
+            route = "match_details/{matchId}",
+            arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+        ) {
+            MatchDetailsPage(
+                innerPadding = PaddingValues(), 
+                navController = gameHistoryNavController 
+            )
+        }
+        composable(
+            route = "roundReplay/{matchId}/{roundId}/{gameType}",
+            arguments = listOf(
+                navArgument("matchId") { type = NavType.LongType },
+                navArgument("roundId") { type = NavType.LongType },
+                navArgument("gameType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val matchId = backStackEntry.arguments?.getLong("matchId") ?: 0L
+            val roundId = backStackEntry.arguments?.getLong("roundId") ?: 0L
+            RoundReplayScreen(
+                navController = gameHistoryNavController, 
+                matchId = matchId,
+                roundId = roundId
+            )
+        }
+    }
+}
+
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Preview

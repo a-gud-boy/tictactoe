@@ -21,7 +21,7 @@ object AISettingsManager {
         get() = _currentDifficulty
         set(value) {
             _currentDifficulty = value
-            sharedPreferences?.edit()?.putString(KEY_DIFFICULTY, value.name)?.apply()
+            sharedPreferences?.edit()?.putString(KEY_DIFFICULTY, value.name)?.commit() // Changed to commit
         }
 
     private var _isAiModeEnabled by mutableStateOf(false)
@@ -29,7 +29,7 @@ object AISettingsManager {
         get() = _isAiModeEnabled
         set(value) {
             _isAiModeEnabled = value
-            sharedPreferences?.edit()?.putBoolean(KEY_AI_MODE, value)?.apply()
+            sharedPreferences?.edit()?.putBoolean(KEY_AI_MODE, value)?.commit() // Changed to commit
         }
 
     private var _isSoundEnabled by mutableStateOf(true)
@@ -38,14 +38,14 @@ object AISettingsManager {
         get() = _isSoundEnabled
         set(value) {
             _isSoundEnabled = value
-            sharedPreferences?.edit()?.putBoolean(KEY_SOUND_ENABLED, value)?.apply()
+            sharedPreferences?.edit()?.putBoolean(KEY_SOUND_ENABLED, value)?.commit() // Changed to commit
         }
 
     var saveHistoryEnabled: Boolean
         get() = _saveHistoryEnabled
         set(value) {
             _saveHistoryEnabled = value
-            sharedPreferences?.edit()?.putBoolean(KEY_SAVE_HISTORY, value)?.apply()
+            sharedPreferences?.edit()?.putBoolean(KEY_SAVE_HISTORY, value)?.commit() // Changed to commit
         }
 
     fun init(context: Context) {

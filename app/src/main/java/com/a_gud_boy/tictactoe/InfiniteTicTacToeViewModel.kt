@@ -152,33 +152,28 @@ class InfiniteTicTacToeViewModel(
         return when (winner) {
             Player.X -> if (isAIMode.value) "You Won" else "Player 1 Won"
             Player.O -> if (isAIMode.value) "AI Won" else "Player 2 Won"
-            // Infinite mode typically doesn't have a "draw" state in the same way as normal.
-            // A round ends when a player achieves a line with their visible moves.
-            // If _winnerInfo is null (which it would be if no line is formed),
-            // but resetRound is called (e.g. by resetScores), then "Round Over" or similar.
             null -> "Round Over"
         }
     }
 
-    fun resetRound() { // End of a round in Infinite mode
+    fun resetRound() {
         gameTimer.pauseRoundTimer()
 
         if (_currentRoundMoves.value.isNotEmpty()) {
             val roundNumber = _currentMatchRounds.value.size + 1
-            val currentWinnerInfo = _winnerInfo.value // Capture current winner info for this round
+            val currentWinnerInfo = _winnerInfo.value
             val roundWinner = currentWinnerInfo?.winner
             val roundWinnerName = determineRoundWinnerNameInfinite(roundWinner)
-            // Convert winning combination to JSON string
             val winningComboJson = currentWinnerInfo?.orderedWin?.let { orderedWinList ->
                 if (orderedWinList.isNotEmpty()) JSONArray(orderedWinList).toString() else null
             }
 
             val tempRoundEntity = RoundEntity(
-                roundId = 0, ownerMatchId = 0, // ownerMatchId is a placeholder, set when match is saved
+                roundId = 0, ownerMatchId = 0,
                 roundNumber = roundNumber,
                 winner = roundWinner?.name,
                 roundWinnerName = roundWinnerName,
-                winningCombinationJson = winningComboJson // Set the new field
+                winningCombinationJson = winningComboJson
             )
             val completedRoundWithMoves = RoundWithMoves(
                 round = tempRoundEntity,
@@ -196,14 +191,11 @@ class InfiniteTicTacToeViewModel(
         _gameStarted.value = true
     }
 
-    fun resetScores() { // End of a match in Infinite mode
+    fun resetScores() {
         viewModelScope.launch {
-            // gameTimer.getFinalMatchDuration() will handle pausing if active.
-            // Handle the currently ongoing round's data correctly before it's cleared by resetRound()
-            if (_currentRoundMoves.value.isNotEmpty()) {
-                // This logic effectively finalizes the last round if it wasn't formally ended by a win/resetRound
-                val roundNumber = _currentMatchRounds.value.size + 1 // Potential next round number
-                val finalRoundWinnerInfo = _winnerInfo.value // Info for the round that was ongoing
+            if (_currentRoundMoves.value.isNotEmpty() || _winnerInfo.value != null) {
+                val roundNumber = _currentMatchRounds.value.size + 1
+                val finalRoundWinnerInfo = _winnerInfo.value
                 val finalRoundWinner = finalRoundWinnerInfo?.winner
                 val finalRoundWinnerName = determineRoundWinnerNameInfinite(finalRoundWinner)
                 val finalRoundWinningComboJson = finalRoundWinnerInfo?.orderedWin?.let { orderedWinList ->
@@ -211,21 +203,22 @@ class InfiniteTicTacToeViewModel(
                 }
 
                 val finalTempRoundEntity = RoundEntity(
-                    roundId = 0, // Placeholder
-                    ownerMatchId = 0, // Placeholder
+                    roundId = 0,
+                    ownerMatchId = 0,
                     roundNumber = roundNumber,
                     winner = finalRoundWinner?.name,
                     roundWinnerName = finalRoundWinnerName,
                     winningCombinationJson = finalRoundWinningComboJson
                 )
-                val lastRoundWithMoves = RoundWithMoves(
-                    round = finalTempRoundEntity,
-                    moves = _currentRoundMoves.value // Moves from the ongoing round
-                )
-                _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
+                if(_currentRoundMoves.value.isNotEmpty() || finalRoundWinner != null) {
+                     val lastRoundWithMoves = RoundWithMoves(
+                        round = finalTempRoundEntity,
+                        moves = _currentRoundMoves.value
+                    )
+                    _currentMatchRounds.value = _currentMatchRounds.value + lastRoundWithMoves
+                }
             }
 
-            // Now, proceed to save the match and all rounds in _currentMatchRounds
             val p1FinalScore = _player1Wins.value
             val p2FinalScore = _player2Wins.value
             val matchWinnerName = when {
@@ -246,51 +239,28 @@ class InfiniteTicTacToeViewModel(
                 player1Score = p1FinalScore,
                 player2Score = p2FinalScore,
                 matchWinnerName = matchWinnerName,
-                winner = winner, // Pass the determined winner
+                winner = winner,
                 isAgainstAi = _isAIMode.value,
-                gameType = GameType.INFINITE, // Use GameType.INFINITE
+                gameType = GameType.INFINITE,
                 timestamp = System.currentTimeMillis(),
                 duration = gameTimer.getFinalMatchDuration()
             )
 
-            if (AISettingsManager.saveHistoryEnabled) {
+            if (AISettingsManager.saveHistoryEnabled && _currentMatchRounds.value.isNotEmpty()) {
                 val matchId = matchDao.insertMatch(matchEntity)
-
-                // Save all accumulated rounds. Their winningCombinationJson should be set
-                // either by previous calls to resetRound() or by the logic at the start of this function.
                 _currentMatchRounds.value.forEach { roundWithMoves ->
                     val actualRoundEntity = roundWithMoves.round.copy(ownerMatchId = matchId)
-                    // roundDao.insertRound(actualRoundEntity) // roundWithMoves.round already has winningCombinationJson
-                    // val roundId = actualRoundEntity.roundId // Assuming insertRound returns the ID or it's auto-generated and part of actualRoundEntity
-
-                    // If roundId is not directly available, this part might need adjustment
-                    // For now, assume roundId is obtainable for linking moves.
-                    // A more robust way would be to get the returned roundId from insertRound.
-                    // However, RoundEntity's PK is autoGenerate=true. The DAO insert should return the generated ID.
-                    // For simplicity, we'll assume the roundId from actualRoundEntity is sufficient if it's auto-updated post-insert,
-                    // or that the DAO structure handles this. The critical part is that actualRoundEntity has the JSON string.
-                    // The subtask should ensure that the `roundId` used for `move.copy(ownerRoundId = roundId)` is correct.
-                    // The current structure seems to imply `roundDao.insertRound` returns the ID.
-                    // Let's assume `val actualRoundId = roundDao.insertRound(actualRoundEntity)` is how it works.
                     val actualRoundId = roundDao.insertRound(actualRoundEntity)
-
-
                     roundWithMoves.moves.forEach { move ->
                         moveDao.insertMove(move.copy(ownerRoundId = actualRoundId))
                     }
                 }
-            } else {
-                // Optionally, log that history saving is disabled
-                // Log.d("InfiniteTicTacToeViewModel", "Save history is disabled. Match data not saved.")
             }
 
-            // Clear all match-specific states for a new game
             _player1Wins.value = 0
             _player2Wins.value = 0
-            _currentMatchRounds.value = emptyList() // Clear the list of rounds
-
-            // _currentRoundMoves and _winnerInfo will be reset by the following call to resetRound()
-            resetRound() // Prepare for a brand new round
+            _currentMatchRounds.value = emptyList()
+            resetRound()
             gameTimer.reset()
         }
     }
@@ -336,21 +306,17 @@ class InfiniteTicTacToeViewModel(
 
     fun makeAIMove() {
         if (!_gameStarted.value || _isGameConcluded.value || _player1Turn.value || !_isAIMode.value) return
-        viewModelScope.launch { // Outer launch remains on Main for initial checks and final UI update via onButtonClick
-            // Delay and sound play can remain on Main or be moved, but are short.
-            delay(100) // Small delay, likely fine on Main.
-            soundManager.playComputerMoveSound(volume) // Sound operations should be quick.
+        viewModelScope.launch {
+            delay(100)
+            soundManager.playComputerMoveSound(volume)
 
-            val move = withContext(Dispatchers.Default) { // Switch to background thread for CPU-intensive work
+            val move = withContext(Dispatchers.Default) {
                 when (_aiDifficulty.value) {
                     AIDifficulty.EASY -> getRandomMove()
-                    AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove() // getBestMove includes minimax
-                    AIDifficulty.HARD -> getBestMove() // getBestMove includes minimax
+                    AIDifficulty.MEDIUM -> if (Math.random() < 0.6) getBestMove() else getRandomMove()
+                    AIDifficulty.HARD -> getBestMove()
                 }
             }
-            // By this point, `move` is calculated. `onButtonClick` will update StateFlows,
-            // which should happen on the main thread. Since `onButtonClick` itself doesn't
-            // specify a dispatcher and StateFlow updates are main-safe, this is okay.
             move?.let { onButtonClick(it) }
         }
     }
@@ -438,15 +404,37 @@ class InfiniteTicTacToeViewModel(
 
     fun setAIMode(enabled: Boolean) {
         _isAIMode.value = enabled
-        AISettingsManager.isAiModeEnabled = enabled
+        // AISettingsManager.isAiModeEnabled = enabled // This line is handled by SettingsPage now
         resetScores() // Reset scores and round
     }
 
     fun setAIDifficulty(difficulty: AIDifficulty) {
         _aiDifficulty.value = difficulty
-        AISettingsManager.currentDifficulty = difficulty
+        // AISettingsManager.currentDifficulty = difficulty // This line is handled by SettingsPage now
         if (_isAIMode.value) {
             resetScores() // Reset scores and round
+        }
+    }
+
+    fun refreshSettingsFromManager() {
+        val newAiMode = AISettingsManager.isAiModeEnabled
+        val newDifficulty = AISettingsManager.currentDifficulty
+        var settingsChanged = false
+
+        if (newAiMode != _isAIMode.value) {
+            _isAIMode.value = newAiMode
+            settingsChanged = true
+        }
+
+        if (newAiMode && newDifficulty != _aiDifficulty.value) {
+            _aiDifficulty.value = newDifficulty
+            settingsChanged = true
+        } else if (!newAiMode && _aiDifficulty.value != newDifficulty) {
+            _aiDifficulty.value = newDifficulty
+        }
+
+        if (settingsChanged) {
+            resetScores()
         }
     }
 
