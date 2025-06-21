@@ -1,4 +1,4 @@
-package com.example.tictactoe.ui.theme
+package com.a_gud_boy.tictactoe // Updated package declaration
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
