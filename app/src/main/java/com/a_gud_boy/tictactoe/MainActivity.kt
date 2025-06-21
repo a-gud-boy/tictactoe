@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
+import com.example.tictactoe.ui.theme.HomeScreen // Import for HomeScreen
 
 // ViewModelProvider.Factory is already imported via androidx.lifecycle.ViewModelProvider
 
@@ -167,11 +168,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TictactoeTheme {
-                CompositionLocalProvider(LocalViewModelFactory provides viewModelFactory) { // Provide factory
-                    MainPage() // MainPage will now have access via LocalViewModelFactory.current
-                    // Assuming MainPage is updated to not expect viewModelFactory as a parameter
-                    // or can still accept it for other purposes but new ViewModels use the Local.
-                }
+                // CompositionLocalProvider(LocalViewModelFactory provides viewModelFactory) { // Provide factory
+                //    MainPage() // MainPage will now have access via LocalViewModelFactory.current
+                //    // Assuming MainPage is updated to not expect viewModelFactory as a parameter
+                //    // or can still accept it for other purposes but new ViewModels use the Local.
+                // }
+                HomeScreen() // Call the new HomeScreen
             }
         }
     }
