@@ -162,10 +162,10 @@ class MainActivity : ComponentActivity() {
                             GameSetupScreen(navController = navController)
                         }
                         composable("normal_game") {
-                            NormalTicTacToePage(innerPadding = PaddingValues()) // Pass empty PaddingValues for now
+                            NormalTicTacToePage(navController = navController)
                         }
                         composable("infinite_game") {
-                            InfiniteTicTacToePage(innerPadding = PaddingValues()) // Pass empty PaddingValues for now
+                            InfiniteTicTacToePage(navController = navController)
                         }
                     }
                 } else {
