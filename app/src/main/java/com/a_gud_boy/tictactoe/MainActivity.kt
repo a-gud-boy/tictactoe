@@ -2,22 +2,22 @@ package com.a_gud_boy.tictactoe
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
@@ -28,9 +28,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.a_gud_boy.tictactoe.ui.theme.TictactoeTheme
-import kotlinx.coroutines.delay
 import com.google.firebase.auth.FirebaseAuth
-import android.util.Log
 
 // Define LocalViewModelFactory, can be in MainActivity.kt or a separate file
 val LocalViewModelFactory = staticCompositionLocalOf<ViewModelProvider.Factory> {
@@ -83,6 +81,7 @@ class TicTacToeViewModelFactory(
                     appDatabase.roundDao(),
                     appDatabase.moveDao()
                 ) as T
+
             modelClass.isAssignableFrom(InfiniteTicTacToeViewModel::class.java) ->
                 InfiniteTicTacToeViewModel(
                     soundManager,
@@ -90,25 +89,30 @@ class TicTacToeViewModelFactory(
                     appDatabase.roundDao(),
                     appDatabase.moveDao()
                 ) as T
+
             modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
                 HistoryViewModel(appDatabase.matchDao()) as T
+
             modelClass.isAssignableFrom(MatchDetailsViewModel::class.java) ->
                 MatchDetailsViewModel(
                     appDatabase.matchDao(),
                     savedStateHandle
                 ) as T
+
             modelClass.isAssignableFrom(RoundReplayViewModel::class.java) ->
                 RoundReplayViewModel(
                     appDatabase.matchDao(),
                     appDatabase.roundDao(),
                     savedStateHandle
                 ) as T
+
             modelClass.isAssignableFrom(OnlineGameViewModel::class.java) -> {
                 val gameId = savedStateHandle.get<String>("gameId")
                     ?: throw IllegalStateException("gameId not found in SavedStateHandle for OnlineGameViewModel")
                 @Suppress("UNCHECKED_CAST")
                 OnlineGameViewModel(gameId, soundManager) as T
             }
+
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }
@@ -134,42 +138,53 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
 
                     LaunchedEffect(Unit) {
-                    val auth = FirebaseAuth.getInstance()
-                    if (auth.currentUser == null) {
-                        auth.signInAnonymously()
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    Log.d("MainPageAuth", "signInAnonymously:success. User ID: ${auth.currentUser?.uid}")
-                                    isSignedIn = true
-                                } else {
-                                    Log.w("MainPageAuth", "signInAnonymously:failure", task.exception)
-                                    // Optionally, handle sign-in failure (e.g., show an error, retry, etc.)
-                                    // For now, it will remain on the loading screen if sign-in fails.
+                        val auth = FirebaseAuth.getInstance()
+                        if (auth.currentUser == null) {
+                            auth.signInAnonymously()
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        Log.d(
+                                            "MainPageAuth",
+                                            "signInAnonymously:success. User ID: ${auth.currentUser?.uid}"
+                                        )
+                                        isSignedIn = true
+                                    } else {
+                                        Log.w(
+                                            "MainPageAuth",
+                                            "signInAnonymously:failure",
+                                            task.exception
+                                        )
+                                        // Optionally, handle sign-in failure (e.g., show an error, retry, etc.)
+                                        // For now, it will remain on the loading screen if sign-in fails.
+                                    }
                                 }
-                            }
-                    } else {
-                        Log.d("MainPageAuth", "User already signed in. User ID: ${auth.currentUser?.uid}")
-                        isSignedIn = true // Already signed in
+                        } else {
+                            Log.d(
+                                "MainPageAuth",
+                                "User already signed in. User ID: ${auth.currentUser?.uid}"
+                            )
+                            isSignedIn = true // Already signed in
+                        }
                     }
-                }
 
-                if (isSignedIn) {
-                    NavHost(navController = navController, startDestination = "home") {
-                        composable("home") {
-                            HomeScreen(navController = navController)
+                    if (isSignedIn) {
+                        NavHost(navController = navController, startDestination = "home") {
+                            composable("home") {
+                                HomeScreen(navController = navController)
+                            }
+                            composable("game_setup") {
+                                GameSetupScreen(navController = navController)
+                            }
+                            composable("normal_game") {
+                                NormalTicTacToePage(navController = navController)
+                            }
+                            composable("infinite_game") {
+                                InfiniteTicTacToePage(navController = navController)
+                            }
                         }
-                        composable("game_setup") {
-                            GameSetupScreen(navController = navController)
-                        }
-                        composable("normal_game") {
-                            NormalTicTacToePage(navController = navController)
-                        }
-                        composable("infinite_game") {
-                            InfiniteTicTacToePage(navController = navController)
-                        }
+                    } else {
+                        LoadingScreen()
                     }
-                } else {
-                    LoadingScreen()
                 }
             }
         }

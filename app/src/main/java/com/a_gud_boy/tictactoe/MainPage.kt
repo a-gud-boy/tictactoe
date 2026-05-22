@@ -347,11 +347,11 @@ fun MainPage() {
             ) {
                 composable(routeNormalTicTacToe) {
                     val normalViewModel: NormalTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
-                    NormalTicTacToePage(innerPadding = innerPadding, viewModel = normalViewModel)
+//                    NormalTicTacToePage(innerPadding = innerPadding, viewModel = normalViewModel)
                 }
                 composable(routeInfiniteTicTacToe) {
                     val infiniteViewModel: InfiniteTicTacToeViewModel = viewModel(factory = LocalViewModelFactory.current)
-                    InfiniteTicTacToePage(innerPadding = innerPadding, viewModel = infiniteViewModel)
+//                    InfiniteTicTacToePage(innerPadding = innerPadding, viewModel = infiniteViewModel)
                 }
                 composable(routeOnlineLobby) { 
                     OnlineLobbyScreen(

@@ -1,5 +1,6 @@
 package com.a_gud_boy.tictactoe
 
+// Removed DisposableEffect as it's not used after recent changes
 import android.annotation.SuppressLint
 import android.os.Build
 import android.view.HapticFeedbackConstants
@@ -10,18 +11,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -30,16 +30,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.IconButton
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
-// Removed DisposableEffect as it's not used after recent changes
-import androidx.compose.runtime.LaunchedEffect // Ensure this is imported
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,11 +55,11 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalContext // Not used directly, consider removing
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -214,7 +212,7 @@ fun NormalTicTacToePage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tic Tac Toe") },
+                title = { Text("Tic Tac Toe", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -224,9 +222,7 @@ fun NormalTicTacToePage(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = colorResource(R.color.background)
                 )
             )
         }
@@ -249,283 +245,288 @@ fun NormalTicTacToePage(
             ) {
                 ConstraintLayout(
                     constraintSet = constraints,
-                modifier = Modifier
-                    .padding(20.dp, 10.dp, 20.dp, 20.dp)
-                    .width(300.dp)
-                    .height(300.dp)
-                    .shadow(4.dp, shape = RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(colorResource(R.color.constraint_background))
-                    // Custom drawing logic for the winning line.
-                    .drawWithContent {
-                        drawContent() // Draw the ConstraintLayout children (the cells) first.
-                        // Condition to draw the line: there must be a winning combination and animation progress > 0.
-                        if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
-                            val currentWinner = winnerInfo?.winner
-                                ?: return@drawWithContent // Exit if no winner (should not happen if combination is present).
+                    modifier = Modifier
+                        .padding(20.dp, 10.dp, 20.dp, 20.dp)
+                        .width(300.dp)
+                        .height(300.dp)
+                        .shadow(4.dp, shape = RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(colorResource(R.color.constraint_background))
+                        // Custom drawing logic for the winning line.
+                        .drawWithContent {
+                            drawContent() // Draw the ConstraintLayout children (the cells) first.
+                            // Condition to draw the line: there must be a winning combination and animation progress > 0.
+                            if (orderedWinningCombination.value.size >= 2 && lineAnimationProgress.value > 0f) {
+                                val currentWinner = winnerInfo?.winner
+                                    ?: return@drawWithContent // Exit if no winner (should not happen if combination is present).
 
-                            val animationDrawStartButtonId =
-                                orderedWinningCombination.value.last()
-                            val animationDrawEndButtonId =
-                                orderedWinningCombination.value.first()
+                                val animationDrawStartButtonId =
+                                    orderedWinningCombination.value.last()
+                                val animationDrawEndButtonId =
+                                    orderedWinningCombination.value.first()
 
-                            val animStartCellCoordinates =
-                                buttonCoordinates[animationDrawStartButtonId]
-                            val animEndCellCoordinates = buttonCoordinates[animationDrawEndButtonId]
+                                val animStartCellCoordinates =
+                                    buttonCoordinates[animationDrawStartButtonId]
+                                val animEndCellCoordinates =
+                                    buttonCoordinates[animationDrawEndButtonId]
 
-                            if (animStartCellCoordinates != null && animEndCellCoordinates != null) {
-                                val actualLineStartPoint = Offset(
-                                    animStartCellCoordinates.size.width / 2f + animStartCellCoordinates.positionInParent().x,
-                                    animStartCellCoordinates.size.height / 2f + animStartCellCoordinates.positionInParent().y
-                                )
-                                val actualLineEndPoint = Offset(
-                                    animEndCellCoordinates.size.width / 2f + animEndCellCoordinates.positionInParent().x,
-                                    animEndCellCoordinates.size.height / 2f + animEndCellCoordinates.positionInParent().y
-                                )
-                                val animatedLineVisualEndPoint = lerp(
-                                    actualLineStartPoint,
-                                    actualLineEndPoint,
-                                    lineAnimationProgress.value
-                                )
-                                val lineExtensionPx = 30.dp.toPx()
-                                val currentDirectionVector =
-                                    animatedLineVisualEndPoint - actualLineStartPoint
-                                val lineColor = when (currentWinner) {
-                                    Player.X -> playerXColor
-                                    Player.O -> playerOColor
-                                }
-                                if (currentDirectionVector.getDistanceSquared() == 0f) {
-                                    if (lineAnimationProgress.value == 1f) {
+                                if (animStartCellCoordinates != null && animEndCellCoordinates != null) {
+                                    val actualLineStartPoint = Offset(
+                                        animStartCellCoordinates.size.width / 2f + animStartCellCoordinates.positionInParent().x,
+                                        animStartCellCoordinates.size.height / 2f + animStartCellCoordinates.positionInParent().y
+                                    )
+                                    val actualLineEndPoint = Offset(
+                                        animEndCellCoordinates.size.width / 2f + animEndCellCoordinates.positionInParent().x,
+                                        animEndCellCoordinates.size.height / 2f + animEndCellCoordinates.positionInParent().y
+                                    )
+                                    val animatedLineVisualEndPoint = lerp(
+                                        actualLineStartPoint,
+                                        actualLineEndPoint,
+                                        lineAnimationProgress.value
+                                    )
+                                    val lineExtensionPx = 30.dp.toPx()
+                                    val currentDirectionVector =
+                                        animatedLineVisualEndPoint - actualLineStartPoint
+                                    val lineColor = when (currentWinner) {
+                                        Player.X -> playerXColor
+                                        Player.O -> playerOColor
+                                    }
+                                    if (currentDirectionVector.getDistanceSquared() == 0f) {
+                                        if (lineAnimationProgress.value == 1f) {
+                                            drawLine(
+                                                color = lineColor.copy(alpha = 0.6f),
+                                                start = actualLineStartPoint,
+                                                end = animatedLineVisualEndPoint,
+                                                strokeWidth = 5.dp.toPx(),
+                                                cap = StrokeCap.Round
+                                            )
+                                        }
+                                    } else {
+                                        val normalizedDirection =
+                                            currentDirectionVector / currentDirectionVector.getDistance()
+                                        val extendedVisualLineStart =
+                                            actualLineStartPoint - (normalizedDirection * lineExtensionPx)
+                                        val extendedVisualLineEnd =
+                                            animatedLineVisualEndPoint + (normalizedDirection * lineExtensionPx)
                                         drawLine(
                                             color = lineColor.copy(alpha = 0.6f),
-                                            start = actualLineStartPoint,
-                                            end = animatedLineVisualEndPoint,
+                                            start = extendedVisualLineStart,
+                                            end = extendedVisualLineEnd,
                                             strokeWidth = 5.dp.toPx(),
                                             cap = StrokeCap.Round
                                         )
                                     }
-                                } else {
-                                    val normalizedDirection =
-                                        currentDirectionVector / currentDirectionVector.getDistance()
-                                    val extendedVisualLineStart =
-                                        actualLineStartPoint - (normalizedDirection * lineExtensionPx)
-                                    val extendedVisualLineEnd =
-                                        animatedLineVisualEndPoint + (normalizedDirection * lineExtensionPx)
-                                    drawLine(
-                                        color = lineColor.copy(alpha = 0.6f),
-                                        start = extendedVisualLineStart,
-                                        end = extendedVisualLineEnd,
-                                        strokeWidth = 5.dp.toPx(),
-                                        cap = StrokeCap.Round
-                                    )
                                 }
                             }
                         }
-                    }
-            ) {
-                val buttonIds = List(9) { i -> "button${i + 1}" }
-                buttonIds.forEach { buttonId ->
-                    val cellPlayer: Player? = when {
-                        player1Moves.contains(buttonId) -> Player.X
-                        player2Moves.contains(buttonId) -> Player.O
-                        else -> null
-                    }
-                    TicTacToeCell(
-                        modifier = Modifier
-                            .background(color = Color.White, shape = RoundedCornerShape(10.dp))
-                            .width(80.dp)
-                            .height(80.dp)
-                            .layoutId(buttonId)
-                            .onGloballyPositioned { coordinates ->
-                                buttonCoordinates[buttonId] = coordinates
-                            },
-                        player = cellPlayer,
-                        isOldMove = false,
-                        iconSize = iconSize,
-                        buttonId = buttonId,
-                        onClick = {
-                            HapticFeedbackManager.performHapticFeedback(
-                                view,
-                                HapticFeedbackConstants.VIRTUAL_KEY
-                            )
-                            viewModel.onButtonClick(buttonId)
-                        }
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .padding(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceAround
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 10.dp)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "$turnDenotingText (",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontSize = 20.sp
-                        )
-                        val turnIconContentDescription = when {
-                            winnerInfo?.winner == Player.X -> "Player X is the winner"
-                            winnerInfo?.winner == Player.O -> "Player O is the winner"
-                            winnerInfo != null && winnerInfo?.winner == null -> "Game is a draw"
-                            player1Turn -> "Player X's turn"
-                            else -> "Player O's turn"
+                    val buttonIds = List(9) { i -> "button${i + 1}" }
+                    buttonIds.forEach { buttonId ->
+                        val cellPlayer: Player? = when {
+                            player1Moves.contains(buttonId) -> Player.X
+                            player2Moves.contains(buttonId) -> Player.O
+                            else -> null
                         }
+                        TicTacToeCell(
+                            modifier = Modifier
+                                .background(color = Color.White, shape = RoundedCornerShape(10.dp))
+                                .width(80.dp)
+                                .height(80.dp)
+                                .layoutId(buttonId)
+                                .onGloballyPositioned { coordinates ->
+                                    buttonCoordinates[buttonId] = coordinates
+                                },
+                            player = cellPlayer,
+                            isOldMove = false,
+                            iconSize = iconSize,
+                            buttonId = buttonId,
+                            onClick = {
+                                HapticFeedbackManager.performHapticFeedback(
+                                    view,
+                                    HapticFeedbackConstants.VIRTUAL_KEY
+                                )
+                                viewModel.onButtonClick(buttonId)
+                            }
+                        )
+                    }
+                }
 
-                        if (winnerInfo?.winner == Player.X || (winnerInfo == null && player1Turn)) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = turnIconContentDescription
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .padding(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceAround
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(top = 10.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "$turnDenotingText (",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 20.sp
                             )
-                        } else if (winnerInfo?.winner == Player.O || (winnerInfo == null && !player1Turn)) {
-                            Icon(
-                                painterResource(R.drawable.player_2),
-                                contentDescription = turnIconContentDescription
+                            val turnIconContentDescription = when {
+                                winnerInfo?.winner == Player.X -> "Player X is the winner"
+                                winnerInfo?.winner == Player.O -> "Player O is the winner"
+                                winnerInfo != null && winnerInfo?.winner == null -> "Game is a draw"
+                                player1Turn -> "Player X's turn"
+                                else -> "Player O's turn"
+                            }
+
+                            if (winnerInfo?.winner == Player.X || (winnerInfo == null && player1Turn)) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = turnIconContentDescription
+                                )
+                            } else if (winnerInfo?.winner == Player.O || (winnerInfo == null && !player1Turn)) {
+                                Icon(
+                                    painterResource(R.drawable.player_2),
+                                    contentDescription = turnIconContentDescription
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Player X icon for draw display"
+                                )
+                                Text(
+                                    "\uD83E\uDD1D",
+                                    Modifier.width(24.dp)
+                                )
+                                Icon(
+                                    painterResource(R.drawable.player_2),
+                                    contentDescription = "Player O icon for draw display"
+                                )
+                            }
+                            Text(
+                                text = ")",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 20.sp
                             )
-                        } else {
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(bottom = 10.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
                             Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Player X icon for draw display"
+                                Icons.Filled.Close,
+                                contentDescription = "Player X score icon",
+                                tint = playerXColor,
+                                modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
                             )
                             Text(
-                                "\uD83E\uDD1D",
-                                Modifier.width(24.dp)
+                                player1Wins.toString(),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(R.color.numberOfWinsTextColor_x),
+                                modifier = Modifier
+                                    .background(
+                                        colorResource(R.color.numberOfWinsBackgroundColor_x),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(12.dp)
+                            )
+                            Text(
+                                "-", style = MaterialTheme.typography.labelMedium,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(R.color.hyphenColor),
+                                modifier = Modifier.padding(10.dp)
                             )
                             Icon(
                                 painterResource(R.drawable.player_2),
-                                contentDescription = "Player O icon for draw display"
+                                contentDescription = "Player O score icon",
+                                tint = playerOColor,
+                                modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
+                            )
+                            Text(
+                                player2Wins.toString(),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorResource(R.color.numberOfWinsTextColor_o),
+                                modifier = Modifier
+                                    .background(
+                                        colorResource(R.color.numberOfWinsBackgroundColor_o),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(12.dp)
                             )
                         }
-                        Text(
-                            text = ")",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontSize = 20.sp
-                        )
                     }
+                }
+
+                Button(
+                    onClick = {
+                        viewModel.resetRound()
+                        buttonCoordinates.clear()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.blue_o_icon),
+                        contentColor = Color.White
+                    )
+                ) {
                     Row(
-                        modifier = Modifier
-                            .padding(bottom = 10.dp)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Filled.Close,
-                            contentDescription = "Player X score icon",
-                            tint = playerXColor,
-                            modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
+                            Icons.Filled.Refresh,
+                            contentDescription = "Refresh icon for new or reset round"
                         )
                         Text(
-                            player1Wins.toString(),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorResource(R.color.numberOfWinsTextColor_x),
+                            text = resetButtonText,
                             modifier = Modifier
-                                .background(
-                                    colorResource(R.color.numberOfWinsBackgroundColor_x),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .padding(12.dp)
-                        )
-                        Text(
-                            "-", style = MaterialTheme.typography.labelMedium,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorResource(R.color.hyphenColor),
-                            modifier = Modifier.padding(10.dp)
-                        )
-                        Icon(
-                            painterResource(R.drawable.player_2),
-                            contentDescription = "Player O score icon",
-                            tint = playerOColor,
-                            modifier = Modifier.padding(0.dp, 6.dp, 6.dp, 6.dp)
-                        )
-                        Text(
-                            player2Wins.toString(),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorResource(R.color.numberOfWinsTextColor_o),
-                            modifier = Modifier
-                                .background(
-                                    colorResource(R.color.numberOfWinsBackgroundColor_o),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .padding(12.dp)
+                                .padding(start = 8.dp)
                         )
                     }
                 }
-            }
-
-            Button(
-                onClick = {
-                    viewModel.resetRound()
-                    buttonCoordinates.clear()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.blue_o_icon),
-                    contentColor = Color.White
-                )
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Button(
+                    onClick = {
+                        viewModel.resetScores()
+                        buttonCoordinates.clear()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.resetScoresButtonBackground),
+                        contentColor = colorResource(R.color.darkTextColor)
+                    )
                 ) {
-                    Icon(
-                        Icons.Filled.Refresh,
-                        contentDescription = "Refresh icon for new or reset round"
-                    )
-                    Text(
-                        text = resetButtonText,
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                    )
-                }
-            }
-            Button(
-                onClick = {
-                    viewModel.resetScores()
-                    buttonCoordinates.clear()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.resetScoresButtonBackground),
-                    contentColor = colorResource(R.color.darkTextColor)
-                )
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh icon for reset scores")
-                    Text(
-                        text = "Reset Scores",
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Filled.Refresh,
+                            contentDescription = "Refresh icon for reset scores"
+                        )
+                        Text(
+                            text = "Reset Scores",
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                        )
+                    }
                 }
             }
         }
